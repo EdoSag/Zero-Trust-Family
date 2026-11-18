@@ -168,7 +168,9 @@ class _FamilyHomeState extends ConsumerState<FamilyHome> {
     try {
       // A link can arrive while a join screen is open, so keep taking until
       // none are left.
-      while (true) {
+      // Taking empties the phone's queue, so a home that has closed (the app
+      // locked mid-join) must leave the links for the next one.
+      while (mounted) {
         final links = await IncomingLinks.instance.take();
         if (links.isEmpty) return;
         for (final link in links) {
