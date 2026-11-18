@@ -166,10 +166,17 @@ class _FamilyHomeState extends ConsumerState<FamilyHome> {
     if (_takingLinks) return;
     _takingLinks = true;
     try {
-      final links = await IncomingLinks.instance.take();
-      for (final link in links) {
-        if (!mounted) return;
-        await joinCircle(context, ref, initialLink: link);
+      // A link can arrive while a join screen is open, so keep taking until
+      // none are left.
+      // Taking empties the phone's queue, so a home that has closed (the app
+      // locked mid-join) must leave the links for the next one.
+      while (mounted) {
+        final links = await IncomingLinks.instance.take();
+        if (links.isEmpty) return;
+        for (final link in links) {
+          if (!mounted) return;
+          await joinCircle(context, ref, initialLink: link);
+        }
       }
     } finally {
       _takingLinks = false;
