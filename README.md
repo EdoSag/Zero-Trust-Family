@@ -5,8 +5,10 @@ phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
 apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
 The server stores only ciphertext and can never see where anyone is.
 
-> **Status: planned, not built yet.** This repository holds the starting
-> point. The first code lands with phase L0 below.
+> **Status: phase L0.** The app signs in, locks and syncs like the other
+> Zero-Trust apps, and family circles work: create one, invite by link or QR
+> code, join, see the members, leave. Nobody's location is shared yet; that
+> is phase L1.
 
 ## What it will do
 
@@ -54,12 +56,42 @@ Not planned: hidden tracking of any kind, and screen time or app blocking.
 | L5 | Drive summaries, crash detection, Wear OS SOS |
 | L6 | iOS |
 
-## Contributing
+## Build
 
-Pull requests target the `Dev` branch. Releases are one `Dev` → `main` pull
-request; pushing to `main` will build a signed APK with the same keystore
-secrets as the other Zero-Trust apps (`ANDROID_KEYSTORE_BASE64`,
-`ANDROID_KEYSTORE_PASSWORD`) once the release workflow is added in L0.
+```bash
+# .env (not committed; CI writes its own)
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_ANON_KEY=<publishable key>
+
+flutter pub get
+dart run zt_release_checks --app family   # shared release checks
+flutter analyze && flutter test test/
+flutter run
+```
+
+Flutter 3.47.9 (3.50 deprecates `material.dart` and fails analyze).
+
+Pushing to `main` builds a signed APK and a Play bundle and publishes them as
+a GitHub Release (`.github/workflows/android-apk.yml`). It needs the
+repository secrets `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`,
+the same keystore as the other Zero-Trust apps. Pull requests target `Dev`;
+releases are one `Dev` → `main` pull request.
+
+## How the code is laid out
+
+- `lib/app/`: sign-in, lock and unlock (`app_gate.dart`), the app's id,
+  colour and sharing rules (`family_config.dart`), links from account emails.
+- `lib/data/family_data.dart`: circles as the screens see them, and every
+  change the app makes.
+- `lib/ui/`: home (circles, waiting joins), one circle, settings. Inviting,
+  joining and the member list are the suite's shared screens
+  (`zt_sharing_ui`).
+- A circle's name is the item `family.circle` in its shared space, written
+  by owners only. Items under `family.me/<user id>` can be written by that
+  member alone.
+- The location tables (`family_latest`, `family_events`) are in
+  Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
+  The app does not use them yet.
 
 ## License
 
