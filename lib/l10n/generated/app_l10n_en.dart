@@ -110,13 +110,6 @@ class AppL10nEn extends AppL10n {
   String get stopWaiting => 'Stop waiting';
 
   @override
-  String get locationSoonTitle => 'Location sharing comes next';
-
-  @override
-  String get locationSoonBody =>
-      'This version sets up your circle. Sharing where you are, places and check-ins arrive in the next updates. Nobody\'s location is shared yet.';
-
-  @override
   String get couldNotCreate =>
       'Couldn\'t create the circle. Check your internet connection and try again.';
 
@@ -130,4 +123,170 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get circleGone => 'You\'re no longer in this circle.';
+
+  @override
+  String get notifyChannelName => 'Location sharing';
+
+  @override
+  String get notifySharingTitle => 'Sharing your location';
+
+  @override
+  String get notifySharingBody =>
+      'Your family circle can see where you are. Open ZT Family to pause.';
+
+  @override
+  String get notifyPausedTitle => 'Location sharing paused';
+
+  @override
+  String get notifyPausedBody =>
+      'Your circle sees \"Paused\". Open ZT Family to resume.';
+
+  @override
+  String get notifyUnlockTitle => 'Open ZT Family to keep sharing';
+
+  @override
+  String get notifyUnlockBody =>
+      'Someone joined or left your circle. Open the app once so your location reaches them again.';
+
+  @override
+  String get notSharing => 'Not sharing';
+
+  @override
+  String get pausedStatus => 'Paused';
+
+  @override
+  String pausedUntil(String time) {
+    return 'Paused until $time';
+  }
+
+  @override
+  String battery(int percent) {
+    return 'Battery $percent%';
+  }
+
+  @override
+  String batteryCharging(int percent) {
+    return 'Charging $percent%';
+  }
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shareConsentTitle => 'Share your location';
+
+  @override
+  String get shareConsentBody =>
+      'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nA notification shows while sharing is on. You can pause or stop at any time.';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get locationPermissionNeeded =>
+      'ZT Family needs location access to share where you are.';
+
+  @override
+  String get circleKeyNotReady =>
+      'This circle isn\'t ready on this phone yet. Try again in a moment.';
+
+  @override
+  String get pauseHour => 'For 1 hour';
+
+  @override
+  String get pauseTomorrow => 'Until tomorrow morning';
+
+  @override
+  String get pauseUntilResumed => 'Until I turn it back on';
+
+  @override
+  String get shareOffTitle => 'You\'re not sharing your location';
+
+  @override
+  String get shareOffBody =>
+      'Turn on sharing so this circle can see where you are.';
+
+  @override
+  String get shareOnTitle => 'You\'re sharing your location';
+
+  @override
+  String get shareOnBody =>
+      'Your circle sees where you are and your battery. It updates more often when you move.';
+
+  @override
+  String get sharePausedTitle => 'Sharing is paused';
+
+  @override
+  String get sharePausedOpenBody =>
+      'Your circle sees \"Paused\" until you resume.';
+
+  @override
+  String sharePausedUntilBody(String time) {
+    return 'Your circle sees \"Paused\" until $time.';
+  }
+
+  @override
+  String get shareLiveTitle => 'Sharing live';
+
+  @override
+  String shareLiveBody(String time) {
+    return 'Your circle sees you move every few seconds until $time.';
+  }
+
+  @override
+  String get shareStale =>
+      'Someone joined or left this circle. Sharing with it starts again now that the app is open.';
+
+  @override
+  String get needsAlwaysHint =>
+      'For sharing to keep going after your phone restarts, allow location \"All the time\" for ZT Family.';
+
+  @override
+  String get openSettings => 'Open settings';
+
+  @override
+  String get shareTurnOn => 'Share my location';
+
+  @override
+  String get shareTurnOff => 'Stop sharing';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get resume => 'Resume';
+
+  @override
+  String get shareLiveHour => 'Share live for 1 hour';
+
+  @override
+  String get stopLive => 'Stop live';
+
+  @override
+  String get showOnMap => 'Show on map';
 }

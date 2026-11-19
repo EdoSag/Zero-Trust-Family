@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zerotrust_family/app/family_config.dart';
 import 'package:zerotrust_family/data/family_data.dart';
+import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
+import 'package:zerotrust_family/location/location_backend.dart';
+import 'package:zerotrust_family/location/share_store.dart';
 import 'package:zerotrust_family/model/circle.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
@@ -75,13 +80,116 @@ class _MemoryName extends ZtSharingName {
 }
 
 late FakeActions actions;
+late FakeShareActions shareActions;
+late FakeShareService shareService;
+
+/// The Android service, as the share card sees it.
+class FakeShareService implements ShareServiceControl {
+  FakeShareService({
+    this.granted = const SharePermissions(
+      location: true,
+      background: true,
+      notifications: true,
+    ),
+  });
+
+  SharePermissions granted;
+  int requests = 0;
+
+  @override
+  Future<void> start() async {}
+  @override
+  Future<void> stop() async {}
+  @override
+  Future<void> poke() async {}
+  @override
+  Future<SharePermissions> permissions() async => granted;
+  @override
+  Future<SharePermissions> requestPermissions() async {
+    requests++;
+    return granted;
+  }
+}
+
+/// Records what the share card asks for and keeps the store in step, so
+/// the card redraws as it would on a phone.
+class FakeShareActions extends ShareActions {
+  FakeShareActions(super.ref);
+
+  final calls = <String>[];
+  InMemoryShareStore get _mem =>
+      ref.read(shareStoreProvider) as InMemoryShareStore;
+
+  Future<void> _set(ShareState state) async {
+    await _mem.save(state);
+    ref.read(shareRevisionProvider.notifier).bump();
+  }
+
+  ShareState get _now =>
+      _mem.state ?? ShareState.fresh(ref.read(myUserIdProvider)!);
+
+  @override
+  Future<void> startSharing(String spaceId) async {
+    calls.add('start $spaceId');
+    await _set(
+      _now.copyWith(
+        circles: [
+          CirclePackage(spaceId: spaceId, epoch: 1, boxPublic: Uint8List(32)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<void> stopSharing(String spaceId) async {
+    calls.add('stop $spaceId');
+    await _set(_now.copyWith(circles: const []));
+  }
+
+  @override
+  Future<void> pause(Duration? duration) async {
+    calls.add('pause ${duration?.inMinutes}');
+    await _set(
+      _now.copyWith(
+        pausedUntil: () =>
+            duration == null ? null : DateTime.now().add(duration),
+        pausedOpenEnded: duration == null,
+      ),
+    );
+  }
+
+  @override
+  Future<void> resume() async {
+    calls.add('resume');
+    await _set(_now.copyWith(pausedUntil: () => null, pausedOpenEnded: false));
+  }
+
+  @override
+  Future<void> shareLive([Duration duration = const Duration(hours: 1)]) async {
+    calls.add('live');
+    await _set(_now.copyWith(liveUntil: () => DateTime.now().add(duration)));
+  }
+
+  @override
+  Future<void> stopLive() async {
+    calls.add('stop live');
+    await _set(_now.copyWith(liveUntil: () => null));
+  }
+
+  @override
+  Future<void> refreshPackages() async {}
+}
 
 Widget app(
   Widget home, {
   FamilyData family = const FamilyData(ready: true, loading: false),
   Locale locale = ZtLanguages.english,
   String me = mum,
+  ShareState? share,
+  Map<String, MemberLocation> locations = const {},
+  FakeShareService? service,
 }) {
+  shareService = service ?? FakeShareService();
   return ProviderScope(
     overrides: [
       ztAppConfigProvider.overrideWithValue(familyAppConfig),
@@ -91,6 +199,15 @@ Widget app(
       ztPendingJoinsProvider.overrideWith((ref) async => const []),
       ztSharingNameProvider.overrideWith(_MemoryName.new),
       familyActionsProvider.overrideWith((ref) => actions = FakeActions(ref)),
+      shareStoreProvider.overrideWithValue(InMemoryShareStore(share)),
+      locationBackendProvider.overrideWithValue(
+        InMemoryLocationBackend(userId: me),
+      ),
+      shareServiceProvider.overrideWithValue(shareService),
+      shareActionsProvider.overrideWith(
+        (ref) => shareActions = FakeShareActions(ref),
+      ),
+      circleLocationsProvider.overrideWith((ref, spaceId) async => locations),
     ],
     child: MaterialApp(
       // The suite's real theme: its full-width buttons break rows that a
@@ -106,6 +223,7 @@ Widget app(
       builder: (context, child) => Consumer(
         builder: (context, ref, _) {
           ref.watch(familyActionsProvider);
+          ref.watch(shareActionsProvider);
           return child!;
         },
       ),

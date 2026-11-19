@@ -6,14 +6,27 @@
          family circle. -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
-    <!-- No location permissions yet: they arrive with location sharing
-         (phase L1), together with the in-app disclosure Google Play asks
-         for. -->
+    <!-- Location sharing with family circles (ShareService), only after
+         the in-app disclosure on the circle screen. "All the time" lets it
+         keep sharing while the phone is locked; the notification always
+         shows while it does. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Keeps the phone awake for the few seconds an upload takes. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Turns sharing back on after a restart, if it was on. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
 
     <application
         android:label="ZT Family"
         android:supportsRtl="true"
-        android:name="${applicationName}"
+        android:name=".FamilyApp"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -51,6 +64,18 @@
                 <data android:scheme="https" android:host="zerotrust.bz" android:pathPrefix="/join/family"/>
             </intent-filter>
         </activity>
+        <service
+            android:name=".ShareService"
+            android:exported="false"
+            android:foregroundServiceType="location"/>
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

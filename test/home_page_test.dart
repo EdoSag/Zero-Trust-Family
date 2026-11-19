@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zerotrust_family/data/family_data.dart';
+import 'package:zerotrust_family/data/locations.dart';
+import 'package:zerotrust_family/location/location_update.dart';
 import 'package:zerotrust_family/ui/circle_page.dart';
 import 'package:zerotrust_family/ui/home_page.dart';
 
@@ -117,25 +119,53 @@ void main() {
       ],
     );
     await tester.pumpWidget(
-      app(const CirclePage(spaceId: 'c1'), family: family),
+      app(
+        const CirclePage(spaceId: 'c1'),
+        family: family,
+        locations: {
+          dad: MemberLocation(
+            userId: dad,
+            deviceId: 'd',
+            update: LocationUpdate(
+              at: DateTime.now().subtract(const Duration(minutes: 5)),
+              lat: 32,
+              lng: 34.8,
+              battery: 64,
+              mode: MotionMode.still,
+            ),
+          ),
+        },
+      ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    final soon = tester.getRect(find.text('Location sharing comes next'));
-    final mumRow = tester.getRect(find.text('Mum (you)'));
+    final card = tester.getRect(find.byKey(const Key('share-card')));
+    final mumRow = tester.getRect(find.text('Mum (you) · Owner'));
     final dadRow = tester.getRect(find.text('Dad'));
+    // Dad shares; Mum doesn't yet.
+    final dadStatus = tester.getRect(find.byKey(Key('member-status-$dad')));
+    expect(find.text('5 minutes ago · Battery 64%'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(Key('member-status-$mum'))).data,
+      'Not sharing',
+    );
+    expect(mumRow.top, greaterThan(card.bottom));
+    expect(dadRow.top, greaterThan(mumRow.bottom));
+    expect(dadStatus.top, greaterThanOrEqualTo(dadRow.bottom));
+    // Only a member with a position has a map button, on their own row.
+    final place = tester.getRect(find.byTooltip('Show on map'));
+    expect(place.top, lessThan(dadStatus.bottom));
+    expect(place.bottom, greaterThan(dadRow.top));
+    expect(find.byTooltip('Show on map'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
     final manage = tester.getRect(find.text('Members and invites'));
     final invite = tester.getRect(find.byKey(const Key('invite')));
-    expect(mumRow.top, greaterThan(soon.bottom));
-    expect(dadRow.top, greaterThan(mumRow.bottom));
-    expect(manage.top, greaterThan(dadRow.bottom));
     expect(invite.top, greaterThan(manage.bottom));
     expect(invite.bottom, lessThan(740));
-    // "Owner" sits under Mum's name, not Dad's.
-    final owner = tester.getRect(find.text('Owner'));
-    expect(owner.top, greaterThanOrEqualTo(mumRow.bottom));
-    expect(owner.bottom, lessThanOrEqualTo(dadRow.top));
+    await tester.drag(find.byType(ListView), const Offset(0, 400));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Rename circle'));
     await tester.pumpAndSettle();
@@ -168,6 +198,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Dad (you)'), findsOneWidget);
+    expect(find.text('Mum · Owner'), findsOneWidget);
     expect(find.byTooltip('Rename circle'), findsNothing);
     expect(find.byKey(const Key('invite')), findsNothing);
     expect(find.text('Members and invites'), findsOneWidget);

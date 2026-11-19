@@ -271,18 +271,6 @@ abstract class AppL10n {
   /// **'Stop waiting'**
   String get stopWaiting;
 
-  /// No description provided for @locationSoonTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Location sharing comes next'**
-  String get locationSoonTitle;
-
-  /// No description provided for @locationSoonBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This version sets up your circle. Sharing where you are, places and check-ins arrive in the next updates. Nobody\'s location is shared yet.'**
-  String get locationSoonBody;
-
   /// No description provided for @couldNotCreate.
   ///
   /// In en, this message translates to:
@@ -306,6 +294,264 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'You\'re no longer in this circle.'**
   String get circleGone;
+
+  /// No description provided for @notifyChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Location sharing'**
+  String get notifyChannelName;
+
+  /// No description provided for @notifySharingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing your location'**
+  String get notifySharingTitle;
+
+  /// No description provided for @notifySharingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family circle can see where you are. Open ZT Family to pause.'**
+  String get notifySharingBody;
+
+  /// No description provided for @notifyPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location sharing paused'**
+  String get notifyPausedTitle;
+
+  /// No description provided for @notifyPausedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle sees \"Paused\". Open ZT Family to resume.'**
+  String get notifyPausedBody;
+
+  /// No description provided for @notifyUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open ZT Family to keep sharing'**
+  String get notifyUnlockTitle;
+
+  /// No description provided for @notifyUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone joined or left your circle. Open the app once so your location reaches them again.'**
+  String get notifyUnlockBody;
+
+  /// No description provided for @notSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sharing'**
+  String get notSharing;
+
+  /// No description provided for @pausedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get pausedStatus;
+
+  /// No description provided for @pausedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until {time}'**
+  String pausedUntil(String time);
+
+  /// No description provided for @battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery {percent}%'**
+  String battery(int percent);
+
+  /// No description provided for @batteryCharging.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging {percent}%'**
+  String batteryCharging(int percent);
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute ago} other{{count} minutes ago}}'**
+  String minutesAgo(int count);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour ago} other{{count} hours ago}}'**
+  String hoursAgo(int count);
+
+  /// No description provided for @shareConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your location'**
+  String get shareConsentTitle;
+
+  /// No description provided for @shareConsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nA notification shows while sharing is on. You can pause or stop at any time.'**
+  String get shareConsentBody;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @locationPermissionNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'ZT Family needs location access to share where you are.'**
+  String get locationPermissionNeeded;
+
+  /// No description provided for @circleKeyNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'This circle isn\'t ready on this phone yet. Try again in a moment.'**
+  String get circleKeyNotReady;
+
+  /// No description provided for @pauseHour.
+  ///
+  /// In en, this message translates to:
+  /// **'For 1 hour'**
+  String get pauseHour;
+
+  /// No description provided for @pauseTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Until tomorrow morning'**
+  String get pauseTomorrow;
+
+  /// No description provided for @pauseUntilResumed.
+  ///
+  /// In en, this message translates to:
+  /// **'Until I turn it back on'**
+  String get pauseUntilResumed;
+
+  /// No description provided for @shareOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re not sharing your location'**
+  String get shareOffTitle;
+
+  /// No description provided for @shareOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on sharing so this circle can see where you are.'**
+  String get shareOffBody;
+
+  /// No description provided for @shareOnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re sharing your location'**
+  String get shareOnTitle;
+
+  /// No description provided for @shareOnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle sees where you are and your battery. It updates more often when you move.'**
+  String get shareOnBody;
+
+  /// No description provided for @sharePausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is paused'**
+  String get sharePausedTitle;
+
+  /// No description provided for @sharePausedOpenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle sees \"Paused\" until you resume.'**
+  String get sharePausedOpenBody;
+
+  /// No description provided for @sharePausedUntilBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle sees \"Paused\" until {time}.'**
+  String sharePausedUntilBody(String time);
+
+  /// No description provided for @shareLiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing live'**
+  String get shareLiveTitle;
+
+  /// No description provided for @shareLiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle sees you move every few seconds until {time}.'**
+  String shareLiveBody(String time);
+
+  /// No description provided for @shareStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone joined or left this circle. Sharing with it starts again now that the app is open.'**
+  String get shareStale;
+
+  /// No description provided for @needsAlwaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For sharing to keep going after your phone restarts, allow location \"All the time\" for ZT Family.'**
+  String get needsAlwaysHint;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get openSettings;
+
+  /// No description provided for @shareTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my location'**
+  String get shareTurnOn;
+
+  /// No description provided for @shareTurnOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop sharing'**
+  String get shareTurnOff;
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
+  /// No description provided for @resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resume;
+
+  /// No description provided for @shareLiveHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Share live for 1 hour'**
+  String get shareLiveHour;
+
+  /// No description provided for @stopLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop live'**
+  String get stopLive;
+
+  /// No description provided for @showOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on map'**
+  String get showOnMap;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

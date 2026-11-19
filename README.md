@@ -5,10 +5,11 @@ phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
 apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
 The server stores only ciphertext and can never see where anyone is.
 
-> **Status: phase L0.** The app signs in, locks and syncs like the other
-> Zero-Trust apps, and family circles work: create one, invite by link or QR
-> code, join, see the members, leave. Nobody's location is shared yet; that
-> is phase L1.
+> **Status: phase L1.** Family circles work (create, invite by link or QR
+> code, join, leave), and each member can share their location with a
+> circle, also while the phone is locked: an end-to-end encrypted position
+> and battery level, on a battery-saving schedule, with pause and "Share
+> live". Places and alerts come in L2.
 
 ## What it will do
 
@@ -62,6 +63,9 @@ Not planned: hidden tracking of any kind, and screen time or app blocking.
 # .env (not committed; CI writes its own)
 SUPABASE_URL=https://<project>.supabase.co
 SUPABASE_ANON_KEY=<publishable key>
+# Optional: a Protomaps v3 PMTiles file (self-hosted). Without it the circle
+# shows no map, and "Show on map" opens the phone's maps app instead.
+FAMILY_MAP_URL=https://<your tiles host>/<file>.pmtiles
 
 flutter pub get
 dart run zt_release_checks --app family   # shared release checks
@@ -89,9 +93,22 @@ releases are one `Dev` → `main` pull request.
 - A circle's name is the item `family.circle` in its shared space, written
   by owners only. Items under `family.me/<user id>` can be written by that
   member alone.
+- `lib/location/`: location sharing. `location_box.dart` (the circle's
+  sealing key and the wire format), `schedule.dart` (how often to measure),
+  `share_engine.dart` (seal, sign and upload one update per circle),
+  `share_channel.dart` (the link to the Android service), `share_store.dart`
+  (what the service may hold: public keys and the device key, in the
+  Keystore).
+- `android/.../ShareService.kt`: the foreground service of type location. It
+  only measures (Android `LocationManager`, no Google Play services) and asks
+  Dart what to do next. `FamilyApp.kt` keeps one Flutter engine for the
+  screen and the service, so there is one signed-in Supabase client.
+- `lib/data/locations.dart`: opening a circle's locations (only rows signed
+  by a device its member published), and turning sharing on, off, paused or
+  live. Each sharing phone publishes its device key as the item
+  `family.me/<user id>/device/<device id>`.
 - The location tables (`family_latest`, `family_events`) are in
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
-  The app does not use them yet.
 
 ## License
 

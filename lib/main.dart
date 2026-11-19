@@ -9,10 +9,23 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'app/app_gate.dart';
 import 'app/email_links.dart';
 import 'app/family_config.dart';
+import 'data/locations.dart';
 import 'l10n/l10n.dart';
+import 'location/location_backend.dart';
+import 'location/share_channel.dart';
+import 'location/share_engine.dart';
+import 'location/share_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Location sharing runs in this same isolate, also when the Android
+  // service starts the app in the background with no screen: the channel
+  // listens first and waits for Supabase below.
+  final ready = Completer<void>();
+  final store = SecureShareStore();
+  final backend = SupabaseLocationBackend();
+  final engine = ShareEngine(store: store, backend: backend);
+  final share = ShareChannel(engine, ready: ready.future)..attach();
   await dotenv.load(fileName: '.env');
   // The language picked in Settings, before the first frame.
   await ZtLanguageController.preload();
@@ -20,12 +33,17 @@ Future<void> main() async {
     url: dotenv.env['SUPABASE_URL']!,
     publishableKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+  ready.complete();
   unawaited(EmailLinks.listen());
   runApp(
     ProviderScope(
       overrides: [
         ztAppConfigProvider.overrideWithValue(familyAppConfig),
         ztSpacePolicyProvider.overrideWithValue(familySpacePolicy),
+        shareStoreProvider.overrideWithValue(store),
+        locationBackendProvider.overrideWithValue(backend),
+        shareEngineProvider.overrideWithValue(engine),
+        shareServiceProvider.overrideWithValue(share),
       ],
       child: const ZeroTrustFamilyApp(),
     ),
