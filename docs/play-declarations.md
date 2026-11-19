@@ -27,7 +27,9 @@ Family location sharing. Each person who turns on sharing in a family circle sen
 |---|---|---|---|
 | `location` | `FOREGROUND_SERVICE_LOCATION` | Family location sharing (above) | Yes: persistent "Sharing your location" notification while sharing is on |
 
-Started only when the person turns sharing on, or after a reboot or update if sharing was on. It stops when sharing is off in every circle. Video: the same video as above (steps 4 and 5).
+| `remoteMessaging` (Android 14+) | `FOREGROUND_SERVICE_REMOTE_MESSAGING` | Alerts while locked on a phone that receives its circle's alerts but doesn't share its own location (no location permission) | Yes: persistent "Alerts on" notification |
+
+Started only when the person turns sharing or alerts on, or after a reboot or update if sharing was on. It stops when sharing and alerts are off in every circle. Video: the same video as above (steps 4 and 5).
 
 ## 3. Other sensitive permissions
 

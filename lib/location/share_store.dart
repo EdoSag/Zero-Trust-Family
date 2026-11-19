@@ -110,6 +110,7 @@ class ShareState {
     this.liveUntil,
     this.timer,
     this.sos,
+    this.pendingDeletes = const [],
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -134,6 +135,10 @@ class ShareState {
   /// An SOS this phone sent and hasn't ended.
   final SafetyRun? sos;
 
+  /// Circles whose last location of this phone still has to come off the
+  /// server (sharing was stopped while offline). Retried until it works.
+  final List<String> pendingDeletes;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -148,6 +153,7 @@ class ShareState {
     DateTime? Function()? liveUntil,
     SafetyRun? Function()? timer,
     SafetyRun? Function()? sos,
+    List<String>? pendingDeletes,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -158,6 +164,7 @@ class ShareState {
     liveUntil: liveUntil == null ? this.liveUntil : liveUntil(),
     timer: timer == null ? this.timer : timer(),
     sos: sos == null ? this.sos : sos(),
+    pendingDeletes: pendingDeletes ?? this.pendingDeletes,
   );
 
   Map<String, Object?> toJson() => {
@@ -171,6 +178,7 @@ class ShareState {
     if (liveUntil != null) 'liveUntil': liveUntil!.toIso8601String(),
     if (timer != null) 'timer': timer!.toJson(),
     if (sos != null) 'sos': sos!.toJson(),
+    if (pendingDeletes.isNotEmpty) 'pendingDeletes': pendingDeletes,
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -186,6 +194,10 @@ class ShareState {
     liveUntil: DateTime.tryParse(json['liveUntil'] as String? ?? ''),
     timer: SafetyRun.fromJson(json['timer']),
     sos: SafetyRun.fromJson(json['sos']),
+    pendingDeletes: [
+      for (final d in (json['pendingDeletes'] as List? ?? const []))
+        if (d is String) d,
+    ],
   );
 
   /// A new device identity for [userId].

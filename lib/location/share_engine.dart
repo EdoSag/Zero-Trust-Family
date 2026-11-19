@@ -113,6 +113,85 @@ class ShareEngine {
     return done.future;
   }
 
+  /// Saves what a send changed in the circles ([before] to [after]) onto
+  /// the newest stored state, and returns it.
+  Future<ShareState?> _merge(ShareState before, ShareState after) async {
+    final latest = await store.load();
+    if (latest == null || latest.userId != before.userId) return null;
+    final changed = {for (final c in after.circles) c.spaceId: c};
+    final dropped = {
+      for (final c in before.circles)
+        if (!changed.containsKey(c.spaceId)) c.spaceId,
+    };
+    final was = {for (final c in before.circles) c.spaceId: c};
+    final merged = latest.copyWith(
+      circles: [
+        for (final c in latest.circles)
+          if (dropped.contains(c.spaceId) && was[c.spaceId]?.epoch == c.epoch)
+            ...const <CirclePackage>[]
+          else if (changed.containsKey(c.spaceId) &&
+              was[c.spaceId]?.epoch == c.epoch)
+            changed[c.spaceId]!
+          else
+            c,
+      ],
+    );
+    await store.save(merged);
+    return merged;
+  }
+
+  /// Stops sharing with [spaceId] and takes this phone's last location off
+  /// the server. Runs after any send in flight, so that send can't put the
+  /// location back. Offline, the delete is kept and retried. Returns how
+  /// many circles this phone still shares with.
+  Future<int> stopCircle(String spaceId) => _serial(() async {
+    final state = await store.load();
+    if (state == null) return 0;
+    var next = state.copyWith(
+      circles: [
+        for (final c in state.circles)
+          if (c.spaceId != spaceId) c,
+      ],
+      pendingDeletes: {...state.pendingDeletes, spaceId}.toList(),
+    );
+    await store.save(next);
+    next = await _flushDeletes(next);
+    return next.circles.length;
+  });
+
+  /// Retries location deletes that failed offline.
+  Future<void> retryDeletes() => _serial(() async {
+    final state = await store.load();
+    if (state != null && state.pendingDeletes.isNotEmpty) {
+      await _flushDeletes(state);
+    }
+  });
+
+  Future<ShareState> _flushDeletes(ShareState state) async {
+    if (state.pendingDeletes.isEmpty) return state;
+    if (backend.userId != state.userId) return state;
+    final left = <String>[];
+    for (final spaceId in state.pendingDeletes) {
+      try {
+        await backend.deleteLatest(spaceId: spaceId, deviceId: state.deviceId);
+      } on NotInCircleException {
+        // Gone from the circle: its rows went with it.
+      } on Object {
+        left.add(spaceId);
+      }
+    }
+    if (left.length == state.pendingDeletes.length) return state;
+    final latest = await store.load() ?? state;
+    final next = latest.copyWith(
+      pendingDeletes: [
+        for (final d in latest.pendingDeletes)
+          if (left.contains(d) || !state.pendingDeletes.contains(d)) d,
+      ],
+    );
+    await store.save(next);
+    return next;
+  }
+
   Future<ShareResult> onFix(Fix fix, DeviceStatus status) => _serial(() async {
     _status = status;
     _lastFix = fix;
@@ -351,7 +430,15 @@ class ShareEngine {
       sos.spaceId,
       _now(FamilyEventKind.sosEnd, now),
     );
-    await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    // Offline, the SOS stays on (with its "I'm safe" button) until the
+    // circle can be told. A circle this phone no longer shares with can't
+    // be told at all, so then it just ends here.
+    final reachable = state.circles.any(
+      (c) => c.spaceId == sos.spaceId && !c.stale,
+    );
+    if (sent || !reachable) {
+      await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    }
     return sent;
   });
 
@@ -385,6 +472,7 @@ class ShareEngine {
       current = current.copyWith(pausedUntil: () => null);
       await store.save(current);
     }
+    current = await _flushDeletes(current);
     final paused = current.pausedAt(now);
     final fix = _lastFix;
     final update = LocationUpdate(
@@ -477,8 +565,12 @@ class ShareEngine {
       }
     }
     if (pointSent) _lastPoint = newFix;
-    final next = current.copyWith(circles: kept);
-    if (!_samePackages(next.circles, current.circles)) await store.save(next);
+    var next = current.copyWith(circles: kept);
+    if (!_samePackages(next.circles, current.circles)) {
+      // The app may have changed the circles while this ran (started
+      // sharing with another, paused): keep its changes, apply only ours.
+      next = await _merge(current, next) ?? next;
+    }
     final health = _healthOf(next, now);
     return ShareResult(
       health == ShareHealth.sharing && offline ? ShareHealth.offline : health,
