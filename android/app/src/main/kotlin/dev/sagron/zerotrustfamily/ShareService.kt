@@ -1,5 +1,6 @@
 package dev.sagron.zerotrustfamily
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -49,6 +50,12 @@ class ShareService : Service(), LocationListener {
         private const val KEY_TEXT = "text"
         private const val KEY_CHANNEL = "channel"
         private const val ACTION_POKE = "poke"
+
+        /** A button on a family alert ("I'm OK"). */
+        const val ACTION_ALERT = "alert"
+        const val EXTRA_KIND = "kind"
+        const val EXTRA_SPACE = "space"
+        const val EXTRA_NOTIFICATION = "notification"
         private const val DEFAULT_INTERVAL_MS = 15 * 60 * 1000L
 
         /** Waits this long to retry when Dart isn't listening yet. */
@@ -136,8 +143,20 @@ class ShareService : Service(), LocationListener {
             return START_NOT_STICKY
         }
         stopped = false
-        if (intent?.action == ACTION_POKE) {
+        if (intent?.action == ACTION_ALERT) {
+            val kind = intent.getStringExtra(EXTRA_KIND)
+            val id = intent.getIntExtra(EXTRA_NOTIFICATION, 0)
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(id)
+            when (kind) {
+                "checkin" -> ask("checkin", mapOf("spaceId" to intent.getStringExtra(EXTRA_SPACE)))
+                "timerOk" -> ask("timerOk", emptyMap())
+            }
+        } else if (intent?.action == ACTION_POKE) {
             if (locate) {
+                // Dart runs now, without waiting for a position: a safety
+                // timer's reminder or deadline must not depend on a fix
+                // (location off, indoors). The fix follows when it comes.
+                ask("motion", emptyMap())
                 listen(force = true)
                 now()
             } else {
@@ -189,9 +208,24 @@ class ShareService : Service(), LocationListener {
             .build()
     }
 
-    /** False when Android won't let the service run (no location permission). */
+    private fun hasLocationPermission(): Boolean =
+        checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    /**
+     * False when Android won't let the service run. From Android 14 the
+     * location type needs a location permission, so a phone that only has
+     * alerts on (and never allowed location) runs as remote messaging: it
+     * only receives the circle's alerts.
+     */
     private fun showNotification(): Boolean = try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
+            if (hasLocationPermission()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            startForeground(NOTIFICATION_ID, notification(), type)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
         } else {
             startForeground(NOTIFICATION_ID, notification())
@@ -387,6 +421,7 @@ class ShareService : Service(), LocationListener {
         val next = (answer["intervalMs"] as? Number)?.toLong()?.coerceIn(5_000L, 60 * 60 * 1000L)
             ?: DEFAULT_INTERVAL_MS
         main.removeCallbacks(alertsTick)
+        scheduleWake((answer["wakeAt"] as? Number)?.toLong())
         locate = answer["locate"] != false
         if (!locate) {
             // Alerts only: no location, no motion sensor.
@@ -402,6 +437,27 @@ class ShareService : Service(), LocationListener {
             listen(force = true)
         }
         arm()
+    }
+
+    /**
+     * Wakes the service at [at] (a safety timer's reminder or deadline),
+     * also in Doze. Inexact by a few minutes, which needs no special
+     * permission; null cancels.
+     */
+    private fun scheduleWake(at: Long?) {
+        val alarms = getSystemService(ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, ShareService::class.java).setAction(ACTION_POKE)
+        val pending = PendingIntent.getForegroundService(
+            this,
+            7,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        if (at == null) {
+            alarms.cancel(pending)
+        } else {
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+        }
     }
 
     /** Waits for the phone to start moving (only matters while still). */

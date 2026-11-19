@@ -5,14 +5,20 @@ phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
 apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
 The server stores only ciphertext and can never see where anyone is.
 
-> **Status: phase L2.** Family circles work (create, invite by link or QR
+> **Status: phase L3.** Family circles work (create, invite by link or QR
 > code, join, leave), and each member can share their location with a
 > circle, also while the phone is locked: an end-to-end encrypted position
 > and battery level, on a battery-saving schedule, with pause and "Share
 > live". Circles have places (Home, School), each phone works out its own
 > arrivals and departures, and members can opt in to alerts that show while
 > the app is locked, with quiet hours and a choice of whom to hear about.
-> Check-ins, the safety timer and SOS come in L3.
+>
+> Members can check in ("I'm here", with a short note), ask someone to
+> check in, and set a safety timer: if they don't tap "I'm OK" in time, the
+> circle is alerted and sees them live for an hour, even if their phone is
+> off (every reader's phone watches the deadline itself). SOS is sent by
+> holding a button for 2 seconds; it rings past quiet hours and muting and
+> shares live for an hour. History and the retention setting come in L4.
 
 ## What it will do
 

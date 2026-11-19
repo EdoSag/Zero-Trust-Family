@@ -441,4 +441,153 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get quietTo => 'Quiet until';
+
+  @override
+  String eventCheckin(String name) {
+    return '$name checked in';
+  }
+
+  @override
+  String eventAsk(String name) {
+    return '$name asks you to check in';
+  }
+
+  @override
+  String eventTimer(String name, String time) {
+    return '$name started a safety timer until $time';
+  }
+
+  @override
+  String eventTimerEnd(String name) {
+    return '$name is OK';
+  }
+
+  @override
+  String eventOverdue(String name, String time) {
+    return '$name didn\'t check in by $time';
+  }
+
+  @override
+  String eventSos(String name) {
+    return '$name sent an SOS';
+  }
+
+  @override
+  String eventSosEnd(String name) {
+    return '$name is safe now';
+  }
+
+  @override
+  String get sosChannelName => 'SOS and missed check-ins';
+
+  @override
+  String timerReminderTitle(String time) {
+    return 'Your safety timer ends at $time';
+  }
+
+  @override
+  String get timerReminderBody => 'Tap I\'m OK, or your circle is alerted.';
+
+  @override
+  String get imOk => 'I\'m OK';
+
+  @override
+  String get imSafe => 'I\'m safe';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get couldNotSend =>
+      'Couldn\'t send. Check your connection and try again.';
+
+  @override
+  String get safetyTitle => 'Safety';
+
+  @override
+  String get safetyNeedsSharing =>
+      'Share your location with this circle to use check-ins, the safety timer and SOS.';
+
+  @override
+  String get safetyBody =>
+      'Check-ins and SOS go to everyone in this circle with your location.';
+
+  @override
+  String get checkinButton => 'I\'m here';
+
+  @override
+  String get checkinTitle => 'Check in';
+
+  @override
+  String get checkinNote => 'Note (optional)';
+
+  @override
+  String get checkinNoteHint => 'Got to practice';
+
+  @override
+  String get checkinSent => 'Checked in';
+
+  @override
+  String get askButton => 'Ask someone to check in';
+
+  @override
+  String get askWho => 'Who should check in?';
+
+  @override
+  String askSent(String name) {
+    return 'Asked $name to check in';
+  }
+
+  @override
+  String get timerButton => 'Safety timer';
+
+  @override
+  String get timerQuestion => 'Alert my circle if I don\'t check in';
+
+  @override
+  String get timerPick => 'By a time I choose';
+
+  @override
+  String timerStarted(String time) {
+    return 'Timer set until $time';
+  }
+
+  @override
+  String timerActive(String time) {
+    return 'Safety timer until $time. If you don\'t tap I\'m OK by then, your circle is alerted and sees you live.';
+  }
+
+  @override
+  String get timerEnded => 'Timer ended';
+
+  @override
+  String get sosButton => 'Hold for SOS';
+
+  @override
+  String get sosHoldHint => 'Hold the button for 2 seconds to send an SOS';
+
+  @override
+  String get sosSent => 'SOS sent. Your circle sees you live for an hour.';
+
+  @override
+  String get sosActive => 'SOS sent. Your circle sees where you are, live.';
+
+  @override
+  String get sosEnded => 'Your circle knows you\'re safe';
+
+  @override
+  String timerInMinutes(int minutes) {
+    return 'In $minutes minutes';
+  }
+
+  @override
+  String timerInHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'In $hours hours',
+      one: 'In 1 hour',
+    );
+    return '$_temp0';
+  }
 }

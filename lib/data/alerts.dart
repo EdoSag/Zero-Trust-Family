@@ -48,6 +48,8 @@ final circleEventsProvider = FutureProvider.autoDispose
       final rows = await backend.events(
         spaceId,
         since: DateTime.now().toUtc().subtract(const Duration(days: 1)),
+        limit: 500,
+        newestFirst: true,
       );
       final devices = DeviceItem.readAll(await space.store.all());
       final boxes = <int, SimpleKeyPair?>{};
@@ -122,6 +124,7 @@ class AlertActions {
       muted: had?.muted ?? const {},
       cursor: had?.cursor ?? DateTime.now().toUtc(),
       seen: had?.seen ?? const [],
+      timers: had?.timers ?? const {},
     );
   }
 
@@ -207,6 +210,7 @@ class AlertActions {
               cursor: latest.circles[c.spaceId]?.cursor,
               seen: latest.circles[c.spaceId]?.seen,
               muted: latest.circles[c.spaceId]?.muted,
+              timers: latest.circles[c.spaceId]?.timers,
             ),
         },
       ),

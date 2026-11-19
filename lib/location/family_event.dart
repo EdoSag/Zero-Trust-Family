@@ -9,7 +9,30 @@ enum FamilyEventKind {
   arrive,
 
   /// Left one of the circle's places.
-  leave;
+  leave,
+
+  /// "I'm here", with an optional note.
+  checkin,
+
+  /// Asks one member ([FamilyEvent.to]) to check in.
+  ask,
+
+  /// A safety timer: "if I don't check in by [FamilyEvent.until], alert my
+  /// circle". Every reader also watches the time itself, so the alert comes
+  /// even if the sender's phone is off.
+  timer,
+
+  /// The timer was ended in time ("I'm OK").
+  timerEnd,
+
+  /// The timer ran out without a check-in (sent by the phone itself).
+  overdue,
+
+  /// SOS: the sender needs help now. Ignores quiet hours and muting.
+  sos,
+
+  /// The SOS was ended ("I'm safe").
+  sosEnd;
 
   static FamilyEventKind? parse(Object? value) {
     for (final k in values) {
@@ -19,7 +42,8 @@ enum FamilyEventKind {
   }
 }
 
-/// One event in `family_events`, before sealing: "arrived at Home".
+/// One event in `family_events`, before sealing: "arrived at Home", a
+/// check-in, a safety timer, an SOS.
 ///
 /// The id is random and chosen by the sender, so a reader shows each event
 /// once even if the server hands it back twice.
@@ -32,7 +56,13 @@ class FamilyEvent {
     this.lat,
     this.lng,
     this.battery,
+    this.note,
+    this.to,
+    this.until,
   });
+
+  /// Longest note kept.
+  static const maxNote = 140;
 
   final String id;
   final FamilyEventKind kind;
@@ -41,6 +71,15 @@ class FamilyEvent {
   final double? lat;
   final double? lng;
   final int? battery;
+
+  /// A short text with a check-in or SOS.
+  final String? note;
+
+  /// Who an [FamilyEventKind.ask] is for.
+  final String? to;
+
+  /// A timer's deadline.
+  final DateTime? until;
 
   Map<String, Object?> toJson() => {
     'v': 1,
@@ -51,6 +90,9 @@ class FamilyEvent {
     if (lat != null) 'la': (lat! * 1e6).roundToDouble() / 1e6,
     if (lng != null) 'lo': (lng! * 1e6).roundToDouble() / 1e6,
     if (battery != null) 'b': battery,
+    if (note != null && note!.isNotEmpty) 'n': note,
+    if (to != null) 'to': to,
+    if (until != null) 'u': until!.toUtc().millisecondsSinceEpoch,
   };
 
   /// Throws [FormatException] for anything this version can't show (a newer
@@ -64,6 +106,9 @@ class FamilyEvent {
     }
     final p = json['p'];
     final b = json['b'];
+    final n = json['n'];
+    final to = json['to'];
+    final u = json['u'];
     return FamilyEvent(
       id: id,
       kind: kind,
@@ -72,6 +117,13 @@ class FamilyEvent {
       lat: (json['la'] as num?)?.toDouble(),
       lng: (json['lo'] as num?)?.toDouble(),
       battery: b is int && b >= 0 && b <= 100 ? b : null,
+      note: n is String
+          ? (n.length > maxNote ? n.substring(0, maxNote) : n)
+          : null,
+      to: to is String ? to : null,
+      until: u is int
+          ? DateTime.fromMillisecondsSinceEpoch(u, isUtc: true)
+          : null,
     );
   }
 

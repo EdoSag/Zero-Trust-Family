@@ -262,5 +262,140 @@
   },
   "quietCustom": "Choose times",
   "quietFrom": "Quiet from",
-  "quietTo": "Quiet until"
+  "quietTo": "Quiet until",
+  "eventCheckin": "{name} checked in",
+  "@eventCheckin": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventAsk": "{name} asks you to check in",
+  "@eventAsk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventTimer": "{name} started a safety timer until {time}",
+  "@eventTimer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventTimerEnd": "{name} is OK",
+  "@eventTimerEnd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventOverdue": "{name} didn't check in by {time}",
+  "@eventOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSos": "{name} sent an SOS",
+  "@eventSos": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSosEnd": "{name} is safe now",
+  "@eventSosEnd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sosChannelName": "SOS and missed check-ins",
+  "timerReminderTitle": "Your safety timer ends at {time}",
+  "@timerReminderTitle": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerReminderBody": "Tap I'm OK, or your circle is alerted.",
+  "imOk": "I'm OK",
+  "imSafe": "I'm safe",
+  "send": "Send",
+  "couldNotSend": "Couldn't send. Check your connection and try again.",
+  "safetyTitle": "Safety",
+  "safetyNeedsSharing": "Share your location with this circle to use check-ins, the safety timer and SOS.",
+  "safetyBody": "Check-ins and SOS go to everyone in this circle with your location.",
+  "checkinButton": "I'm here",
+  "checkinTitle": "Check in",
+  "checkinNote": "Note (optional)",
+  "checkinNoteHint": "Got to practice",
+  "checkinSent": "Checked in",
+  "askButton": "Ask someone to check in",
+  "askWho": "Who should check in?",
+  "askSent": "Asked {name} to check in",
+  "@askSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "timerButton": "Safety timer",
+  "timerQuestion": "Alert my circle if I don't check in",
+  "timerPick": "By a time I choose",
+  "timerStarted": "Timer set until {time}",
+  "@timerStarted": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerActive": "Safety timer until {time}. If you don't tap I'm OK by then, your circle is alerted and sees you live.",
+  "@timerActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerEnded": "Timer ended",
+  "sosButton": "Hold for SOS",
+  "sosHoldHint": "Hold the button for 2 seconds to send an SOS",
+  "sosSent": "SOS sent. Your circle sees you live for an hour.",
+  "sosActive": "SOS sent. Your circle sees where you are, live.",
+  "sosEnded": "Your circle knows you're safe",
+  "timerInMinutes": "In {minutes} minutes",
+  "@timerInMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timerInHours": "{hours, plural, =1{In 1 hour} other{In {hours} hours}}",
+  "@timerInHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  }
 }

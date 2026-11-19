@@ -804,6 +804,234 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Quiet until'**
   String get quietTo;
+
+  /// No description provided for @eventCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked in'**
+  String eventCheckin(String name);
+
+  /// No description provided for @eventAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} asks you to check in'**
+  String eventAsk(String name);
+
+  /// No description provided for @eventTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started a safety timer until {time}'**
+  String eventTimer(String name, String time);
+
+  /// No description provided for @eventTimerEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is OK'**
+  String eventTimerEnd(String name);
+
+  /// No description provided for @eventOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} didn\'t check in by {time}'**
+  String eventOverdue(String name, String time);
+
+  /// No description provided for @eventSos.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent an SOS'**
+  String eventSos(String name);
+
+  /// No description provided for @eventSosEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is safe now'**
+  String eventSosEnd(String name);
+
+  /// No description provided for @sosChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS and missed check-ins'**
+  String get sosChannelName;
+
+  /// No description provided for @timerReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your safety timer ends at {time}'**
+  String timerReminderTitle(String time);
+
+  /// No description provided for @timerReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap I\'m OK, or your circle is alerted.'**
+  String get timerReminderBody;
+
+  /// No description provided for @imOk.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m OK'**
+  String get imOk;
+
+  /// No description provided for @imSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m safe'**
+  String get imSafe;
+
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get send;
+
+  /// No description provided for @couldNotSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check your connection and try again.'**
+  String get couldNotSend;
+
+  /// No description provided for @safetyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get safetyTitle;
+
+  /// No description provided for @safetyNeedsSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your location with this circle to use check-ins, the safety timer and SOS.'**
+  String get safetyNeedsSharing;
+
+  /// No description provided for @safetyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins and SOS go to everyone in this circle with your location.'**
+  String get safetyBody;
+
+  /// No description provided for @checkinButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m here'**
+  String get checkinButton;
+
+  /// No description provided for @checkinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in'**
+  String get checkinTitle;
+
+  /// No description provided for @checkinNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get checkinNote;
+
+  /// No description provided for @checkinNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Got to practice'**
+  String get checkinNoteHint;
+
+  /// No description provided for @checkinSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkinSent;
+
+  /// No description provided for @askButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask someone to check in'**
+  String get askButton;
+
+  /// No description provided for @askWho.
+  ///
+  /// In en, this message translates to:
+  /// **'Who should check in?'**
+  String get askWho;
+
+  /// No description provided for @askSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked {name} to check in'**
+  String askSent(String name);
+
+  /// No description provided for @timerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety timer'**
+  String get timerButton;
+
+  /// No description provided for @timerQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert my circle if I don\'t check in'**
+  String get timerQuestion;
+
+  /// No description provided for @timerPick.
+  ///
+  /// In en, this message translates to:
+  /// **'By a time I choose'**
+  String get timerPick;
+
+  /// No description provided for @timerStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer set until {time}'**
+  String timerStarted(String time);
+
+  /// No description provided for @timerActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety timer until {time}. If you don\'t tap I\'m OK by then, your circle is alerted and sees you live.'**
+  String timerActive(String time);
+
+  /// No description provided for @timerEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer ended'**
+  String get timerEnded;
+
+  /// No description provided for @sosButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold for SOS'**
+  String get sosButton;
+
+  /// No description provided for @sosHoldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the button for 2 seconds to send an SOS'**
+  String get sosHoldHint;
+
+  /// No description provided for @sosSent.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS sent. Your circle sees you live for an hour.'**
+  String get sosSent;
+
+  /// No description provided for @sosActive.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS sent. Your circle sees where you are, live.'**
+  String get sosActive;
+
+  /// No description provided for @sosEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circle knows you\'re safe'**
+  String get sosEnded;
+
+  /// No description provided for @timerInMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'In {minutes} minutes'**
+  String timerInMinutes(int minutes);
+
+  /// No description provided for @timerInHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{In 1 hour} other{In {hours} hours}}'**
+  String timerInHours(int hours);
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

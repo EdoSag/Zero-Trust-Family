@@ -107,7 +107,19 @@ class PlacesSection extends ConsumerWidget {
   }
 }
 
-/// The last day's arrivals and departures.
+IconData eventIcon(FamilyEventKind kind) => switch (kind) {
+  FamilyEventKind.arrive => Icons.login,
+  FamilyEventKind.leave => Icons.logout,
+  FamilyEventKind.checkin => Icons.check_circle_outline,
+  FamilyEventKind.ask => Icons.help_outline,
+  FamilyEventKind.timer => Icons.timer_outlined,
+  FamilyEventKind.timerEnd => Icons.verified_user_outlined,
+  FamilyEventKind.overdue => Icons.warning_amber,
+  FamilyEventKind.sos => Icons.sos,
+  FamilyEventKind.sosEnd => Icons.verified_user_outlined,
+};
+
+/// The last day's events: arrivals, check-ins, timers, SOS.
 class RecentSection extends ConsumerWidget {
   const RecentSection({super.key, required this.spaceId, required this.names});
 
@@ -135,17 +147,13 @@ class RecentSection extends ConsumerWidget {
           ListTile(
             key: Key('event-${e.event.id}'),
             dense: true,
-            leading: Icon(
-              e.event.kind == FamilyEventKind.arrive
-                  ? Icons.login
-                  : Icons.logout,
-            ),
+            leading: Icon(eventIcon(e.event.kind)),
             title: Text(
               eventLine(
                 l,
                 names[e.userId] ?? l.unnamedMember,
                 places[e.event.placeId],
-                e.event.kind,
+                e.event,
               ),
             ),
             subtitle: Text(

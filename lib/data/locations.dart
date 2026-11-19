@@ -344,6 +344,31 @@ class ShareActions {
     await _service.poke();
   }
 
+  Future<bool> _safety(Future<bool> Function(ShareEngine e) run) async {
+    final sent = await run(_engine);
+    _changed();
+    // New live sharing (SOS) or a timer to wake up for.
+    await _service.poke();
+    return sent;
+  }
+
+  /// The safety actions. Each returns false when it couldn't be sent
+  /// (offline, or this phone doesn't share with the circle).
+  Future<bool> checkIn(String spaceId, {String? note}) =>
+      _safety((e) => e.checkIn(spaceId, note: note));
+
+  Future<bool> askCheckIn(String spaceId, String userId) =>
+      _safety((e) => e.askCheckIn(spaceId, userId));
+
+  Future<bool> startTimer(String spaceId, DateTime until) =>
+      _safety((e) => e.startTimer(spaceId, until));
+
+  Future<bool> endTimer() => _safety((e) => e.endTimer());
+
+  Future<bool> startSos(String spaceId) => _safety((e) => e.startSos(spaceId));
+
+  Future<bool> endSos() => _safety((e) => e.endSos());
+
   /// After unlock and every sync: follows key changes (someone left or was
   /// removed), drops circles this account isn't in, and stops sharing when
   /// another account signed in on this phone.
