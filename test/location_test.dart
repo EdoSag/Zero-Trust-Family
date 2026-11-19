@@ -279,6 +279,44 @@ void main() {
       expect(store.state!.circles, isEmpty);
     });
 
+    test('stopping waits for a send in flight, which can\'t undo it', () async {
+      await engine.onFix(fix(now), const DeviceStatus());
+      expect(await dadSees(), isNotEmpty);
+      // A fix arrives and, before its send finishes, sharing is stopped.
+      final sending = engine.onFix(
+        fix(now.add(const Duration(minutes: 1))),
+        const DeviceStatus(),
+      );
+      final left = await engine.stopCircle(circle);
+      await sending;
+      expect(left, 0);
+      expect(store.state!.circles, isEmpty);
+      expect(await dadSees(), isEmpty);
+      // Later fixes go nowhere.
+      final after = await engine.onFix(
+        fix(now.add(const Duration(minutes: 2))),
+        const DeviceStatus(),
+      );
+      expect(after.stop, isTrue);
+      expect(await dadSees(), isEmpty);
+    });
+
+    test('stopped offline: the delete is kept and retried', () async {
+      await engine.onFix(fix(now), const DeviceStatus());
+      server.offline = true;
+      expect(await engine.stopCircle(circle), 0);
+      expect(store.state!.pendingDeletes, [circle]);
+      expect(await dadSees(), isNotEmpty);
+      // Survives a restart of the app.
+      final back = ShareState.fromJson(store.state!.toJson());
+      expect(back.pendingDeletes, [circle]);
+
+      server.offline = false;
+      await engine.retryDeletes();
+      expect(store.state!.pendingDeletes, isEmpty);
+      expect(await dadSees(), isEmpty);
+    });
+
     test('another account on the phone stops sharing', () async {
       engine = ShareEngine(
         store: store,
@@ -633,6 +671,24 @@ void main() {
         isFalse,
       );
       expect(server.events, isEmpty);
+    });
+
+    test('the newest events come first when asked (the Today list)', () async {
+      await mumAt(32.0);
+      for (var i = 0; i < 6; i++) {
+        await mumAt(i.isEven ? 32.01 : 32.0);
+      }
+      final reader = InMemoryLocationBackend(userId: dad, server: server);
+      final since = DateTime.utc(2026, 11, 19);
+      final oldest = await reader.events(circle, since: since, limit: 2);
+      final newest = await reader.events(
+        circle,
+        since: since,
+        limit: 2,
+        newestFirst: true,
+      );
+      expect(newest.first.sentAt, server.events.last.sentAt);
+      expect(oldest.first.sentAt, server.events.first.sentAt);
     });
 
     test('settings survive a round trip through JSON', () {

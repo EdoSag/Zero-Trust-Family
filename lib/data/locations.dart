@@ -283,22 +283,11 @@ class ShareActions {
   /// Stops sharing with [spaceId] and takes this phone's last location off
   /// the server, so the circle doesn't see an old position.
   Future<void> stopSharing(String spaceId) async {
-    final state = await _store.load();
-    if (state == null) return;
-    final rest = [
-      for (final c in state.circles)
-        if (c.spaceId != spaceId) c,
-    ];
-    await _store.save(state.copyWith(circles: rest));
+    // Through the engine, after any send in flight, so that send can't put
+    // the location back. Offline, the delete is retried later.
+    final left = await _engine.stopCircle(spaceId);
     _changed();
-    try {
-      await ref
-          .read(locationBackendProvider)
-          .deleteLatest(spaceId: spaceId, deviceId: state.deviceId);
-    } on Object {
-      // Offline: the circle sees the last update until it's back.
-    }
-    if (rest.isEmpty) {
+    if (left == 0) {
       await _service.stop();
     } else {
       await _service.poke();
@@ -384,6 +373,12 @@ class ShareActions {
   /// removed), drops circles this account isn't in, and stops sharing when
   /// another account signed in on this phone.
   Future<void> refreshPackages() async {
+    // Deletes that failed offline, even when no longer sharing.
+    try {
+      await _engine.retryDeletes();
+    } on Object {
+      // Next time.
+    }
     final state = await _store.load();
     if (state == null || !state.sharing) return;
     final me = ref.read(myUserIdProvider);

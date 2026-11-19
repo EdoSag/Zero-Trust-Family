@@ -62,10 +62,12 @@ abstract class LocationBackend {
   Future<void> insertEvent(LocationRow row);
 
   /// A circle's events sent after [since], oldest first (at most [limit]).
+  /// [newestFirst] gives the newest [limit] instead, newest first.
   Future<List<LocationRow>> events(
     String spaceId, {
     required DateTime since,
     int limit = 100,
+    bool newestFirst = false,
   });
 
   /// Fires when someone adds an event to one of [spaceIds] (realtime).
@@ -197,6 +199,7 @@ class SupabaseLocationBackend implements LocationBackend {
     String spaceId, {
     required DateTime since,
     int limit = 100,
+    bool newestFirst = false,
   }) async {
     await _fresh();
     final rows = await client
@@ -206,7 +209,7 @@ class SupabaseLocationBackend implements LocationBackend {
         )
         .eq('space_id', spaceId)
         .gt('sent_at', since.toUtc().toIso8601String())
-        .order('sent_at')
+        .order('sent_at', ascending: !newestFirst)
         .limit(limit);
     return [for (final r in rows) _row(r)];
   }
@@ -328,6 +331,7 @@ class InMemoryLocationBackend implements LocationBackend {
     required String spaceId,
     required String deviceId,
   }) async {
+    if (server.offline) throw StateError('offline');
     server.rows.remove('$spaceId|$userId|$deviceId');
     server._changed(spaceId);
   }
@@ -379,13 +383,14 @@ class InMemoryLocationBackend implements LocationBackend {
     String spaceId, {
     required DateTime since,
     int limit = 100,
+    bool newestFirst = false,
   }) async {
     final members = server.members[spaceId];
     if (members == null || !members.contains(userId)) return const [];
-    return server.events
-        .where((e) => e.spaceId == spaceId && e.sentAt!.isAfter(since))
-        .take(limit)
-        .toList();
+    final all = server.events.where(
+      (e) => e.spaceId == spaceId && e.sentAt!.isAfter(since),
+    );
+    return (newestFirst ? all.toList().reversed : all).take(limit).toList();
   }
 
   @override
@@ -394,6 +399,8 @@ class InMemoryLocationBackend implements LocationBackend {
 }
 
 class InMemoryLocationServer {
+  /// Every write fails, as with no connection.
+  bool offline = false;
   final Map<String, Set<String>> members = {};
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};

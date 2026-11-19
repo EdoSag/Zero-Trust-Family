@@ -204,9 +204,24 @@ class ShareService : Service(), LocationListener {
             .build()
     }
 
-    /** False when Android won't let the service run (no location permission). */
+    private fun hasLocationPermission(): Boolean =
+        checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    /**
+     * False when Android won't let the service run. From Android 14 the
+     * location type needs a location permission, so a phone that only has
+     * alerts on (and never allowed location) runs as remote messaging: it
+     * only receives the circle's alerts.
+     */
     private fun showNotification(): Boolean = try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
+            if (hasLocationPermission()) type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            startForeground(NOTIFICATION_ID, notification(), type)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
         } else {
             startForeground(NOTIFICATION_ID, notification())
