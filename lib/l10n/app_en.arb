@@ -138,5 +138,129 @@
   "resume": "Resume",
   "shareLiveHour": "Share live for 1 hour",
   "stopLive": "Stop live",
-  "showOnMap": "Show on map"
+  "showOnMap": "Show on map",
+  "notifyAlertsTitle": "Family alerts are on",
+  "notifyAlertsBody": "You'll be told when someone arrives at or leaves a place.",
+  "alertArrived": "{name} arrived at {place}",
+  "@alertArrived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "alertLeft": "{name} left {place}",
+  "@alertLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "alertArrivedSomewhere": "{name} arrived at a saved place",
+  "@alertArrivedSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertLeftSomewhere": "{name} left a saved place",
+  "@alertLeftSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertAt": "At {time}",
+  "@alertAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsChannelName": "Family alerts",
+  "alertsQuietChannelName": "Family alerts during quiet hours",
+  "placesHeading": "Places",
+  "placesEmpty": "Add Home, School or Work to know when someone arrives or leaves.",
+  "placeHere": "Here now: {names}",
+  "@placeHere": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "addPlace": "Add a place",
+  "editPlace": "Edit place",
+  "placeName": "Name",
+  "placeNameHint": "Home, School, Work",
+  "placeNameRequired": "Enter a name",
+  "placeWhere": "Where",
+  "placeNoPositionYet": "No position yet",
+  "placeUseHere": "Use where I am now",
+  "placePaste": "Or paste coordinates or a map link",
+  "placeBadPaste": "No position found in that text",
+  "placeNoLocation": "Couldn't get your position. Check that location is on.",
+  "placeNeedsPosition": "Choose where the place is",
+  "placeSize": "Size",
+  "meters": "{count} m",
+  "@meters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeSizeHint": "Bigger places notice arrivals sooner but less exactly. Arrivals are worked out on each phone; the server never sees your places.",
+  "tooManyPlaces": "This circle has as many places as it can keep.",
+  "removePlace": "Remove place",
+  "removePlaceTitle": "Remove {name}?",
+  "@removePlaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removePlaceBody": "Nobody in the circle will get alerts for it any more.",
+  "recentHeading": "Today",
+  "alertsTitle": "Alerts on this phone",
+  "alertsBody": "Get a notification when someone arrives at or leaves a place, also while ZT Family is locked. To read them, this phone keeps the circle's location key in its secure hardware.",
+  "alertsAbout": "Alerts about",
+  "quietHours": "Quiet hours",
+  "quietOff": "Off",
+  "quietOnSummary": "{from} to {to}, alerts without sound",
+  "@quietOnSummary": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "quietRange": "{from} to {to}",
+  "@quietRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "quietCustom": "Choose times",
+  "quietFrom": "Quiet from",
+  "quietTo": "Quiet until"
 }

@@ -158,13 +158,21 @@ void main() {
     expect(place.top, lessThan(dadStatus.bottom));
     expect(place.bottom, greaterThan(dadRow.top));
     expect(find.byTooltip('Show on map'), findsOneWidget);
-    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('invite')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     final manage = tester.getRect(find.text('Members and invites'));
     final invite = tester.getRect(find.byKey(const Key('invite')));
     expect(invite.top, greaterThan(manage.bottom));
     expect(invite.bottom, lessThan(740));
-    await tester.drag(find.byType(ListView), const Offset(0, 400));
+    await tester.scrollUntilVisible(
+      find.byTooltip('Rename circle'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Rename circle'));
@@ -201,6 +209,11 @@ void main() {
     expect(find.text('Mum · Owner'), findsOneWidget);
     expect(find.byTooltip('Rename circle'), findsNothing);
     expect(find.byKey(const Key('invite')), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Members and invites'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Members and invites'), findsOneWidget);
   });
 

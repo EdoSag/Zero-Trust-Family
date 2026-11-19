@@ -286,4 +286,153 @@ class AppL10nHe extends AppL10n {
 
   @override
   String get showOnMap => 'הצגה במפה';
+
+  @override
+  String get notifyAlertsTitle => 'התראות משפחה פעילות';
+
+  @override
+  String get notifyAlertsBody => 'תקבלו הודעה כשמישהו מגיע למקום או יוצא ממנו.';
+
+  @override
+  String alertArrived(String name, String place) {
+    return '$name הגיע/ה ל$place';
+  }
+
+  @override
+  String alertLeft(String name, String place) {
+    return '$name יצא/ה מ$place';
+  }
+
+  @override
+  String alertArrivedSomewhere(String name) {
+    return '$name הגיע/ה למקום שמור';
+  }
+
+  @override
+  String alertLeftSomewhere(String name) {
+    return '$name יצא/ה ממקום שמור';
+  }
+
+  @override
+  String alertAt(String time) {
+    return 'בשעה $time';
+  }
+
+  @override
+  String get alertsChannelName => 'התראות משפחה';
+
+  @override
+  String get alertsQuietChannelName => 'התראות משפחה בשעות שקטות';
+
+  @override
+  String get placesHeading => 'מקומות';
+
+  @override
+  String get placesEmpty =>
+      'הוסיפו בית, בית ספר או עבודה כדי לדעת מתי מישהו מגיע או יוצא.';
+
+  @override
+  String placeHere(String names) {
+    return 'כאן עכשיו: $names';
+  }
+
+  @override
+  String get addPlace => 'הוספת מקום';
+
+  @override
+  String get editPlace => 'עריכת מקום';
+
+  @override
+  String get placeName => 'שם';
+
+  @override
+  String get placeNameHint => 'בית, בית ספר, עבודה';
+
+  @override
+  String get placeNameRequired => 'צריך להזין שם';
+
+  @override
+  String get placeWhere => 'איפה';
+
+  @override
+  String get placeNoPositionYet => 'עדיין לא נבחר מיקום';
+
+  @override
+  String get placeUseHere => 'להשתמש במיקום הנוכחי שלי';
+
+  @override
+  String get placePaste => 'או להדביק קואורדינטות או קישור למפה';
+
+  @override
+  String get placeBadPaste => 'לא נמצא מיקום בטקסט הזה';
+
+  @override
+  String get placeNoLocation => 'לא הצלחנו לקבל את המיקום. בדקו שהמיקום פועל.';
+
+  @override
+  String get placeNeedsPosition => 'צריך לבחור איפה המקום';
+
+  @override
+  String get placeSize => 'גודל';
+
+  @override
+  String meters(int count) {
+    return '$count מ׳';
+  }
+
+  @override
+  String get placeSizeHint =>
+      'מקום גדול יותר מזהה הגעה מוקדם יותר אבל בפחות דיוק. ההגעות מחושבות בכל טלפון, והשרת אף פעם לא רואה את המקומות שלכם.';
+
+  @override
+  String get tooManyPlaces => 'במעגל הזה כבר יש את המספר המרבי של מקומות.';
+
+  @override
+  String get removePlace => 'הסרת מקום';
+
+  @override
+  String removePlaceTitle(String name) {
+    return 'להסיר את $name?';
+  }
+
+  @override
+  String get removePlaceBody => 'אף אחד במעגל לא יקבל עוד התראות עליו.';
+
+  @override
+  String get recentHeading => 'היום';
+
+  @override
+  String get alertsTitle => 'התראות בטלפון הזה';
+
+  @override
+  String get alertsBody =>
+      'קבלו הודעה כשמישהו מגיע למקום או יוצא ממנו, גם כש-ZT Family נעולה. כדי לקרוא אותן, הטלפון שומר את מפתח המיקום של המעגל ברכיב האבטחה שלו.';
+
+  @override
+  String get alertsAbout => 'התראות על';
+
+  @override
+  String get quietHours => 'שעות שקטות';
+
+  @override
+  String get quietOff => 'כבוי';
+
+  @override
+  String quietOnSummary(String from, String to) {
+    return '$from עד $to, התראות בלי צליל';
+  }
+
+  @override
+  String quietRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
+  String get quietCustom => 'בחירת שעות';
+
+  @override
+  String get quietFrom => 'שקט החל מ';
+
+  @override
+  String get quietTo => 'שקט עד';
 }

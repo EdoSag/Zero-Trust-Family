@@ -12,6 +12,7 @@ import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
 import 'family_map.dart';
+import 'places_section.dart';
 import 'share_card.dart';
 
 /// One family circle: the map, this phone's sharing, where everyone is, and
@@ -153,6 +154,9 @@ class _CirclePageState extends ConsumerState<CirclePage> {
                     )
                   : null,
             ),
+          PlacesSection(spaceId: spaceId, locations: locations, names: names),
+          RecentSection(spaceId: spaceId, names: names),
+          AlertsCard(spaceId: spaceId, members: circle.members, me: me),
           const Divider(height: 24),
           ListTile(
             leading: const Icon(Icons.group_outlined),

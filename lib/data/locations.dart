@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
@@ -10,6 +10,7 @@ import '../location/location_box.dart';
 import '../location/location_update.dart';
 import '../location/share_engine.dart';
 import '../location/share_store.dart';
+import '../model/family_place.dart';
 import 'family_data.dart';
 
 /// A sharing device, published by its member as a space item that only
@@ -142,6 +143,9 @@ abstract class ShareServiceControl {
   /// Can the service run (location "all the time" and notifications)?
   Future<SharePermissions> permissions();
   Future<SharePermissions> requestPermissions();
+
+  /// For alerts alone (no location needed).
+  Future<bool> requestNotifications();
 }
 
 class SharePermissions {
@@ -231,6 +235,9 @@ class ShareActions {
       spaceId: spaceId,
       epoch: epoch,
       boxPublic: await LocationBox.publicKeyOf(box),
+      places: [
+        for (final p in await readPlaces(space!.store)) FamilyPlace.watched(p),
+      ],
     );
   }
 
@@ -367,14 +374,25 @@ class ShareActions {
     for (final c in state.circles) {
       if (!ids.contains(c.spaceId)) continue; // Left or removed.
       final fresh = await _package(c.spaceId);
-      next.add(fresh ?? c);
+      next.add(
+        fresh == null
+            ? c
+            // Keeps where this phone is for places that are still there.
+            : fresh.copyWith(
+                inside: {
+                  for (final p in fresh.places)
+                    if (c.inside[p.id] != null) p.id: c.inside[p.id]!,
+                },
+              ),
+      );
     }
     final changed =
         next.length != state.circles.length ||
         [
           for (var i = 0; i < next.length; i++)
             next[i].epoch != state.circles[i].epoch ||
-                next[i].stale != state.circles[i].stale,
+                next[i].stale != state.circles[i].stale ||
+                !listEquals(next[i].places, state.circles[i].places),
         ].any((x) => x);
     if (!changed) return;
     await _store.save(state.copyWith(circles: next));

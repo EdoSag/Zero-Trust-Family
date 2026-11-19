@@ -7,9 +7,9 @@ import io.flutter.plugin.common.MethodChannel
 /**
  * Channel `zt_family/share` between Dart (`ShareChannel`) and [ShareService].
  *
- * Dart calls `start`, `stop` and `poke`. The service calls `started`, `fix`
- * and `motion`; each answer is a map with `stop`, `intervalMs`, `title`,
- * `text` and `channelName`.
+ * Dart calls `start`, `stop`, `poke` and `notify` (a family alert). The
+ * service calls `started`, `fix` and `motion`; each answer is a map with
+ * `stop`, `locate`, `intervalMs`, `title`, `text` and `channelName`.
  */
 object ShareBridge {
     var channel: MethodChannel? = null
@@ -30,6 +30,10 @@ object ShareBridge {
                     }
                     "poke" -> {
                         ShareService.poke(app)
+                        result.success(null)
+                    }
+                    "notify" -> {
+                        AlertNotifier.post(app, call.arguments as? Map<*, *> ?: emptyMap<Any, Any>())
                         result.success(null)
                     }
                     else -> result.notImplemented()

@@ -3,7 +3,8 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// One row of `family_latest`: a device's newest sealed update.
+/// One row of `family_latest` (a device's newest sealed update) or of
+/// `family_events` (one arrival, departure, and later check-ins and SOS).
 class LocationRow {
   const LocationRow({
     required this.spaceId,
@@ -56,6 +57,19 @@ abstract class LocationBackend {
 
   /// Fires when a circle's rows change (realtime), while listened to.
   Stream<void> changes(String spaceId);
+
+  /// Adds one sealed event to `family_events`.
+  Future<void> insertEvent(LocationRow row);
+
+  /// A circle's events sent after [since], oldest first (at most [limit]).
+  Future<List<LocationRow>> events(
+    String spaceId, {
+    required DateTime since,
+    int limit = 100,
+  });
+
+  /// Fires when someone adds an event to one of [spaceIds] (realtime).
+  Stream<void> eventInserts(List<String> spaceIds);
 }
 
 class SupabaseLocationBackend implements LocationBackend {
@@ -128,18 +142,7 @@ class SupabaseLocationBackend implements LocationBackend {
           'space_id,user_id,device_id,key_epoch,payload,signature,sent_at',
         )
         .eq('space_id', spaceId);
-    return [
-      for (final r in rows)
-        LocationRow(
-          spaceId: r['space_id'] as String,
-          userId: r['user_id'] as String,
-          deviceId: r['device_id'] as String,
-          epoch: r['key_epoch'] as int,
-          payload: _fromHex(r['payload'] as String),
-          signature: _fromHex(r['signature'] as String),
-          sentAt: DateTime.tryParse(r['sent_at'] as String? ?? ''),
-        ),
-    ];
+    return [for (final r in rows) _row(r)];
   }
 
   @override
@@ -171,6 +174,88 @@ class SupabaseLocationBackend implements LocationBackend {
     );
     return out.stream;
   }
+
+  @override
+  Future<void> insertEvent(LocationRow row) async {
+    await _fresh();
+    try {
+      await client.from('family_events').insert({
+        'space_id': row.spaceId,
+        'user_id': row.userId,
+        'device_id': row.deviceId,
+        'key_epoch': row.epoch,
+        'payload': _toHex(row.payload),
+        'signature': _toHex(row.signature),
+      });
+    } on PostgrestException catch (e) {
+      throw _map(e);
+    }
+  }
+
+  @override
+  Future<List<LocationRow>> events(
+    String spaceId, {
+    required DateTime since,
+    int limit = 100,
+  }) async {
+    await _fresh();
+    final rows = await client
+        .from('family_events')
+        .select(
+          'space_id,user_id,device_id,key_epoch,payload,signature,sent_at',
+        )
+        .eq('space_id', spaceId)
+        .gt('sent_at', since.toUtc().toIso8601String())
+        .order('sent_at')
+        .limit(limit);
+    return [for (final r in rows) _row(r)];
+  }
+
+  @override
+  Stream<void> eventInserts(List<String> spaceIds) {
+    late final StreamController<void> out;
+    final channels = <RealtimeChannel>[];
+    out = StreamController<void>(
+      onListen: () {
+        for (final id in spaceIds) {
+          channels.add(
+            client
+                .channel('family_events:$id')
+                .onPostgresChanges(
+                  event: PostgresChangeEvent.insert,
+                  schema: 'public',
+                  table: 'family_events',
+                  filter: PostgresChangeFilter(
+                    type: PostgresChangeFilterType.eq,
+                    column: 'space_id',
+                    value: id,
+                  ),
+                  callback: (_) => out.add(null),
+                )
+                .subscribe(),
+          );
+        }
+      },
+      onCancel: () async {
+        final all = [...channels];
+        channels.clear();
+        for (final c in all) {
+          await client.removeChannel(c);
+        }
+      },
+    );
+    return out.stream;
+  }
+
+  static LocationRow _row(Map<String, dynamic> r) => LocationRow(
+    spaceId: r['space_id'] as String,
+    userId: r['user_id'] as String,
+    deviceId: r['device_id'] as String,
+    epoch: r['key_epoch'] as int,
+    payload: _fromHex(r['payload'] as String),
+    signature: _fromHex(r['signature'] as String),
+    sentAt: DateTime.tryParse(r['sent_at'] as String? ?? ''),
+  );
 
   static Exception _map(PostgrestException e) {
     final text = '${e.message} ${e.details ?? ''}';
@@ -257,12 +342,64 @@ class InMemoryLocationBackend implements LocationBackend {
   @override
   Stream<void> changes(String spaceId) =>
       server._stream.where((id) => id == spaceId).map((_) {});
+
+  @override
+  Future<void> insertEvent(LocationRow row) async {
+    final me = userId;
+    if (me == null) throw const SignedOutException();
+    final members = server.members[row.spaceId];
+    if (members == null || !members.contains(me)) {
+      throw const NotInCircleException();
+    }
+    if (server.epochs[row.spaceId] != row.epoch) {
+      throw const StaleKeyException();
+    }
+    // Strictly increasing, as the server's clock would be in practice.
+    var at = server.now().toUtc();
+    final last = server.events.lastOrNull?.sentAt;
+    if (last != null && !at.isAfter(last)) {
+      at = last.add(const Duration(milliseconds: 1));
+    }
+    server.events.add(
+      LocationRow(
+        spaceId: row.spaceId,
+        userId: me,
+        deviceId: row.deviceId,
+        epoch: row.epoch,
+        payload: row.payload,
+        signature: row.signature,
+        sentAt: at,
+      ),
+    );
+    server._events.add(row.spaceId);
+  }
+
+  @override
+  Future<List<LocationRow>> events(
+    String spaceId, {
+    required DateTime since,
+    int limit = 100,
+  }) async {
+    final members = server.members[spaceId];
+    if (members == null || !members.contains(userId)) return const [];
+    return server.events
+        .where((e) => e.spaceId == spaceId && e.sentAt!.isAfter(since))
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Stream<void> eventInserts(List<String> spaceIds) =>
+      server._events.stream.where(spaceIds.contains).map((_) {});
 }
 
 class InMemoryLocationServer {
   final Map<String, Set<String>> members = {};
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};
+  final List<LocationRow> events = [];
+  DateTime Function() now = DateTime.now;
+  final _events = StreamController<String>.broadcast();
   final _controller = StreamController<String>.broadcast();
   Stream<String> get _stream => _controller.stream;
   void _changed(String spaceId) => _controller.add(spaceId);

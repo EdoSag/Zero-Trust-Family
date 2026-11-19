@@ -9,8 +9,10 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'app/app_gate.dart';
 import 'app/email_links.dart';
 import 'app/family_config.dart';
+import 'data/alerts.dart';
 import 'data/locations.dart';
 import 'l10n/l10n.dart';
+import 'location/alerts.dart';
 import 'location/location_backend.dart';
 import 'location/share_channel.dart';
 import 'location/share_engine.dart';
@@ -25,7 +27,10 @@ Future<void> main() async {
   final store = SecureShareStore();
   final backend = SupabaseLocationBackend();
   final engine = ShareEngine(store: store, backend: backend);
-  final share = ShareChannel(engine, ready: ready.future)..attach();
+  final alertStore = SecureAlertStore();
+  final alerts = AlertEngine(store: alertStore, backend: backend);
+  final share = ShareChannel(engine, alerts: alerts, ready: ready.future)
+    ..attach();
   await dotenv.load(fileName: '.env');
   // The language picked in Settings, before the first frame.
   await ZtLanguageController.preload();
@@ -44,6 +49,7 @@ Future<void> main() async {
         locationBackendProvider.overrideWithValue(backend),
         shareEngineProvider.overrideWithValue(engine),
         shareServiceProvider.overrideWithValue(share),
+        alertStoreProvider.overrideWithValue(alertStore),
       ],
       child: const ZeroTrustFamilyApp(),
     ),

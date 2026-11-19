@@ -77,7 +77,8 @@ class ShareService : Service(), LocationListener {
             context.stopService(Intent(context, ShareService::class.java))
         }
 
-        /** Takes a position now (after resume, joining a circle, going live). */
+        /** Takes a position now (after resume, joining a circle, going live),
+     *  and asks Dart again what to do. */
         fun poke(context: Context) {
             if (!wasOn(context)) return
             val intent = Intent(context, ShareService::class.java).setAction(ACTION_POKE)
@@ -100,6 +101,12 @@ class ShareService : Service(), LocationListener {
     private var intervalMs = DEFAULT_INTERVAL_MS
     private var listening = false
     private var stopped = false
+
+    /** False while only alerts run (not sharing): no positions taken. */
+    private var locate = true
+
+    /** Alerts only: wake Dart now and then to look for new alerts. */
+    private val alertsTick = Runnable { ask("started", emptyMap()) }
 
     private val motion = object : TriggerEventListener() {
         override fun onTrigger(event: TriggerEvent?) {
@@ -130,11 +137,15 @@ class ShareService : Service(), LocationListener {
         }
         stopped = false
         if (intent?.action == ACTION_POKE) {
-            listen(force = true)
-            now()
+            if (locate) {
+                listen(force = true)
+                now()
+            } else {
+                ask("started", emptyMap())
+            }
         } else if (!listening) {
             ask("started", emptyMap())
-            now()
+            if (locate) now()
         }
         return START_STICKY
     }
@@ -375,6 +386,17 @@ class ShareService : Service(), LocationListener {
         }
         val next = (answer["intervalMs"] as? Number)?.toLong()?.coerceIn(5_000L, 60 * 60 * 1000L)
             ?: DEFAULT_INTERVAL_MS
+        main.removeCallbacks(alertsTick)
+        locate = answer["locate"] != false
+        if (!locate) {
+            // Alerts only: no location, no motion sensor.
+            intervalMs = next
+            stopListening()
+            main.removeCallbacks(recheck)
+            motionSensor?.let { sensors?.cancelTriggerSensor(motion, it) }
+            main.postDelayed(alertsTick, intervalMs)
+            return
+        }
         if (next != intervalMs || !listening) {
             intervalMs = next
             listen(force = true)

@@ -1,7 +1,7 @@
 name: zerotrust_family
 description: "Zero-Trust Family: end-to-end encrypted family location sharing and safety check-ins."
 publish_to: none
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.9.0
@@ -33,6 +33,13 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_sharing_ui
+      ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
+  # Place model, "use my current location" and pasted map links (no Google
+  # Play services). Same commit as zero_trust_core.
+  zt_places:
+    git:
+      url: https://github.com/EdoSag/Zero-Trust-Core.git
+      path: packages/zt_places
       ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
   flutter_riverpod: ^3.5.0
   supabase_flutter: ^2.9.0

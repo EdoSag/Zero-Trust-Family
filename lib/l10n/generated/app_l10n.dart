@@ -552,6 +552,258 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Show on map'**
   String get showOnMap;
+
+  /// No description provided for @notifyAlertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family alerts are on'**
+  String get notifyAlertsTitle;
+
+  /// No description provided for @notifyAlertsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be told when someone arrives at or leaves a place.'**
+  String get notifyAlertsBody;
+
+  /// No description provided for @alertArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} arrived at {place}'**
+  String alertArrived(String name, String place);
+
+  /// No description provided for @alertLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left {place}'**
+  String alertLeft(String name, String place);
+
+  /// No description provided for @alertArrivedSomewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} arrived at a saved place'**
+  String alertArrivedSomewhere(String name);
+
+  /// No description provided for @alertLeftSomewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left a saved place'**
+  String alertLeftSomewhere(String name);
+
+  /// No description provided for @alertAt.
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}'**
+  String alertAt(String time);
+
+  /// No description provided for @alertsChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Family alerts'**
+  String get alertsChannelName;
+
+  /// No description provided for @alertsQuietChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Family alerts during quiet hours'**
+  String get alertsQuietChannelName;
+
+  /// No description provided for @placesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get placesHeading;
+
+  /// No description provided for @placesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Home, School or Work to know when someone arrives or leaves.'**
+  String get placesEmpty;
+
+  /// No description provided for @placeHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Here now: {names}'**
+  String placeHere(String names);
+
+  /// No description provided for @addPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get addPlace;
+
+  /// No description provided for @editPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit place'**
+  String get editPlace;
+
+  /// No description provided for @placeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get placeName;
+
+  /// No description provided for @placeNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Home, School, Work'**
+  String get placeNameHint;
+
+  /// No description provided for @placeNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get placeNameRequired;
+
+  /// No description provided for @placeWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get placeWhere;
+
+  /// No description provided for @placeNoPositionYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No position yet'**
+  String get placeNoPositionYet;
+
+  /// No description provided for @placeUseHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Use where I am now'**
+  String get placeUseHere;
+
+  /// No description provided for @placePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Or paste coordinates or a map link'**
+  String get placePaste;
+
+  /// No description provided for @placeBadPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'No position found in that text'**
+  String get placeBadPaste;
+
+  /// No description provided for @placeNoLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your position. Check that location is on.'**
+  String get placeNoLocation;
+
+  /// No description provided for @placeNeedsPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where the place is'**
+  String get placeNeedsPosition;
+
+  /// No description provided for @placeSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get placeSize;
+
+  /// No description provided for @meters.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} m'**
+  String meters(int count);
+
+  /// No description provided for @placeSizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bigger places notice arrivals sooner but less exactly. Arrivals are worked out on each phone; the server never sees your places.'**
+  String get placeSizeHint;
+
+  /// No description provided for @tooManyPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'This circle has as many places as it can keep.'**
+  String get tooManyPlaces;
+
+  /// No description provided for @removePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove place'**
+  String get removePlace;
+
+  /// No description provided for @removePlaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removePlaceTitle(String name);
+
+  /// No description provided for @removePlaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody in the circle will get alerts for it any more.'**
+  String get removePlaceBody;
+
+  /// No description provided for @recentHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get recentHeading;
+
+  /// No description provided for @alertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts on this phone'**
+  String get alertsTitle;
+
+  /// No description provided for @alertsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a notification when someone arrives at or leaves a place, also while ZT Family is locked. To read them, this phone keeps the circle\'s location key in its secure hardware.'**
+  String get alertsBody;
+
+  /// No description provided for @alertsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts about'**
+  String get alertsAbout;
+
+  /// No description provided for @quietHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet hours'**
+  String get quietHours;
+
+  /// No description provided for @quietOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get quietOff;
+
+  /// No description provided for @quietOnSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}, alerts without sound'**
+  String quietOnSummary(String from, String to);
+
+  /// No description provided for @quietRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String quietRange(String from, String to);
+
+  /// No description provided for @quietCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose times'**
+  String get quietCustom;
+
+  /// No description provided for @quietFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet from'**
+  String get quietFrom;
+
+  /// No description provided for @quietTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet until'**
+  String get quietTo;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
