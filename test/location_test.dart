@@ -509,6 +509,132 @@ void main() {
       expect(dadStore.state, isNull);
     });
 
+    test('a check-in reaches dad, note and all, and ends the timer', () async {
+      await mumAt(32.0);
+      expect(
+        await mum$.startTimer(circle, now.add(const Duration(minutes: 30))),
+        isTrue,
+      );
+      expect((await dad$.check()).single.event.kind, FamilyEventKind.timer);
+      expect(dadStore.state!.circles[circle]!.timers.keys, [mum]);
+
+      expect(await mum$.checkIn(circle, note: '  Home safe  '), isTrue);
+      expect(mumStore.state!.timer, isNull);
+      final hit = (await dad$.check()).single;
+      expect(hit.event.kind, FamilyEventKind.checkin);
+      expect(hit.event.note, 'Home safe');
+      expect(hit.event.lat, 32.0);
+      expect(dadStore.state!.circles[circle]!.timers, isEmpty);
+    });
+
+    test('a long note is cut to 140 characters', () async {
+      await mum$.checkIn(circle, note: 'x' * 400);
+      expect((await dad$.check()).single.event.note, hasLength(140));
+    });
+
+    test('an ask rings only the person it is for, even muted', () async {
+      final c = dadStore.state!.circles[circle]!;
+      dadStore.state = dadStore.state!.copyWith(
+        circles: {
+          circle: c.copyWith(muted: {mum}),
+        },
+      );
+      await mum$.askCheckIn(circle, teen);
+      expect(await dad$.check(), isEmpty);
+      await mum$.askCheckIn(circle, dad);
+      final hit = (await dad$.check()).single;
+      expect(hit.asksMe, isTrue);
+      expect(hit.urgent, isFalse);
+    });
+
+    test(
+      'a missed timer: mum\'s phone sends overdue and shares live',
+      () async {
+        await mumAt(32.0);
+        mumStore.state = mumStore.state!.copyWith(pausedOpenEnded: true);
+        final until = now.add(const Duration(minutes: 30));
+        await mum$.startTimer(circle, until);
+        await dad$.check();
+
+        now = until.add(const Duration(minutes: 1));
+        await mum$.onMotion();
+        final s = mumStore.state!;
+        expect(s.timer, isNull);
+        expect(s.pausedOpenEnded, isFalse);
+        expect(s.liveUntil, now.add(ShareEngine.liveAfterAlarm));
+        final hit = (await dad$.check()).single;
+        expect(hit.event.kind, FamilyEventKind.overdue);
+        expect(hit.urgent, isTrue);
+      },
+    );
+
+    test(
+      'a timer that runs out with mum\'s phone off still alerts, once',
+      () async {
+        final until = now.add(const Duration(minutes: 30));
+        await mum$.startTimer(circle, until);
+        await dad$.check();
+        now = until.add(const Duration(minutes: 1));
+        // Mum's phone is off: dad's phone sees the time pass by itself.
+        final hit = (await dad$.check()).single;
+        expect(hit.event.kind, FamilyEventKind.overdue);
+        expect(hit.event.id, startsWith('late-'));
+        expect(await dad$.check(), isEmpty);
+        // Her phone comes back and sends overdue: not a second alert.
+        await mum$.onMotion();
+        expect(server.events, hasLength(2));
+        expect(await dad$.check(), isEmpty);
+      },
+    );
+
+    test('ending the timer in time alerts no one later', () async {
+      final until = now.add(const Duration(minutes: 30));
+      await mum$.startTimer(circle, until);
+      await dad$.check();
+      expect(await mum$.endTimer(), isTrue);
+      expect((await dad$.check()).single.event.kind, FamilyEventKind.timerEnd);
+      now = until.add(const Duration(minutes: 5));
+      expect(await dad$.check(), isEmpty);
+    });
+
+    test('SOS: loud past muting and quiet hours, shares live', () async {
+      final c = dadStore.state!.circles[circle]!;
+      dadStore.state = dadStore.state!.copyWith(
+        quiet: () => const QuietHours(0, 1439),
+        circles: {
+          circle: c.copyWith(muted: {mum}),
+        },
+      );
+      mumStore.state = mumStore.state!.copyWith(pausedOpenEnded: true);
+      expect(await mum$.startSos(circle), isTrue);
+      expect(mumStore.state!.sos?.spaceId, circle);
+      expect(mumStore.state!.pausedOpenEnded, isFalse);
+      expect(mumStore.state!.liveUntil, now.add(ShareEngine.liveAfterAlarm));
+      final hit = (await dad$.check()).single;
+      expect(hit.event.kind, FamilyEventKind.sos);
+      expect(hit.urgent, isTrue);
+
+      expect(await mum$.endSos(), isTrue);
+      expect(mumStore.state!.sos, isNull);
+      expect(mumStore.state!.liveUntil, isNull);
+      // Whoever got the SOS also hears that it ended, without sound.
+      final safe = (await dad$.check()).single;
+      expect(safe.event.kind, FamilyEventKind.sosEnd);
+      expect(safe.urgent, isFalse);
+      expect(safe.quiet, isTrue);
+    });
+
+    test('safety needs the circle: an unknown circle sends nothing', () async {
+      expect(await mum$.checkIn('other'), isFalse);
+      expect(await mum$.startSos('other'), isFalse);
+      expect(mumStore.state!.sos, isNull);
+      expect(
+        await mum$.startTimer(circle, now.subtract(const Duration(minutes: 1))),
+        isFalse,
+      );
+      expect(server.events, isEmpty);
+    });
+
     test('settings survive a round trip through JSON', () {
       final s = dadStore.state!.copyWith(quiet: () => QuietHours.standard);
       final back = AlertState.fromJson(s.toJson());

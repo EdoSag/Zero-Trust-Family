@@ -122,6 +122,7 @@ class AlertActions {
       muted: had?.muted ?? const {},
       cursor: had?.cursor ?? DateTime.now().toUtc(),
       seen: had?.seen ?? const [],
+      timers: had?.timers ?? const {},
     );
   }
 
@@ -207,6 +208,7 @@ class AlertActions {
               cursor: latest.circles[c.spaceId]?.cursor,
               seen: latest.circles[c.spaceId]?.seen,
               muted: latest.circles[c.spaceId]?.muted,
+              timers: latest.circles[c.spaceId]?.timers,
             ),
         },
       ),

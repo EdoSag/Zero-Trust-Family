@@ -435,4 +435,152 @@ class AppL10nHe extends AppL10n {
 
   @override
   String get quietTo => 'שקט עד';
+
+  @override
+  String eventCheckin(String name) {
+    return '$name עשה/תה צ׳ק-אין';
+  }
+
+  @override
+  String eventAsk(String name) {
+    return '$name מבקש/ת שתעשו צ׳ק-אין';
+  }
+
+  @override
+  String eventTimer(String name, String time) {
+    return '$name הפעיל/ה טיימר בטיחות עד $time';
+  }
+
+  @override
+  String eventTimerEnd(String name) {
+    return '$name בסדר';
+  }
+
+  @override
+  String eventOverdue(String name, String time) {
+    return '$name לא עשה/תה צ׳ק-אין עד $time';
+  }
+
+  @override
+  String eventSos(String name) {
+    return '$name שלח/ה SOS';
+  }
+
+  @override
+  String eventSosEnd(String name) {
+    return '$name בטוח/ה עכשיו';
+  }
+
+  @override
+  String get sosChannelName => 'SOS וצ׳ק-אין שלא הגיע';
+
+  @override
+  String timerReminderTitle(String time) {
+    return 'טיימר הבטיחות שלך מסתיים ב-$time';
+  }
+
+  @override
+  String get timerReminderBody => 'הקישו על אני בסדר, אחרת המעגל יקבל התראה.';
+
+  @override
+  String get imOk => 'אני בסדר';
+
+  @override
+  String get imSafe => 'אני בטוח/ה';
+
+  @override
+  String get send => 'שליחה';
+
+  @override
+  String get couldNotSend => 'השליחה נכשלה. בדקו את החיבור ונסו שוב.';
+
+  @override
+  String get safetyTitle => 'בטיחות';
+
+  @override
+  String get safetyNeedsSharing =>
+      'שתפו את המיקום שלכם עם המעגל כדי להשתמש בצ׳ק-אין, בטיימר הבטיחות וב-SOS.';
+
+  @override
+  String get safetyBody => 'צ׳ק-אין ו-SOS נשלחים לכל המעגל יחד עם המיקום שלכם.';
+
+  @override
+  String get checkinButton => 'אני כאן';
+
+  @override
+  String get checkinTitle => 'צ׳ק-אין';
+
+  @override
+  String get checkinNote => 'הערה (לא חובה)';
+
+  @override
+  String get checkinNoteHint => 'הגעתי לאימון';
+
+  @override
+  String get checkinSent => 'הצ׳ק-אין נשלח';
+
+  @override
+  String get askButton => 'לבקש ממישהו צ׳ק-אין';
+
+  @override
+  String get askWho => 'ממי לבקש צ׳ק-אין?';
+
+  @override
+  String askSent(String name) {
+    return 'ביקשנו מ$name לעשות צ׳ק-אין';
+  }
+
+  @override
+  String get timerButton => 'טיימר בטיחות';
+
+  @override
+  String get timerQuestion => 'להתריע למעגל אם לא אעשה צ׳ק-אין';
+
+  @override
+  String get timerPick => 'עד שעה שאבחר';
+
+  @override
+  String timerStarted(String time) {
+    return 'הטיימר פועל עד $time';
+  }
+
+  @override
+  String timerActive(String time) {
+    return 'טיימר בטיחות עד $time. אם לא תקישו על אני בסדר עד אז, המעגל יקבל התראה ויראה אתכם בזמן אמת.';
+  }
+
+  @override
+  String get timerEnded => 'הטיימר הסתיים';
+
+  @override
+  String get sosButton => 'לחיצה ארוכה ל-SOS';
+
+  @override
+  String get sosHoldHint => 'החזיקו את הכפתור 2 שניות כדי לשלוח SOS';
+
+  @override
+  String get sosSent => 'ה-SOS נשלח. המעגל רואה אתכם בזמן אמת במשך שעה.';
+
+  @override
+  String get sosActive => 'ה-SOS נשלח. המעגל רואה איפה אתם, בזמן אמת.';
+
+  @override
+  String get sosEnded => 'המעגל יודע שאתם בטוחים';
+
+  @override
+  String timerInMinutes(int minutes) {
+    return 'בעוד $minutes דקות';
+  }
+
+  @override
+  String timerInHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'בעוד $hours שעות',
+      two: 'בעוד שעתיים',
+      one: 'בעוד שעה',
+    );
+    return '$_temp0';
+  }
 }

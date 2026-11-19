@@ -52,6 +52,14 @@ class ShareChannel implements ShareServiceControl {
           result = await engine.onMotion();
         case 'started':
           result = await engine.current();
+        // "I'm OK" on a notification, while locked.
+        case 'checkin':
+          final space = args['spaceId'];
+          if (space is String) await engine.checkIn(space);
+          result = await engine.current();
+        case 'timerOk':
+          await engine.endTimer();
+          result = await engine.current();
         default:
           throw MissingPluginException(call.method);
       }
@@ -87,7 +95,21 @@ class ShareChannel implements ShareServiceControl {
             ),
             ShareHealth.stopped => (l.notifySharingTitle, l.notifySharingBody),
           };
+    final timer = (await engine.store.load())?.timer;
+    DateTime? wakeAt;
+    if (timer != null) {
+      final remind = timer.until.subtract(timerReminder);
+      final now = DateTime.now();
+      if (now.isBefore(remind)) {
+        wakeAt = remind;
+      } else {
+        wakeAt = timer.until;
+        await _remindTimer(timer.until, l);
+      }
+    }
     return {
+      // Wake up for the safety timer even if the phone is still.
+      if (wakeAt != null) 'wakeAt': wakeAt.millisecondsSinceEpoch,
       'stop': result.stop && !alertsOn,
       'locate': !result.stop,
       'intervalMs': alertsOnly
@@ -97,6 +119,34 @@ class ShareChannel implements ShareServiceControl {
       'text': text,
       'channelName': l.notifyChannelName,
     };
+  }
+
+  /// How long before a safety timer runs out its owner is reminded.
+  static const timerReminder = Duration(minutes: 10);
+
+  DateTime? _reminded;
+
+  /// "Your safety timer ends at 23:30", with an "I'm OK" button.
+  Future<void> _remindTimer(DateTime until, AppL10n l) async {
+    if (_reminded == until) return;
+    _reminded = until;
+    final time = DateFormat.Hm(l.localeName).format(until.toLocal());
+    try {
+      await _channel.invokeMethod<void>('notify', {
+        'id': until.millisecondsSinceEpoch ~/ 1000 & 0x3fffffff,
+        'title': l.timerReminderTitle(time),
+        'text': l.timerReminderBody,
+        'quiet': false,
+        'urgent': false,
+        'actionLabel': l.imOk,
+        'actionKind': 'timerOk',
+        'channelName': l.alertsChannelName,
+        'quietChannelName': l.alertsQuietChannelName,
+        'urgentChannelName': l.sosChannelName,
+      });
+    } on MissingPluginException {
+      // Tests.
+    }
   }
 
   /// Follows new events of the alert circles as they arrive (realtime),
@@ -129,14 +179,21 @@ class ShareChannel implements ShareServiceControl {
 
   Future<void> _notify(AlertHit hit, AppL10n l) async {
     final name = hit.name.isEmpty ? l.unnamedMember : hit.name;
-    final title = eventLine(l, name, hit.placeName, hit.event.kind);
+    final title = eventLine(l, name, hit.placeName, hit.event);
     final time = DateFormat.Hm(l.localeName).format(hit.event.at.toLocal());
     try {
       await _channel.invokeMethod<void>('notify', {
         'id': hit.notificationId,
         'title': title,
-        'text': l.alertAt(time),
-        'quiet': hit.quiet,
+        'text': hit.event.note?.isNotEmpty == true
+            ? '${hit.event.note} · ${l.alertAt(time)}'
+            : l.alertAt(time),
+        'quiet': hit.quiet && !hit.urgent,
+        'urgent': hit.urgent,
+        if (hit.asksMe) 'actionLabel': l.imOk,
+        if (hit.asksMe) 'actionKind': 'checkin',
+        if (hit.asksMe) 'actionSpace': hit.spaceId,
+        'urgentChannelName': l.sosChannelName,
         'channelName': l.alertsChannelName,
         'quietChannelName': l.alertsQuietChannelName,
       });

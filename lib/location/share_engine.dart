@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'family_event.dart';
@@ -94,16 +95,16 @@ class ShareEngine {
   Future<ShareResult> onFix(Fix fix, DeviceStatus status) => _serial(() async {
     _status = status;
     _lastFix = fix;
-    final state = await store.load();
     final now = _clock();
+    final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
     final decision = schedule.onFix(fix);
     return _send(state, now, decision, newFix: fix);
   });
 
   Future<ShareResult> onMotion() => _serial(() async {
-    final state = await store.load();
     final now = _clock();
+    final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
     final decision = schedule.onMotion(now);
     return ShareResult(_healthOf(state, now), decision);
@@ -112,18 +113,225 @@ class ShareEngine {
   /// Sends at once without a new position (paused, resumed, battery): the
   /// last position this phone had, or none.
   Future<ShareResult> sendNow() => _serial(() async {
-    final state = await store.load();
     final now = _clock();
+    final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
     return _send(state, now, schedule.current(now));
   });
 
   /// The current decision, for the service when it starts.
   Future<ShareResult> current() => _serial(() async {
-    final state = await store.load();
     final now = _clock();
+    final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
     return ShareResult(_healthOf(state, now), schedule.current(now));
+  });
+
+  /// The share state, after sending the alert for a safety timer that ran
+  /// out (and sharing live for an hour so the circle can find this phone).
+  Future<ShareState?> _load(DateTime now) async {
+    var state = await store.load();
+    final timer = state?.timer;
+    if (state == null || timer == null || now.isBefore(timer.until)) {
+      return state;
+    }
+    final sent = await _event(
+      state,
+      timer.spaceId,
+      FamilyEvent(
+        id: _eventId(),
+        kind: FamilyEventKind.overdue,
+        at: now,
+        until: timer.until,
+        lat: _lastFix?.lat,
+        lng: _lastFix?.lng,
+        battery: _status.battery,
+      ),
+    );
+    if (!sent && now.difference(timer.until) < const Duration(hours: 1)) {
+      return state; // Offline: next wake-up tries again.
+    }
+    state = state.copyWith(
+      timer: () => null,
+      liveUntil: () => now.add(liveAfterAlarm),
+      pausedUntil: () => null,
+      pausedOpenEnded: false,
+    );
+    await store.save(state);
+    return state;
+  }
+
+  /// How long a phone shares live after an SOS or a missed timer.
+  static const liveAfterAlarm = Duration(hours: 1);
+
+  /// Seals, signs and sends [event] to [spaceId]. False when this phone
+  /// doesn't share with that circle (or its key changed) or it's offline.
+  Future<bool> _event(
+    ShareState state,
+    String spaceId,
+    FamilyEvent event,
+  ) async {
+    final me = backend.userId;
+    if (me == null || me != state.userId) return false;
+    CirclePackage? circle;
+    for (final c in state.circles) {
+      if (c.spaceId == spaceId && !c.stale) circle = c;
+    }
+    if (circle == null) return false;
+    final context = LocationBox.context(
+      table: 'family_events',
+      spaceId: spaceId,
+      userId: me,
+      deviceId: state.deviceId,
+      epoch: circle.epoch,
+    );
+    try {
+      final payload = await LocationBox.seal(
+        event.encode(),
+        boxPublic: circle.boxPublic,
+        context: context,
+      );
+      await backend.insertEvent(
+        LocationRow(
+          spaceId: spaceId,
+          userId: me,
+          deviceId: state.deviceId,
+          epoch: circle.epoch,
+          payload: payload,
+          signature: await Signing.sign(
+            LocationBox.signedBytes(context, payload),
+            await Signing.fromSeed(state.deviceSeed),
+          ),
+        ),
+      );
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
+  FamilyEvent _now(
+    FamilyEventKind kind,
+    DateTime now, {
+    String? note,
+    String? to,
+    DateTime? until,
+  }) => FamilyEvent(
+    id: _eventId(),
+    kind: kind,
+    at: now,
+    lat: _lastFix?.lat,
+    lng: _lastFix?.lng,
+    battery: _status.battery,
+    note: note,
+    to: to,
+    until: until,
+  );
+
+  /// "I'm here". Also ends this phone's safety timer in that circle.
+  /// Works while locked (the "I'm OK" button on a notification).
+  Future<bool> checkIn(String spaceId, {String? note}) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null) return false;
+    final clean = note?.trim();
+    final sent = await _event(
+      state,
+      spaceId,
+      _now(
+        FamilyEventKind.checkin,
+        now,
+        note: clean == null || clean.isEmpty
+            ? null
+            : clean.characters.take(FamilyEvent.maxNote).toString(),
+      ),
+    );
+    if (sent && state.timer?.spaceId == spaceId) {
+      await store.save(state.copyWith(timer: () => null));
+    }
+    return sent;
+  });
+
+  /// Asks [userId] to check in.
+  Future<bool> askCheckIn(String spaceId, String userId) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null) return false;
+    return _event(state, spaceId, _now(FamilyEventKind.ask, now, to: userId));
+  });
+
+  /// "If I don't check in by [until], alert my circle."
+  Future<bool> startTimer(String spaceId, DateTime until) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null || !until.isAfter(now)) return false;
+    final sent = await _event(
+      state,
+      spaceId,
+      _now(FamilyEventKind.timer, now, until: until),
+    );
+    if (sent) {
+      await store.save(
+        state.copyWith(
+          timer: () => SafetyRun(spaceId: spaceId, until: until),
+        ),
+      );
+    }
+    return sent;
+  });
+
+  /// "I'm OK": ends the timer in time.
+  Future<bool> endTimer() => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    final timer = state?.timer;
+    if (state == null || timer == null) return false;
+    final sent = await _event(
+      state,
+      timer.spaceId,
+      _now(FamilyEventKind.timerEnd, now),
+    );
+    if (sent) await store.save(state.copyWith(timer: () => null));
+    return sent;
+  });
+
+  /// SOS: alerts the circle and shares live for an hour (a pause ends).
+  Future<bool> startSos(String spaceId, {String? note}) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null) return false;
+    final sent = await _event(
+      state,
+      spaceId,
+      _now(FamilyEventKind.sos, now, note: note),
+    );
+    if (sent) {
+      final until = now.add(liveAfterAlarm);
+      await store.save(
+        state.copyWith(
+          sos: () => SafetyRun(spaceId: spaceId, until: until),
+          liveUntil: () => until,
+          pausedUntil: () => null,
+          pausedOpenEnded: false,
+        ),
+      );
+    }
+    return sent;
+  });
+
+  /// "I'm safe": ends the SOS and its live sharing.
+  Future<bool> endSos() => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    final sos = state?.sos;
+    if (state == null || sos == null) return false;
+    final sent = await _event(
+      state,
+      sos.spaceId,
+      _now(FamilyEventKind.sosEnd, now),
+    );
+    await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    return sent;
   });
 
   ShareHealth _healthOf(ShareState? state, DateTime now) {

@@ -24,6 +24,7 @@ class AlertCircle {
     this.muted = const {},
     required this.cursor,
     this.seen = const [],
+    this.timers = const {},
   });
 
   final String spaceId;
@@ -47,6 +48,11 @@ class AlertCircle {
   /// Ids of the latest events shown, so none is shown twice.
   final List<String> seen;
 
+  /// Members' running safety timers (userId → deadline), watched here too,
+  /// so a missed one alerts even if the member's phone is off. A deadline
+  /// already alerted on is kept (marked) until the member checks in.
+  final Map<String, ({DateTime until, bool alerted})> timers;
+
   static const maxSeen = 200;
 
   AlertCircle copyWith({
@@ -57,6 +63,7 @@ class AlertCircle {
     Set<String>? muted,
     DateTime? cursor,
     List<String>? seen,
+    Map<String, ({DateTime until, bool alerted})>? timers,
   }) => AlertCircle(
     spaceId: spaceId,
     boxes: boxes ?? this.boxes,
@@ -66,6 +73,7 @@ class AlertCircle {
     muted: muted ?? this.muted,
     cursor: cursor ?? this.cursor,
     seen: seen ?? this.seen,
+    timers: timers ?? this.timers,
   );
 
   Map<String, Object?> toJson() => {
@@ -81,6 +89,13 @@ class AlertCircle {
     'muted': muted.toList(),
     'cursor': cursor.toUtc().toIso8601String(),
     'seen': seen,
+    'timers': {
+      for (final e in timers.entries)
+        e.key: {
+          'until': e.value.until.toUtc().toIso8601String(),
+          if (e.value.alerted) 'alerted': true,
+        },
+    },
   };
 
   static AlertCircle fromJson(Map<String, Object?> j) {
@@ -116,6 +131,16 @@ class AlertCircle {
         for (final s in (j['seen'] as List? ?? const []))
           if (s is String) s,
       ],
+      timers: {
+        for (final e in map('timers').entries)
+          if (e.value is Map &&
+              DateTime.tryParse((e.value! as Map)['until'] as String? ?? '') !=
+                  null)
+            e.key: (
+              until: DateTime.parse((e.value! as Map)['until'] as String),
+              alerted: (e.value! as Map)['alerted'] == true,
+            ),
+      },
     );
   }
 }
@@ -272,6 +297,15 @@ class AlertHit {
   /// Inside quiet hours: shown without sound.
   final bool quiet;
 
+  /// SOS or a missed safety timer: loud, past quiet hours.
+  bool get urgent =>
+      event.kind == FamilyEventKind.sos ||
+      event.kind == FamilyEventKind.overdue;
+
+  /// Someone asked this phone's person to check in: the notification gets
+  /// an "I'm OK" button.
+  bool get asksMe => event.kind == FamilyEventKind.ask;
+
   /// A stable notification id for this event.
   int get notificationId => eventId.hashCode & 0x3fffffff;
 }
@@ -331,30 +365,72 @@ class AlertEngine {
       var cursor = circle.cursor;
       final seen = [...circle.seen];
       final boxes = <int, SimpleKeyPair>{};
+      final timers = {...circle.timers};
+      AlertHit hit(String userId, FamilyEvent event) => AlertHit(
+        spaceId: circle.spaceId,
+        eventId: event.id,
+        userId: userId,
+        name: circle.names[userId] ?? '',
+        placeName: event.placeId == null ? null : circle.places[event.placeId],
+        event: event,
+        quiet: quiet,
+      );
       for (final row in rows) {
         final sentAt = row.sentAt;
         if (sentAt != null && sentAt.isAfter(cursor)) cursor = sentAt;
-        if (row.userId == me || circle.muted.contains(row.userId)) continue;
+        if (row.userId == me) continue;
         final event = await _open(circle, row, boxes);
         if (event == null || seen.contains(event.id)) continue;
         seen.add(event.id);
+        // Timers are followed even for muted people: a missed one alerts.
+        final had = timers[row.userId];
+        switch (event.kind) {
+          case FamilyEventKind.timer when event.until != null:
+            timers[row.userId] = (until: event.until!, alerted: false);
+          case FamilyEventKind.checkin ||
+              FamilyEventKind.timerEnd ||
+              FamilyEventKind.overdue:
+            timers.remove(row.userId);
+          default:
+        }
         if (now.difference(event.at) > maxAge) continue;
+        final urgent =
+            event.kind == FamilyEventKind.sos ||
+            event.kind == FamilyEventKind.overdue;
+        // This phone already alerted on the missed timer by itself.
+        if (event.kind == FamilyEventKind.overdue && had?.alerted == true) {
+          continue;
+        }
+        if (event.kind == FamilyEventKind.ask && event.to != me) continue;
+        // Whoever got the SOS also hears that it ended.
+        if (!urgent &&
+            event.kind != FamilyEventKind.ask &&
+            event.kind != FamilyEventKind.sosEnd &&
+            circle.muted.contains(row.userId)) {
+          continue;
+        }
+        hits.add(hit(row.userId, event));
+      }
+      // A timer that ran out with no word from its phone.
+      for (final e in [...timers.entries]) {
+        if (e.value.alerted || now.isBefore(e.value.until)) continue;
+        timers[e.key] = (until: e.value.until, alerted: true);
+        if (now.difference(e.value.until) > maxAge) continue;
         hits.add(
-          AlertHit(
-            spaceId: circle.spaceId,
-            eventId: event.id,
-            userId: row.userId,
-            name: circle.names[row.userId] ?? '',
-            placeName: event.placeId == null
-                ? null
-                : circle.places[event.placeId],
-            event: event,
-            quiet: quiet,
+          hit(
+            e.key,
+            FamilyEvent(
+              id: 'late-${e.key}-${e.value.until.millisecondsSinceEpoch}',
+              kind: FamilyEventKind.overdue,
+              at: e.value.until,
+              until: e.value.until,
+            ),
           ),
         );
       }
       circles[circle.spaceId] = circle.copyWith(
         cursor: cursor,
+        timers: timers,
         seen: seen.length > AlertCircle.maxSeen
             ? seen.sublist(seen.length - AlertCircle.maxSeen)
             : seen,
@@ -372,6 +448,7 @@ class AlertEngine {
                   : c.copyWith(
                       cursor: circles[c.spaceId]!.cursor,
                       seen: circles[c.spaceId]!.seen,
+                      timers: circles[c.spaceId]!.timers,
                     ),
           },
         ),

@@ -13,6 +13,7 @@ import '../l10n/l10n.dart';
 import 'common.dart';
 import 'family_map.dart';
 import 'places_section.dart';
+import 'safety_card.dart';
 import 'share_card.dart';
 
 /// One family circle: the map, this phone's sharing, where everyone is, and
@@ -122,6 +123,7 @@ class _CirclePageState extends ConsumerState<CirclePage> {
               ),
             ),
           ShareCard(spaceId: widget.spaceId),
+          SafetyCard(spaceId: spaceId, members: circle.members, me: me),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
             child: Text(

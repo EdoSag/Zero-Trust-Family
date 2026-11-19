@@ -237,6 +237,50 @@ class FakeShareActions extends ShareActions {
 
   @override
   Future<void> refreshPackages() async {}
+
+  /// What the safety buttons send; [online] false makes them fail.
+  bool online = true;
+
+  Future<bool> _sent(String what, [ShareState Function(ShareState)? f]) async {
+    calls.add(what);
+    if (!online) return false;
+    if (f != null) await _set(f(_now));
+    return true;
+  }
+
+  @override
+  Future<bool> checkIn(String spaceId, {String? note}) =>
+      _sent('checkin $spaceId ${note ?? ''}'.trim());
+
+  @override
+  Future<bool> askCheckIn(String spaceId, String userId) =>
+      _sent('ask $spaceId $userId');
+
+  @override
+  Future<bool> startTimer(String spaceId, DateTime until) => _sent(
+    'timer $spaceId',
+    (s) => s.copyWith(
+      timer: () => SafetyRun(spaceId: spaceId, until: until),
+    ),
+  );
+
+  @override
+  Future<bool> endTimer() =>
+      _sent('timer end', (s) => s.copyWith(timer: () => null));
+
+  @override
+  Future<bool> startSos(String spaceId) => _sent(
+    'sos $spaceId',
+    (s) => s.copyWith(
+      sos: () => SafetyRun(
+        spaceId: spaceId,
+        until: DateTime.now().add(const Duration(hours: 1)),
+      ),
+    ),
+  );
+
+  @override
+  Future<bool> endSos() => _sent('sos end', (s) => s.copyWith(sos: () => null));
 }
 
 Widget app(

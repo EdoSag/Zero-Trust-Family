@@ -76,6 +76,29 @@ class CirclePackage {
 
 /// This phone's sharing state, kept outside the vault (in the Android
 /// Keystore) so the background service can use it while the app is locked.
+/// A running safety timer or SOS of this phone, in one circle.
+class SafetyRun {
+  const SafetyRun({required this.spaceId, required this.until});
+
+  final String spaceId;
+
+  /// The timer's deadline; for an SOS, when its live sharing ends.
+  final DateTime until;
+
+  Map<String, Object?> toJson() => {
+    'space': spaceId,
+    'until': until.toUtc().toIso8601String(),
+  };
+
+  static SafetyRun? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final space = json['space'];
+    final until = DateTime.tryParse(json['until'] as String? ?? '');
+    if (space is! String || until == null) return null;
+    return SafetyRun(spaceId: space, until: until);
+  }
+}
+
 class ShareState {
   const ShareState({
     required this.userId,
@@ -85,6 +108,8 @@ class ShareState {
     this.pausedUntil,
     this.pausedOpenEnded = false,
     this.liveUntil,
+    this.timer,
+    this.sos,
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -102,6 +127,13 @@ class ShareState {
   final bool pausedOpenEnded;
   final DateTime? liveUntil;
 
+  /// "Alert my circle if I don't check in by ..."; the service sends the
+  /// alert itself when the time passes.
+  final SafetyRun? timer;
+
+  /// An SOS this phone sent and hasn't ended.
+  final SafetyRun? sos;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -114,6 +146,8 @@ class ShareState {
     DateTime? Function()? pausedUntil,
     bool? pausedOpenEnded,
     DateTime? Function()? liveUntil,
+    SafetyRun? Function()? timer,
+    SafetyRun? Function()? sos,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -122,6 +156,8 @@ class ShareState {
     pausedUntil: pausedUntil == null ? this.pausedUntil : pausedUntil(),
     pausedOpenEnded: pausedOpenEnded ?? this.pausedOpenEnded,
     liveUntil: liveUntil == null ? this.liveUntil : liveUntil(),
+    timer: timer == null ? this.timer : timer(),
+    sos: sos == null ? this.sos : sos(),
   );
 
   Map<String, Object?> toJson() => {
@@ -133,6 +169,8 @@ class ShareState {
     if (pausedUntil != null) 'pausedUntil': pausedUntil!.toIso8601String(),
     if (pausedOpenEnded) 'pausedOpenEnded': true,
     if (liveUntil != null) 'liveUntil': liveUntil!.toIso8601String(),
+    if (timer != null) 'timer': timer!.toJson(),
+    if (sos != null) 'sos': sos!.toJson(),
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -146,6 +184,8 @@ class ShareState {
     pausedUntil: DateTime.tryParse(json['pausedUntil'] as String? ?? ''),
     pausedOpenEnded: json['pausedOpenEnded'] == true,
     liveUntil: DateTime.tryParse(json['liveUntil'] as String? ?? ''),
+    timer: SafetyRun.fromJson(json['timer']),
+    sos: SafetyRun.fromJson(json['sos']),
   );
 
   /// A new device identity for [userId].
