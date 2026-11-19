@@ -289,4 +289,156 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get showOnMap => 'Show on map';
+
+  @override
+  String get notifyAlertsTitle => 'Family alerts are on';
+
+  @override
+  String get notifyAlertsBody =>
+      'You\'ll be told when someone arrives at or leaves a place.';
+
+  @override
+  String alertArrived(String name, String place) {
+    return '$name arrived at $place';
+  }
+
+  @override
+  String alertLeft(String name, String place) {
+    return '$name left $place';
+  }
+
+  @override
+  String alertArrivedSomewhere(String name) {
+    return '$name arrived at a saved place';
+  }
+
+  @override
+  String alertLeftSomewhere(String name) {
+    return '$name left a saved place';
+  }
+
+  @override
+  String alertAt(String time) {
+    return 'At $time';
+  }
+
+  @override
+  String get alertsChannelName => 'Family alerts';
+
+  @override
+  String get alertsQuietChannelName => 'Family alerts during quiet hours';
+
+  @override
+  String get placesHeading => 'Places';
+
+  @override
+  String get placesEmpty =>
+      'Add Home, School or Work to know when someone arrives or leaves.';
+
+  @override
+  String placeHere(String names) {
+    return 'Here now: $names';
+  }
+
+  @override
+  String get addPlace => 'Add a place';
+
+  @override
+  String get editPlace => 'Edit place';
+
+  @override
+  String get placeName => 'Name';
+
+  @override
+  String get placeNameHint => 'Home, School, Work';
+
+  @override
+  String get placeNameRequired => 'Enter a name';
+
+  @override
+  String get placeWhere => 'Where';
+
+  @override
+  String get placeNoPositionYet => 'No position yet';
+
+  @override
+  String get placeUseHere => 'Use where I am now';
+
+  @override
+  String get placePaste => 'Or paste coordinates or a map link';
+
+  @override
+  String get placeBadPaste => 'No position found in that text';
+
+  @override
+  String get placeNoLocation =>
+      'Couldn\'t get your position. Check that location is on.';
+
+  @override
+  String get placeNeedsPosition => 'Choose where the place is';
+
+  @override
+  String get placeSize => 'Size';
+
+  @override
+  String meters(int count) {
+    return '$count m';
+  }
+
+  @override
+  String get placeSizeHint =>
+      'Bigger places notice arrivals sooner but less exactly. Arrivals are worked out on each phone; the server never sees your places.';
+
+  @override
+  String get tooManyPlaces => 'This circle has as many places as it can keep.';
+
+  @override
+  String get removePlace => 'Remove place';
+
+  @override
+  String removePlaceTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get removePlaceBody =>
+      'Nobody in the circle will get alerts for it any more.';
+
+  @override
+  String get recentHeading => 'Today';
+
+  @override
+  String get alertsTitle => 'Alerts on this phone';
+
+  @override
+  String get alertsBody =>
+      'Get a notification when someone arrives at or leaves a place, also while ZT Family is locked. To read them, this phone keeps the circle\'s location key in its secure hardware.';
+
+  @override
+  String get alertsAbout => 'Alerts about';
+
+  @override
+  String get quietHours => 'Quiet hours';
+
+  @override
+  String get quietOff => 'Off';
+
+  @override
+  String quietOnSummary(String from, String to) {
+    return '$from to $to, alerts without sound';
+  }
+
+  @override
+  String quietRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get quietCustom => 'Choose times';
+
+  @override
+  String get quietFrom => 'Quiet from';
+
+  @override
+  String get quietTo => 'Quiet until';
 }

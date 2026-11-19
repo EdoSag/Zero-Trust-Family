@@ -5,11 +5,14 @@ phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
 apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
 The server stores only ciphertext and can never see where anyone is.
 
-> **Status: phase L1.** Family circles work (create, invite by link or QR
+> **Status: phase L2.** Family circles work (create, invite by link or QR
 > code, join, leave), and each member can share their location with a
 > circle, also while the phone is locked: an end-to-end encrypted position
 > and battery level, on a battery-saving schedule, with pause and "Share
-> live". Places and alerts come in L2.
+> live". Circles have places (Home, School), each phone works out its own
+> arrivals and departures, and members can opt in to alerts that show while
+> the app is locked, with quiet hours and a choice of whom to hear about.
+> Check-ins, the safety timer and SOS come in L3.
 
 ## What it will do
 
@@ -103,6 +106,14 @@ releases are one `Dev` → `main` pull request.
   only measures (Android `LocationManager`, no Google Play services) and asks
   Dart what to do next. `FamilyApp.kt` keeps one Flutter engine for the
   screen and the service, so there is one signed-in Supabase client.
+- Places are the space items `family.place/<id>` (any member can add one).
+  `lib/location/geofence.dart` turns positions into arrivals and
+  departures on the phone; each is a sealed row in `family_events`.
+- `lib/location/alerts.dart`: alerts while locked (opt-in per circle). The
+  phone keeps the circle's box seed (it opens only that circle's location
+  data), the members' device keys and the names of people and places in the
+  Keystore, reads new events when the service wakes or realtime says so,
+  and `AlertNotifier.kt` shows them.
 - `lib/data/locations.dart`: opening a circle's locations (only rows signed
   by a device its member published), and turning sharing on, off, paused or
   live. Each sharing phone publishes its device key as the item

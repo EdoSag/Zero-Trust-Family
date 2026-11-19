@@ -31,13 +31,29 @@ abstract final class LocationBox {
     required String spaceId,
     required int epoch,
   }) async {
-    final seed = await Kdf.hkdf(spaceKey, '$_boxInfo|$spaceId|$epoch');
+    final seed = await boxSeed(
+      spaceKey: spaceKey,
+      spaceId: spaceId,
+      epoch: epoch,
+    );
     try {
-      return await _x25519.newKeyPairFromSeed(seed);
+      return await fromSeed(seed);
     } finally {
       seed.fillRange(0, seed.length, 0);
     }
   }
+
+  /// The 32 bytes the box is made from. A phone that opted in to alerts
+  /// while locked keeps this (not the space key) in the Keystore: it opens
+  /// location updates and events of this circle and epoch, nothing else.
+  static Future<Uint8List> boxSeed({
+    required List<int> spaceKey,
+    required String spaceId,
+    required int epoch,
+  }) => Kdf.hkdf(spaceKey, '$_boxInfo|$spaceId|$epoch');
+
+  static Future<SimpleKeyPair> fromSeed(List<int> seed) =>
+      _x25519.newKeyPairFromSeed(seed);
 
   static Future<Uint8List> publicKeyOf(SimpleKeyPair box) async =>
       Uint8List.fromList((await box.extractPublicKey()).bytes);

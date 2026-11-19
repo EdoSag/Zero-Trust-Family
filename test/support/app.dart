@@ -5,11 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zerotrust_family/app/family_config.dart';
 import 'package:zerotrust_family/data/family_data.dart';
+import 'package:zerotrust_family/data/alerts.dart';
 import 'package:zerotrust_family/data/locations.dart';
+import 'package:zerotrust_family/data/places.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
+import 'package:zerotrust_family/location/alerts.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
 import 'package:zerotrust_family/model/circle.dart';
+import 'package:zt_places/zt_places.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
 import 'phone.dart';
@@ -81,6 +85,59 @@ class _MemoryName extends ZtSharingName {
 
 late FakeActions actions;
 late FakeShareActions shareActions;
+late InMemoryAlertStore alertStore;
+late FakePlaceActions placeActions;
+late FakeAlertActions alertActions;
+
+class FakePlaceActions extends PlaceActions {
+  FakePlaceActions(super.ref);
+  final saved = <(String, ZtPlace)>[];
+  final removed = <(String, String)>[];
+
+  @override
+  Future<bool> save(String spaceId, ZtPlace place) async {
+    saved.add((spaceId, place));
+    return true;
+  }
+
+  @override
+  Future<void> remove(String spaceId, String placeId) async =>
+      removed.add((spaceId, placeId));
+}
+
+/// Keeps the alert store in step without a real circle key.
+class FakeAlertActions extends AlertActions {
+  FakeAlertActions(super.ref);
+
+  Future<void> _set(AlertState state) async {
+    await alertStore.save(state);
+    ref.read(alertRevisionProvider.notifier).bump();
+  }
+
+  AlertState get _now =>
+      alertStore.state ?? AlertState(userId: ref.read(myUserIdProvider)!);
+
+  @override
+  Future<bool> enable(String spaceId) async {
+    await _set(
+      _now.copyWith(
+        circles: {
+          ..._now.circles,
+          spaceId: AlertCircle(spaceId: spaceId, cursor: DateTime.now()),
+        },
+      ),
+    );
+    return true;
+  }
+
+  @override
+  Future<void> disable(String spaceId) async =>
+      _set(_now.copyWith(circles: {..._now.circles}..remove(spaceId)));
+
+  @override
+  Future<void> refresh() async {}
+}
+
 late FakeShareService shareService;
 
 /// The Android service, as the share card sees it.
@@ -104,6 +161,8 @@ class FakeShareService implements ShareServiceControl {
   Future<void> poke() async {}
   @override
   Future<SharePermissions> permissions() async => granted;
+  @override
+  Future<bool> requestNotifications() async => granted.notifications;
   @override
   Future<SharePermissions> requestPermissions() async {
     requests++;
@@ -188,7 +247,11 @@ Widget app(
   ShareState? share,
   Map<String, MemberLocation> locations = const {},
   FakeShareService? service,
+  List<ZtPlace> places = const [],
+  List<CircleEvent> events = const [],
+  AlertState? alerts,
 }) {
+  alertStore = InMemoryAlertStore(alerts);
   shareService = service ?? FakeShareService();
   return ProviderScope(
     overrides: [
@@ -208,6 +271,18 @@ Widget app(
         (ref) => shareActions = FakeShareActions(ref),
       ),
       circleLocationsProvider.overrideWith((ref, spaceId) async => locations),
+      circlePlacesProvider.overrideWith((ref, spaceId) async => places),
+      circleEventsProvider.overrideWith((ref, spaceId) async => events),
+      alertStoreProvider.overrideWithValue(alertStore),
+      placeActionsProvider.overrideWith(
+        (ref) => placeActions = FakePlaceActions(ref),
+      ),
+      alertActionsProvider.overrideWith(
+        (ref) => alertActions = FakeAlertActions(ref),
+      ),
+      placeLocatorProvider.overrideWithValue(
+        ZtPlaceRemindersFake(location: const ZtLatLng(32.0853, 34.7818)),
+      ),
     ],
     child: MaterialApp(
       // The suite's real theme: its full-width buttons break rows that a
@@ -224,6 +299,8 @@ Widget app(
         builder: (context, ref, _) {
           ref.watch(familyActionsProvider);
           ref.watch(shareActionsProvider);
+          ref.watch(placeActionsProvider);
+          ref.watch(alertActionsProvider);
           return child!;
         },
       ),

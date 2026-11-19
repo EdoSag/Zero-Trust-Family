@@ -4,38 +4,57 @@ import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import 'geofence.dart';
+
 /// What a sharing phone's background service needs for one circle: the
-/// circle's location box public key for the current key epoch. Public
-/// keys only, so a stolen phone with a locked app reveals nothing.
+/// circle's location box public key for the current key epoch, and where
+/// the circle's places are (to tell the circle "arrived at Home"). No one's
+/// location and no names, so a stolen phone with a locked app reveals only
+/// the places this phone watches.
 class CirclePackage {
   const CirclePackage({
     required this.spaceId,
     required this.epoch,
     required this.boxPublic,
     this.stale = false,
+    this.places = const [],
+    this.inside = const {},
   });
 
   final String spaceId;
   final int epoch;
   final Uint8List boxPublic;
 
+  /// The circle's places, and whether this phone is in each (by place id).
+  final List<WatchedPlace> places;
+  final Map<String, bool> inside;
+
   /// The circle's key changed (someone left or was removed): sharing to it
   /// waits until the app is opened and the new key is known.
   final bool stale;
 
-  CirclePackage copyWith({int? epoch, Uint8List? boxPublic, bool? stale}) =>
-      CirclePackage(
-        spaceId: spaceId,
-        epoch: epoch ?? this.epoch,
-        boxPublic: boxPublic ?? this.boxPublic,
-        stale: stale ?? this.stale,
-      );
+  CirclePackage copyWith({
+    int? epoch,
+    Uint8List? boxPublic,
+    bool? stale,
+    List<WatchedPlace>? places,
+    Map<String, bool>? inside,
+  }) => CirclePackage(
+    spaceId: spaceId,
+    epoch: epoch ?? this.epoch,
+    boxPublic: boxPublic ?? this.boxPublic,
+    stale: stale ?? this.stale,
+    places: places ?? this.places,
+    inside: inside ?? this.inside,
+  );
 
   Map<String, Object?> toJson() => {
     'space': spaceId,
     'epoch': epoch,
     'box': ZtBase64.encode(boxPublic),
     if (stale) 'stale': true,
+    if (places.isNotEmpty) 'places': [for (final p in places) p.toJson()],
+    if (inside.isNotEmpty) 'inside': inside,
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -43,6 +62,15 @@ class CirclePackage {
     epoch: json['epoch']! as int,
     boxPublic: ZtBase64.decode(json['box']! as String),
     stale: json['stale'] == true,
+    places: [
+      for (final p in (json['places'] as List? ?? const []))
+        ?WatchedPlace.fromJson(p),
+    ],
+    inside: {
+      for (final e in ((json['inside'] as Map?) ?? const {}).entries)
+        if (e.key is String && e.value is bool)
+          e.key as String: e.value as bool,
+    },
   );
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import '../data/alerts.dart';
 import '../data/family_data.dart';
 import '../data/locations.dart';
 import '../platform/links.dart';
@@ -195,6 +196,7 @@ class _FamilyHomeState extends ConsumerState<FamilyHome> {
       if (family == null || !family.ready) return;
       // Follow circle key changes and departures for location sharing.
       ref.read(shareActionsProvider).refreshPackages().ignore();
+      ref.read(alertActionsProvider).refresh().ignore();
       if (family.circles.isEmpty) return;
       ref.read(familyActionsProvider).tidyPending({
         for (final c in family.circles) c.spaceId,

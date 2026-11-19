@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import 'family_event.dart';
+import 'geofence.dart';
 import 'location_backend.dart';
 import 'location_box.dart';
 import 'location_update.dart';
@@ -174,7 +177,7 @@ class ShareEngine {
     final now = _clock();
     schedule.liveUntil = state?.liveUntil;
     final decision = schedule.onFix(fix);
-    return _send(state, now, decision);
+    return _send(state, now, decision, newFix: fix);
   });
 
   Future<ShareResult> onMotion() => _serial(() async {
@@ -212,8 +215,9 @@ class ShareEngine {
   Future<ShareResult> _send(
     ShareState? state,
     DateTime now,
-    ScheduleDecision decision,
-  ) async {
+    ScheduleDecision decision, {
+    Fix? newFix,
+  }) async {
     if (state == null || !state.sharing) {
       return ShareResult(ShareHealth.stopped, decision);
     }
@@ -285,7 +289,13 @@ class ShareEngine {
             signature: signature,
           ),
         );
-        kept.add(circle);
+        // Arrive and leave, from this new position. Not while paused: a
+        // paused phone tells nobody where it goes.
+        kept.add(
+          paused || newFix == null
+              ? circle
+              : await _crossings(circle, newFix, me, current, keys),
+        );
       } on StaleKeyException {
         kept.add(circle.copyWith(stale: true));
       } on NotInCircleException {
@@ -316,12 +326,75 @@ class ShareEngine {
     );
   }
 
+  /// Sends an event for each place [fix] entered or left, and returns the
+  /// circle with its new inside/outside state. A place whose event can't be
+  /// sent (offline) keeps its old state, so the next position tries again.
+  Future<CirclePackage> _crossings(
+    CirclePackage circle,
+    Fix fix,
+    String me,
+    ShareState state,
+    Ed25519KeyMaterial keys,
+  ) async {
+    if (circle.places.isEmpty) return circle;
+    final (next, crossings) = Geofence.check(circle.inside, circle.places, fix);
+    final context = LocationBox.context(
+      table: 'family_events',
+      spaceId: circle.spaceId,
+      userId: me,
+      deviceId: state.deviceId,
+      epoch: circle.epoch,
+    );
+    final inside = {...next};
+    for (final c in crossings) {
+      final event = FamilyEvent(
+        id: _eventId(),
+        kind: c.kind,
+        at: fix.at,
+        placeId: c.placeId,
+        lat: fix.lat,
+        lng: fix.lng,
+        battery: _status.battery,
+      );
+      try {
+        final payload = await LocationBox.seal(
+          event.encode(),
+          boxPublic: circle.boxPublic,
+          context: context,
+        );
+        await backend.insertEvent(
+          LocationRow(
+            spaceId: circle.spaceId,
+            userId: me,
+            deviceId: state.deviceId,
+            epoch: circle.epoch,
+            payload: payload,
+            signature: await Signing.sign(
+              LocationBox.signedBytes(context, payload),
+              keys,
+            ),
+          ),
+        );
+      } on Object {
+        final was = circle.inside[c.placeId];
+        if (was != null) inside[c.placeId] = was;
+      }
+    }
+    return circle.copyWith(inside: inside);
+  }
+
+  static String _eventId() {
+    final b = Kdf.randomBytes(12);
+    return [for (final v in b) v.toRadixString(16).padLeft(2, '0')].join();
+  }
+
   static bool _samePackages(List<CirclePackage> a, List<CirclePackage> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (a[i].spaceId != b[i].spaceId ||
           a[i].epoch != b[i].epoch ||
-          a[i].stale != b[i].stale) {
+          a[i].stale != b[i].stale ||
+          !mapEquals(a[i].inside, b[i].inside)) {
         return false;
       }
     }

@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zerotrust_family/data/locations.dart';
+import 'package:zerotrust_family/location/alerts.dart';
+import 'package:zerotrust_family/location/family_event.dart';
+import 'package:zerotrust_family/location/geofence.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/location_box.dart';
 import 'package:zerotrust_family/location/location_update.dart';
@@ -336,6 +339,228 @@ void main() {
         ),
       ];
       expect(DeviceItem.readAll(items)['$mum/abc'], devicePub);
+    });
+  });
+
+  group('places', () {
+    const home = WatchedPlace(id: 'home', lat: 32.0, lng: 34.8, radiusM: 150);
+    final t = DateTime.utc(2026, 11, 19, 8);
+    Fix at(double lat, {double accuracy = 10}) =>
+        Fix(lat: lat, lng: 34.8, at: t, accuracyM: accuracy);
+
+    test('inside, outside, and the edge in between', () {
+      expect(Geofence.inside(home, at(32.0)), isTrue);
+      // About 167 m north: past the radius but within the margin.
+      expect(Geofence.inside(home, at(32.0015)), isNull);
+      expect(Geofence.inside(home, at(32.003)), isFalse);
+      // Too rough to tell.
+      expect(Geofence.inside(home, at(32.0, accuracy: 900)), isNull);
+    });
+
+    test('the first sighting says nothing; crossings after it do', () {
+      var (known, crossings) = Geofence.check({}, [home], at(32.0));
+      expect(known, {'home': true});
+      expect(crossings, isEmpty);
+      (known, crossings) = Geofence.check(known, [home], at(32.0015));
+      expect(known, {'home': true});
+      expect(crossings, isEmpty);
+      (known, crossings) = Geofence.check(known, [home], at(32.01));
+      expect(known, {'home': false});
+      expect(crossings.single.kind, FamilyEventKind.leave);
+      (known, crossings) = Geofence.check(known, [home], at(32.0));
+      expect(crossings.single.kind, FamilyEventKind.arrive);
+      // A removed place is forgotten.
+      (known, crossings) = Geofence.check(known, const [], at(32.0));
+      expect(known, isEmpty);
+    });
+
+    test('quiet hours wrap past midnight', () {
+      const q = QuietHours.standard;
+      expect(q.at(DateTime(2026, 1, 1, 23)), isTrue);
+      expect(q.at(DateTime(2026, 1, 1, 6, 59)), isTrue);
+      expect(q.at(DateTime(2026, 1, 1, 7)), isFalse);
+      expect(
+        const QuietHours(13 * 60, 15 * 60).at(DateTime(2026, 1, 1, 14)),
+        isTrue,
+      );
+    });
+  });
+
+  group('arrive and leave alerts', () {
+    late InMemoryLocationServer server;
+    late InMemoryShareStore mumStore;
+    late ShareEngine mum$;
+    late InMemoryAlertStore dadStore;
+    late AlertEngine dad$;
+    late DateTime now;
+    const home = WatchedPlace(id: 'home', lat: 32.0, lng: 34.8, radiusM: 150);
+
+    setUp(() async {
+      now = DateTime.utc(2026, 11, 19, 9);
+      server = InMemoryLocationServer()
+        ..members[circle] = {mum, dad}
+        ..epochs[circle] = 1
+        ..now = () => now;
+      final box = await LocationBox.derive(
+        spaceKey: spaceKey(1),
+        spaceId: circle,
+        epoch: 1,
+      );
+      final state = ShareState.fresh(mum).copyWith(
+        circles: [
+          CirclePackage(
+            spaceId: circle,
+            epoch: 1,
+            boxPublic: await LocationBox.publicKeyOf(box),
+            places: const [home],
+          ),
+        ],
+      );
+      mumStore = InMemoryShareStore(state);
+      mum$ = ShareEngine(
+        store: mumStore,
+        backend: InMemoryLocationBackend(userId: mum, server: server),
+        clock: () => now,
+      );
+      final devicePub = (await Signing.fromSeed(
+        state.deviceSeed,
+      )).publicKeyBytes;
+      dadStore = InMemoryAlertStore(
+        AlertState(
+          userId: dad,
+          circles: {
+            circle: AlertCircle(
+              spaceId: circle,
+              boxes: {
+                1: await LocationBox.boxSeed(
+                  spaceKey: spaceKey(1),
+                  spaceId: circle,
+                  epoch: 1,
+                ),
+              },
+              devices: {'$mum/${state.deviceId}': devicePub},
+              names: {mum: 'Mum'},
+              places: {'home': 'Home'},
+              cursor: now.subtract(const Duration(minutes: 1)),
+            ),
+          },
+        ),
+      );
+      dad$ = AlertEngine(
+        store: dadStore,
+        backend: InMemoryLocationBackend(userId: dad, server: server),
+        clock: () => now,
+      );
+    });
+
+    Future<void> mumAt(double lat) async {
+      now = now.add(const Duration(minutes: 2));
+      await mum$.onFix(fix(now, lat: lat), const DeviceStatus(battery: 50));
+    }
+
+    test('leaving home reaches dad\'s locked phone, once', () async {
+      await mumAt(32.0); // First sighting: no event.
+      expect(server.events, isEmpty);
+      await mumAt(32.01);
+      expect(server.events, hasLength(1));
+      final hits = await dad$.check();
+      expect(hits.single.name, 'Mum');
+      expect(hits.single.placeName, 'Home');
+      expect(hits.single.event.kind, FamilyEventKind.leave);
+      expect(hits.single.event.battery, 50);
+      // Asked again: already shown.
+      expect(await dad$.check(), isEmpty);
+      await mumAt(32.0);
+      expect((await dad$.check()).single.event.kind, FamilyEventKind.arrive);
+    });
+
+    test('nothing while paused', () async {
+      await mumAt(32.0);
+      mumStore.state = mumStore.state!.copyWith(pausedOpenEnded: true);
+      await mumAt(32.01);
+      expect(server.events, isEmpty);
+    });
+
+    test('muted people, own events and old events stay silent', () async {
+      await mumAt(32.0);
+      await mumAt(32.01);
+      final c = dadStore.state!.circles[circle]!;
+      dadStore.state = dadStore.state!.copyWith(
+        circles: {
+          circle: c.copyWith(muted: {mum}),
+        },
+      );
+      expect(await dad$.check(), isEmpty);
+
+      // Mum's own phone, with alerts on, doesn't alert her about herself.
+      final mine = AlertEngine(
+        store: InMemoryAlertStore(
+          AlertState(userId: mum, circles: {circle: c}),
+        ),
+        backend: InMemoryLocationBackend(userId: mum, server: server),
+        clock: () => now,
+      );
+      expect(await mine.check(), isEmpty);
+
+      // A phone that was off for a day doesn't ring for old events.
+      final late = AlertEngine(
+        store: InMemoryAlertStore(
+          AlertState(userId: dad, circles: {circle: c}),
+        ),
+        backend: InMemoryLocationBackend(userId: dad, server: server),
+        clock: () => now.add(const Duration(days: 1)),
+      );
+      expect(await late.check(), isEmpty);
+    });
+
+    test('an event from an unknown device is not shown', () async {
+      await mumAt(32.0);
+      await mumAt(32.01);
+      final c = dadStore.state!.circles[circle]!;
+      final other = await Signing.generate();
+      dadStore.state = dadStore.state!.copyWith(
+        circles: {
+          circle: c.copyWith(
+            devices: {c.devices.keys.single: other.publicKeyBytes},
+          ),
+        },
+      );
+      expect(await dad$.check(), isEmpty);
+    });
+
+    test('quiet hours mark alerts silent', () async {
+      dadStore.state = dadStore.state!.copyWith(
+        quiet: () => const QuietHours(0, 1439),
+      );
+      await mumAt(32.0);
+      await mumAt(32.01);
+      expect((await dad$.check()).single.quiet, isTrue);
+    });
+
+    test('another account on the phone drops the alerts', () async {
+      final other = AlertEngine(
+        store: dadStore,
+        backend: InMemoryLocationBackend(userId: teen, server: server),
+        clock: () => now,
+      );
+      expect(await other.check(), isEmpty);
+      expect(dadStore.state, isNull);
+    });
+
+    test('settings survive a round trip through JSON', () {
+      final s = dadStore.state!.copyWith(quiet: () => QuietHours.standard);
+      final back = AlertState.fromJson(s.toJson());
+      final c = back.circles[circle]!;
+      expect(back.quiet, QuietHours.standard);
+      expect(c.boxes[1], dadStore.state!.circles[circle]!.boxes[1]);
+      expect(c.places, {'home': 'Home'});
+      final pkg = CirclePackage.fromJson(
+        mumStore.state!.circles.single
+            .copyWith(inside: {'home': true})
+            .toJson(),
+      );
+      expect(pkg.places.single, home);
+      expect(pkg.inside, {'home': true});
     });
   });
 }
