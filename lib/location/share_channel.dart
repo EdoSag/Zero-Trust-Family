@@ -177,7 +177,10 @@ class ShareChannel implements ShareServiceControl {
   @override
   Future<void> stop() async {
     try {
-      if (await _alertsOn()) {
+      // The one service does both: it keeps running while this phone
+      // still shares its location or still has alerts on.
+      final sharing = (await engine.store.load())?.sharing ?? false;
+      if (sharing || await _alertsOn()) {
         await _channel.invokeMethod<void>('start');
         return;
       }

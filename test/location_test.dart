@@ -547,6 +547,24 @@ void main() {
       expect(dadStore.state, isNull);
     });
 
+    test('the newest events come first when asked (the Today list)', () async {
+      await mumAt(32.0);
+      for (var i = 0; i < 6; i++) {
+        await mumAt(i.isEven ? 32.01 : 32.0);
+      }
+      final reader = InMemoryLocationBackend(userId: dad, server: server);
+      final since = DateTime.utc(2026, 11, 19);
+      final oldest = await reader.events(circle, since: since, limit: 2);
+      final newest = await reader.events(
+        circle,
+        since: since,
+        limit: 2,
+        newestFirst: true,
+      );
+      expect(newest.first.sentAt, server.events.last.sentAt);
+      expect(oldest.first.sentAt, server.events.first.sentAt);
+    });
+
     test('settings survive a round trip through JSON', () {
       final s = dadStore.state!.copyWith(quiet: () => QuietHours.standard);
       final back = AlertState.fromJson(s.toJson());
