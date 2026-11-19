@@ -3,22 +3,45 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../data/family_data.dart';
+import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
+import 'family_map.dart';
+import 'share_card.dart';
 
-/// One family circle: who is in it, and the way to invite and manage them.
-/// The map, places and check-ins are added here in the next phases.
-class CirclePage extends ConsumerWidget {
+/// One family circle: the map, this phone's sharing, where everyone is, and
+/// the way to invite and manage members.
+class CirclePage extends ConsumerStatefulWidget {
   const CirclePage({super.key, required this.spaceId});
 
   final String spaceId;
 
-  Future<void> _rename(
-    BuildContext context,
-    WidgetRef ref,
-    CircleData circle,
-  ) async {
+  @override
+  ConsumerState<CirclePage> createState() => _CirclePageState();
+}
+
+class _CirclePageState extends ConsumerState<CirclePage> {
+  final MapController _map = MapController();
+
+  String get spaceId => widget.spaceId;
+
+  /// Centers the map on a member; without a map, opens the phone's own
+  /// maps app (the person chooses to share that position with it).
+  Future<void> _show(MemberLocation m, String? mapUrl) async {
+    final lat = m.update.lat!, lng = m.update.lng!;
+    if (mapUrl != null) {
+      _map.move(LatLng(lat, lng), 16);
+      return;
+    }
+    await launchUrl(Uri.parse('geo:$lat,$lng?q=$lat,$lng'));
+  }
+
+  Future<void> _rename(BuildContext context, CircleData circle) async {
     final l = context.l;
     final name = await askCircleName(
       context,
@@ -39,7 +62,7 @@ class CirclePage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = context.l;
     final theme = Theme.of(context);
     final family = ref.watch(familyProvider).value;
@@ -60,6 +83,11 @@ class CirclePage extends ConsumerWidget {
     }
     final title = circle.name ?? l.unnamedCircle;
     final me = ref.watch(myUserIdProvider);
+    final locations =
+        ref.watch(circleLocationsProvider(spaceId)).value ?? const {};
+    final names = {for (final m in circle.members) m.userId: m.name};
+    final mapUrl = familyMapUrl();
+    final now = DateTime.now();
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -68,42 +96,31 @@ class CirclePage extends ConsumerWidget {
             IconButton(
               tooltip: l.renameCircle,
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => _rename(context, ref, circle),
+              onPressed: () => _rename(context, circle),
             ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.only(top: 8, bottom: 24),
         children: [
-          Card(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.location_off_outlined,
-                    color: theme.colorScheme.onSurfaceVariant,
+          if (mapUrl != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  key: const Key('family-map'),
+                  height: 280,
+                  child: FamilyMap(
+                    url: mapUrl,
+                    locations: locations,
+                    names: names,
+                    controller: _map,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l.locationSoonTitle,
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(l.locationSoonBody),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
+          ShareCard(spaceId: widget.spaceId),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
             child: Text(
@@ -119,9 +136,22 @@ class CirclePage extends ConsumerWidget {
               leading: MemberAvatar(name: m.name),
               title: Text(() {
                 final name = m.name.isEmpty ? l.unnamedMember : m.name;
-                return m.userId == me ? l.youSuffix(name) : name;
+                final shown = m.userId == me ? l.youSuffix(name) : name;
+                return m.role == SpaceRole.admin
+                    ? '$shown · ${l.owner}'
+                    : shown;
               }()),
-              subtitle: m.role == SpaceRole.admin ? Text(l.owner) : null,
+              subtitle: Text(
+                locationSummary(l, locations[m.userId], now),
+                key: Key('member-status-${m.userId}'),
+              ),
+              trailing: locations[m.userId]?.update.hasLocation == true
+                  ? IconButton(
+                      tooltip: l.showOnMap,
+                      icon: const Icon(Icons.place_outlined),
+                      onPressed: () => _show(locations[m.userId]!, mapUrl),
+                    )
+                  : null,
             ),
           const Divider(height: 24),
           ListTile(

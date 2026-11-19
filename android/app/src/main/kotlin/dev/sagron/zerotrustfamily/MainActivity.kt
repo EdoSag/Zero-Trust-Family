@@ -9,12 +9,23 @@ import io.flutter.plugin.common.MethodChannel
  * FlutterFragmentActivity, not FlutterActivity: the biometric prompt
  * (local_auth) needs a FragmentActivity.
  *
+ * The activity attaches to the app's one engine ([FamilyApp.engine]) and
+ * leaves it running when closed, so location sharing keeps the same Dart
+ * code and the same signed-in account.
+ *
  * Channel `zt_family/links` holds family circle invite links the app was opened
  * with, until the unlocked app takes them.
  */
 class MainActivity : FlutterFragmentActivity() {
     private var links: MethodChannel? = null
     private val pending = mutableListOf<String>()
+
+    override fun getCachedEngineId(): String {
+        FamilyApp.engine(this)
+        return FamilyApp.ENGINE_ID
+    }
+
+    override fun shouldDestroyEngineWithHost(): Boolean = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

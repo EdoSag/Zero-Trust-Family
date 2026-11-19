@@ -1,7 +1,7 @@
 name: zerotrust_family
 description: "Zero-Trust Family: end-to-end encrypted family location sharing and safety check-ins."
 publish_to: none
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ^3.9.0
@@ -41,7 +41,13 @@ dependencies:
   flutter_dotenv: ^6.0.1
   intl: any
   url_launcher: ^6.3.1
-
+  permission_handler: ^13.0.2
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  vector_map_tiles: ^8.0.0
+  vector_map_tiles_pmtiles: ^1.5.0
+  cryptography: ^2.7.0
+  flutter_secure_storage: ^11.2.0
 dev_dependencies:
   # Release checks every Zero-Trust app runs in CI (keys, sync, sign-in, app
   # setup, database). Independent of zero_trust_core, so it may be newer.

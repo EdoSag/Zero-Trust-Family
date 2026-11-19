@@ -68,11 +68,13 @@ void main() {
     await tester.tap(find.text('הבית'));
     await tester.pumpAndSettle();
     expect(find.byType(CirclePage), findsOneWidget);
-    expect(find.text('אמא (את/ה)'), findsOneWidget);
-    expect(find.text('בעלים'), findsOneWidget);
+    expect(find.text('אמא (את/ה) · בעלים'), findsOneWidget);
+    // The share card is translated and its button reads right to left.
+    expect(find.byKey(const Key('share-on')), findsOneWidget);
+    expect(find.text('Share my location'), findsNothing);
     // Avatars are on the right of the names.
     final avatar = tester.getRect(find.byType(CircleAvatar).first);
-    final name = tester.getRect(find.text('אמא (את/ה)'));
+    final name = tester.getRect(find.text('אמא (את/ה) · בעלים'));
     expect(avatar.left, greaterThan(name.right));
     expect(tester.takeException(), isNull);
   });

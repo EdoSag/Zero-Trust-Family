@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import '../data/family_data.dart';
+import '../data/locations.dart';
 import '../platform/links.dart';
 import '../ui/home_page.dart';
 import '../ui/join.dart';
@@ -191,7 +192,10 @@ class _FamilyHomeState extends ConsumerState<FamilyHome> {
     // A circle this account has been let into stops showing as waiting.
     ref.listen(familyProvider, (_, next) {
       final family = next.value;
-      if (family == null || family.circles.isEmpty) return;
+      if (family == null || !family.ready) return;
+      // Follow circle key changes and departures for location sharing.
+      ref.read(shareActionsProvider).refreshPackages().ignore();
+      if (family.circles.isEmpty) return;
       ref.read(familyActionsProvider).tidyPending({
         for (final c in family.circles) c.spaceId,
       }).ignore();

@@ -18,10 +18,22 @@
   "renameCircle": "Rename circle",
   "unnamedCircle": "Family circle",
   "membersCount": "{count, plural, =1{1 member} other{{count} members}}",
-  "@membersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "membersHeading": "Members",
   "youSuffix": "{name} (you)",
-  "@youSuffix": {"placeholders": {"name": {"type": "String"}}},
+  "@youSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "owner": "Owner",
   "unnamedMember": "No name",
   "manageMembers": "Members and invites",
@@ -31,10 +43,100 @@
   "waitingTitle": "Waiting to be let in",
   "waitingBody": "The circle's owner has to compare a code with you. Tap to see it.",
   "stopWaiting": "Stop waiting",
-  "locationSoonTitle": "Location sharing comes next",
-  "locationSoonBody": "This version sets up your circle. Sharing where you are, places and check-ins arrive in the next updates. Nobody's location is shared yet.",
   "couldNotCreate": "Couldn't create the circle. Check your internet connection and try again.",
   "couldNotSave": "Couldn't save. Check your internet connection and try again.",
   "couldNotLoad": "Couldn't load your circles. Check your internet connection.",
-  "circleGone": "You're no longer in this circle."
+  "circleGone": "You're no longer in this circle.",
+  "notifyChannelName": "Location sharing",
+  "notifySharingTitle": "Sharing your location",
+  "notifySharingBody": "Your family circle can see where you are. Open ZT Family to pause.",
+  "notifyPausedTitle": "Location sharing paused",
+  "notifyPausedBody": "Your circle sees \"Paused\". Open ZT Family to resume.",
+  "notifyUnlockTitle": "Open ZT Family to keep sharing",
+  "notifyUnlockBody": "Someone joined or left your circle. Open the app once so your location reaches them again.",
+  "notSharing": "Not sharing",
+  "pausedStatus": "Paused",
+  "pausedUntil": "Paused until {time}",
+  "@pausedUntil": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "battery": "Battery {percent}%",
+  "@battery": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "batteryCharging": "Charging {percent}%",
+  "@batteryCharging": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "justNow": "Just now",
+  "minutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareConsentTitle": "Share your location",
+  "shareConsentBody": "ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nA notification shows while sharing is on. You can pause or stop at any time.",
+  "notNow": "Not now",
+  "continueLabel": "Continue",
+  "locationPermissionNeeded": "ZT Family needs location access to share where you are.",
+  "circleKeyNotReady": "This circle isn't ready on this phone yet. Try again in a moment.",
+  "pauseHour": "For 1 hour",
+  "pauseTomorrow": "Until tomorrow morning",
+  "pauseUntilResumed": "Until I turn it back on",
+  "shareOffTitle": "You're not sharing your location",
+  "shareOffBody": "Turn on sharing so this circle can see where you are.",
+  "shareOnTitle": "You're sharing your location",
+  "shareOnBody": "Your circle sees where you are and your battery. It updates more often when you move.",
+  "sharePausedTitle": "Sharing is paused",
+  "sharePausedOpenBody": "Your circle sees \"Paused\" until you resume.",
+  "sharePausedUntilBody": "Your circle sees \"Paused\" until {time}.",
+  "@sharePausedUntilBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLiveTitle": "Sharing live",
+  "shareLiveBody": "Your circle sees you move every few seconds until {time}.",
+  "@shareLiveBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shareStale": "Someone joined or left this circle. Sharing with it starts again now that the app is open.",
+  "needsAlwaysHint": "For sharing to keep going after your phone restarts, allow location \"All the time\" for ZT Family.",
+  "openSettings": "Open settings",
+  "shareTurnOn": "Share my location",
+  "shareTurnOff": "Stop sharing",
+  "pause": "Pause",
+  "resume": "Resume",
+  "shareLiveHour": "Share live for 1 hour",
+  "stopLive": "Stop live",
+  "showOnMap": "Show on map"
 }
