@@ -153,6 +153,10 @@ class ShareService : Service(), LocationListener {
             }
         } else if (intent?.action == ACTION_POKE) {
             if (locate) {
+                // Dart runs now, without waiting for a position: a safety
+                // timer's reminder or deadline must not depend on a fix
+                // (location off, indoors). The fix follows when it comes.
+                ask("motion", emptyMap())
                 listen(force = true)
                 now()
             } else {

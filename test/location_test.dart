@@ -662,6 +662,16 @@ void main() {
       expect(safe.quiet, isTrue);
     });
 
+    test('I am safe, offline: the SOS stays until it can be sent', () async {
+      expect(await mum$.startSos(circle), isTrue);
+      server.offline = true;
+      expect(await mum$.endSos(), isFalse);
+      expect(mumStore.state!.sos, isNotNull);
+      server.offline = false;
+      expect(await mum$.endSos(), isTrue);
+      expect(mumStore.state!.sos, isNull);
+    });
+
     test('safety needs the circle: an unknown circle sends nothing', () async {
       expect(await mum$.checkIn('other'), isFalse);
       expect(await mum$.startSos('other'), isFalse);

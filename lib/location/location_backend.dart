@@ -349,6 +349,7 @@ class InMemoryLocationBackend implements LocationBackend {
 
   @override
   Future<void> insertEvent(LocationRow row) async {
+    if (server.offline) throw StateError('offline');
     final me = userId;
     if (me == null) throw const SignedOutException();
     final members = server.members[row.spaceId];

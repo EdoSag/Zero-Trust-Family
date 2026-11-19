@@ -409,7 +409,15 @@ class ShareEngine {
       sos.spaceId,
       _now(FamilyEventKind.sosEnd, now),
     );
-    await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    // Offline, the SOS stays on (with its "I'm safe" button) until the
+    // circle can be told. A circle this phone no longer shares with can't
+    // be told at all, so then it just ends here.
+    final reachable = state.circles.any(
+      (c) => c.spaceId == sos.spaceId && !c.stale,
+    );
+    if (sent || !reachable) {
+      await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    }
     return sent;
   });
 
