@@ -6,6 +6,7 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 
 import '../location/alerts.dart';
 import '../location/family_event.dart';
+import '../location/location_backend.dart';
 import '../location/location_box.dart';
 import '../model/family_place.dart';
 import 'family_data.dart';
@@ -48,33 +49,49 @@ final circleEventsProvider = FutureProvider.autoDispose
       final rows = await backend.events(
         spaceId,
         since: DateTime.now().toUtc().subtract(const Duration(days: 1)),
+        limit: 500,
+        newestFirst: true,
       );
-      final devices = DeviceItem.readAll(await space.store.all());
-      final boxes = <int, SimpleKeyPair?>{};
-      final out = <CircleEvent>[];
-      final seen = <String>{};
-      for (final row in rows) {
-        final event = await openEvent(
-          row,
-          devicePublic: devices['${row.userId}/${row.deviceId}'],
-          box: (epoch) async {
-            if (boxes.containsKey(epoch)) return boxes[epoch];
-            final key = space.codec.keyring[epoch];
-            return boxes[epoch] = key == null
-                ? null
-                : await LocationBox.derive(
-                    spaceKey: key,
-                    spaceId: spaceId,
-                    epoch: epoch,
-                  );
-          },
-        );
-        if (event == null || !seen.add(event.id)) continue;
-        out.add(CircleEvent(userId: row.userId, event: event));
-      }
+      final out = <CircleEvent>[
+        for (final e in await openCircleRows(space, spaceId, rows))
+          if (e.event.kind != FamilyEventKind.point) e,
+      ];
       out.sort((a, b) => b.event.at.compareTo(a.event.at));
       return out;
     });
+
+/// Opens [rows] of a circle's events with its key, dropping any that
+/// aren't signed by a device its member published, and repeats.
+Future<List<CircleEvent>> openCircleRows(
+  SharedSpace space,
+  String spaceId,
+  List<LocationRow> rows,
+) async {
+  final devices = DeviceItem.readAll(await space.store.all());
+  final boxes = <int, SimpleKeyPair?>{};
+  final out = <CircleEvent>[];
+  final seen = <String>{};
+  for (final row in rows) {
+    final event = await openEvent(
+      row,
+      devicePublic: devices['${row.userId}/${row.deviceId}'],
+      box: (epoch) async {
+        if (boxes.containsKey(epoch)) return boxes[epoch];
+        final key = space.codec.keyring[epoch];
+        return boxes[epoch] = key == null
+            ? null
+            : await LocationBox.derive(
+                spaceKey: key,
+                spaceId: spaceId,
+                epoch: epoch,
+              );
+      },
+    );
+    if (event == null || !seen.add(event.id)) continue;
+    out.add(CircleEvent(userId: row.userId, event: event));
+  }
+  return out;
+}
 
 /// Alerts while locked (opt-in per circle), who to get alerts about, and
 /// quiet hours. Run with the app unlocked; the service then works from what

@@ -199,7 +199,7 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get shareConsentBody =>
-      'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nA notification shows while sharing is on. You can pause or stop at any time.';
+      'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nThe circle also sees where you have been, for as long as it keeps history (7 days unless its owner changes it). You can erase yours at any time.\n\nA notification shows while sharing is on. You can pause or stop at any time.';
 
   @override
   String get notNow => 'Not now';
@@ -590,4 +590,121 @@ class AppL10nEn extends AppL10n {
     );
     return '$_temp0';
   }
+
+  @override
+  String eventPoint(String name) {
+    return '$name was here';
+  }
+
+  @override
+  String get historyHeading => 'History';
+
+  @override
+  String historyOf(String name) {
+    return '$name: history';
+  }
+
+  @override
+  String get historyOpen => 'History';
+
+  @override
+  String get historyEmpty =>
+      'Nothing for this day. History shows only while sharing is on.';
+
+  @override
+  String get historyToday => 'Today';
+
+  @override
+  String get historyYesterday => 'Yesterday';
+
+  @override
+  String historyAt(String place) {
+    return 'At $place';
+  }
+
+  @override
+  String get historyStayed => 'Stayed in one spot';
+
+  @override
+  String historySince(String time) {
+    return 'Since $time';
+  }
+
+  @override
+  String historyRange(String from, String to, String length) {
+    return '$from to $to, $length';
+  }
+
+  @override
+  String historyMoved(String distance, String length) {
+    return 'On the move: $distance, $length';
+  }
+
+  @override
+  String kilometers(String km) {
+    return '$km km';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationHours(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get historyDaysTitle => 'Keep history for';
+
+  @override
+  String historyDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyKeptBody =>
+      'Places people were, check-ins and alerts, end-to-end encrypted. The server deletes them after this many days.';
+
+  @override
+  String get historyOwnerOnly => 'Only the circle\'s owner can change this.';
+
+  @override
+  String get plusBadge => 'Plus';
+
+  @override
+  String get historyNeedsPlus =>
+      'Keeping history for more than 7 days is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.';
+
+  @override
+  String placesNeedPlus(int count) {
+    return 'More than $count places is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.';
+  }
+
+  @override
+  String get seePlans => 'See plans';
+
+  @override
+  String get eraseMyHistory => 'Erase my history in this circle';
+
+  @override
+  String get eraseMyHistoryBody =>
+      'Deletes every position, check-in and alert you sent to this circle. Your current location stays shared while sharing is on.';
+
+  @override
+  String get erase => 'Erase';
+
+  @override
+  String get historyErased => 'Your history in this circle was erased';
+
+  @override
+  String get historyCouldNotLoad =>
+      'Couldn\'t load the history. Check your internet connection.';
 }

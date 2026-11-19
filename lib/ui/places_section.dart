@@ -5,6 +5,7 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zt_places/zt_places.dart';
 
 import '../data/alerts.dart';
+import '../data/history.dart';
 import '../data/locations.dart';
 import '../data/places.dart';
 import '../l10n/event_text.dart';
@@ -13,6 +14,7 @@ import '../location/alerts.dart';
 import '../location/family_event.dart';
 import '../location/schedule.dart';
 import 'common.dart';
+import 'history_section.dart';
 import 'place_page.dart';
 
 class _Heading extends StatelessWidget {
@@ -96,7 +98,14 @@ class PlacesSection extends ConsumerWidget {
             alignment: AlignmentDirectional.centerStart,
             child: TextButton.icon(
               key: const Key('add-place'),
-              onPressed: () => PlacePage.open(context, spaceId: spaceId),
+              onPressed: () {
+                if (places.length >= freePlaces &&
+                    !ref.read(familyPlusProvider)) {
+                  showNeedsPlus(context, l.placesNeedPlus(freePlaces));
+                  return;
+                }
+                PlacePage.open(context, spaceId: spaceId);
+              },
               icon: const Icon(Icons.add_location_alt_outlined),
               label: Text(l.addPlace),
             ),
@@ -117,6 +126,7 @@ IconData eventIcon(FamilyEventKind kind) => switch (kind) {
   FamilyEventKind.overdue => Icons.warning_amber,
   FamilyEventKind.sos => Icons.sos,
   FamilyEventKind.sosEnd => Icons.verified_user_outlined,
+  FamilyEventKind.point => Icons.place_outlined,
 };
 
 /// The last day's events: arrivals, check-ins, timers, SOS.

@@ -221,9 +221,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await scrollTo(tester, find.byKey(const Key('alerts-locked')));
+    await scrollTo(tester, find.byKey(const Key('place-home')));
     expect(find.text('מקומות'), findsOneWidget);
-    expect(find.text('התראות בטלפון הזה'), findsOneWidget);
     // Right to left: the place icon is on the right of its name.
     final icon = tester.getRect(
       find.descendant(
@@ -233,6 +232,8 @@ void main() {
     );
     final name = tester.getRect(find.text('Home'));
     expect(icon.left, greaterThan(name.right));
+    await scrollTo(tester, find.byKey(const Key('alerts-locked')));
+    expect(find.text('התראות בטלפון הזה'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

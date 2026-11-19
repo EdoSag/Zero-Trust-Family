@@ -32,7 +32,11 @@ enum FamilyEventKind {
   sos,
 
   /// The SOS was ended ("I'm safe").
-  sosEnd;
+  sosEnd,
+
+  /// A history point: where the sender was (for the circle's timeline).
+  /// Never alerts.
+  point;
 
   static FamilyEventKind? parse(Object? value) {
     for (final k in values) {
@@ -59,6 +63,7 @@ class FamilyEvent {
     this.note,
     this.to,
     this.until,
+    this.accuracyM,
   });
 
   /// Longest note kept.
@@ -81,6 +86,11 @@ class FamilyEvent {
   /// A timer's deadline.
   final DateTime? until;
 
+  /// How exact [lat] and [lng] are, in metres.
+  final double? accuracyM;
+
+  bool get hasLocation => lat != null && lng != null;
+
   Map<String, Object?> toJson() => {
     'v': 1,
     'id': id,
@@ -93,6 +103,7 @@ class FamilyEvent {
     if (note != null && note!.isNotEmpty) 'n': note,
     if (to != null) 'to': to,
     if (until != null) 'u': until!.toUtc().millisecondsSinceEpoch,
+    if (accuracyM != null) 'ac': accuracyM!.round(),
   };
 
   /// Throws [FormatException] for anything this version can't show (a newer
@@ -124,6 +135,7 @@ class FamilyEvent {
       until: u is int
           ? DateTime.fromMillisecondsSinceEpoch(u, isUtc: true)
           : null,
+      accuracyM: (json['ac'] as num?)?.toDouble(),
     );
   }
 

@@ -198,7 +198,7 @@ class AppL10nHe extends AppL10n {
 
   @override
   String get shareConsentBody =>
-      'ZT Family אוספת את המיקום שלך כדי לשתף אותו עם האנשים במעגל הזה, גם כשהאפליקציה סגורה או לא בשימוש. הוא מוצפן מקצה לקצה: רק האנשים במעגל יכולים לראות אותו, לא אנחנו ולא השרת.\n\nכל עוד השיתוף פעיל מוצגת התראה. אפשר להשהות או להפסיק בכל רגע.';
+      'ZT Family אוספת את המיקום שלך כדי לשתף אותו עם האנשים במעגל הזה, גם כשהאפליקציה סגורה או לא בשימוש. הוא מוצפן מקצה לקצה: רק האנשים במעגל יכולים לראות אותו, לא אנחנו ולא השרת.\n\nהמעגל רואה גם איפה היית, כל עוד הוא שומר היסטוריה (7 ימים, אלא אם הבעלים משנים זאת). אפשר למחוק את שלך בכל רגע.\n\nכל עוד השיתוף פעיל מוצגת התראה. אפשר להשהות או להפסיק בכל רגע.';
 
   @override
   String get notNow => 'לא עכשיו';
@@ -583,4 +583,122 @@ class AppL10nHe extends AppL10n {
     );
     return '$_temp0';
   }
+
+  @override
+  String eventPoint(String name) {
+    return '$name היה/תה כאן';
+  }
+
+  @override
+  String get historyHeading => 'היסטוריה';
+
+  @override
+  String historyOf(String name) {
+    return '$name: היסטוריה';
+  }
+
+  @override
+  String get historyOpen => 'היסטוריה';
+
+  @override
+  String get historyEmpty =>
+      'אין כלום ליום הזה. ההיסטוריה נשמרת רק כשהשיתוף פעיל.';
+
+  @override
+  String get historyToday => 'היום';
+
+  @override
+  String get historyYesterday => 'אתמול';
+
+  @override
+  String historyAt(String place) {
+    return 'ב$place';
+  }
+
+  @override
+  String get historyStayed => 'שהה/תה במקום אחד';
+
+  @override
+  String historySince(String time) {
+    return 'מאז $time';
+  }
+
+  @override
+  String historyRange(String from, String to, String length) {
+    return '$from עד $to, $length';
+  }
+
+  @override
+  String historyMoved(String distance, String length) {
+    return 'בתנועה: $distance, $length';
+  }
+
+  @override
+  String kilometers(String km) {
+    return '$km ק״מ';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes דק׳';
+  }
+
+  @override
+  String durationHours(int hours, int minutes) {
+    return '$hours שע׳ $minutes דק׳';
+  }
+
+  @override
+  String get historyDaysTitle => 'לשמור היסטוריה למשך';
+
+  @override
+  String historyDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים',
+      two: 'יומיים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyKeptBody =>
+      'איפה אנשים היו, צ׳ק-אין והתראות, מוצפנים מקצה לקצה. השרת מוחק אותם אחרי מספר הימים הזה.';
+
+  @override
+  String get historyOwnerOnly => 'רק הבעלים של המעגל יכולים לשנות את זה.';
+
+  @override
+  String get plusBadge => 'פלוס';
+
+  @override
+  String get historyNeedsPlus =>
+      'שמירת היסטוריה ליותר מ-7 ימים היא חלק מ-Plus. הבטיחות (המפה, צ׳ק-אין, טיימר הבטיחות ו-SOS) תמיד בחינם.';
+
+  @override
+  String placesNeedPlus(int count) {
+    return 'יותר מ-$count מקומות זה חלק מ-Plus. הבטיחות (המפה, צ׳ק-אין, טיימר הבטיחות ו-SOS) תמיד בחינם.';
+  }
+
+  @override
+  String get seePlans => 'לתוכניות';
+
+  @override
+  String get eraseMyHistory => 'למחוק את ההיסטוריה שלי במעגל';
+
+  @override
+  String get eraseMyHistoryBody =>
+      'מוחק כל מיקום, צ׳ק-אין והתראה ששלחת למעגל הזה. המיקום הנוכחי שלך ממשיך להיות משותף כל עוד השיתוף פעיל.';
+
+  @override
+  String get erase => 'למחוק';
+
+  @override
+  String get historyErased => 'ההיסטוריה שלך במעגל נמחקה';
+
+  @override
+  String get historyCouldNotLoad =>
+      'לא הצלחנו לטעון את ההיסטוריה. בדקו את החיבור לאינטרנט.';
 }

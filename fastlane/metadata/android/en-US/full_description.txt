@@ -1,0 +1,24 @@
+Share where you are with the people you choose, and know they got home safe, without handing your family's movements to anyone else. Zero-Trust Family encrypts every location on your phone before it leaves. Only the people in your circle can open it. We can't, and the server can't.
+
+WHAT IT DOES
+• Family circles: create a circle and invite people with a link or a QR code. Leave whenever you want.
+• Live map: each person's last location, how exact it is, when it was sent, battery level, and whether they are still, moving or paused.
+• Places: add Home, School or Work. Each phone works out its own arrivals and departures, so the server never learns your places.
+• Alerts: "Noa arrived at School", even while your phone is locked. You choose who to hear about, and quiet hours stop alerts from making sound at night.
+• Check-ins: tap "I'm here" with a short note, or ask someone to check in.
+• Safety timer: "If I don't check in by 23:00, alert my circle." If time runs out, the circle is alerted and sees you live for an hour, even if your phone is off.
+• SOS: hold the button for 2 seconds. Your circle gets a loud alert, even during quiet hours, and sees you live for an hour.
+• History: where each person was over the last days, as stops and trips. It is kept for 7 days and then deleted by the server, and you can erase yours at any time.
+• Pause: anyone can pause their own sharing, for an hour, until tomorrow, or until they turn it back on. The circle sees "Paused", not where you are.
+
+PRIVATE BY DESIGN
+• End-to-end encrypted: locations, places, check-ins and history are sealed on your phone. The server stores only ciphertext.
+• Battery-friendly: the phone checks its location every 15 minutes when still and more often when moving.
+• A notification shows whenever your location is being shared.
+• No ads, no trackers, no selling data. Open source (AGPL-3.0).
+• For ages 13 and up. Everyone in a circle chooses to share for themselves.
+
+FREE AND PLUS
+Safety is always free: the map, places, alerts, check-ins, the safety timer, SOS, and 7 days of history. Plus (shared with every Zero-Trust app) adds more than 5 places and up to 30 days of history.
+
+One Zero-Trust account works across every Zero-Trust app.

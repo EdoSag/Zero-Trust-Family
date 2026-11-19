@@ -394,7 +394,7 @@ abstract class AppL10n {
   /// No description provided for @shareConsentBody.
   ///
   /// In en, this message translates to:
-  /// **'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nA notification shows while sharing is on. You can pause or stop at any time.'**
+  /// **'ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nThe circle also sees where you have been, for as long as it keeps history (7 days unless its owner changes it). You can erase yours at any time.\n\nA notification shows while sharing is on. You can pause or stop at any time.'**
   String get shareConsentBody;
 
   /// No description provided for @notNow.
@@ -1032,6 +1032,174 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'{hours, plural, =1{In 1 hour} other{In {hours} hours}}'**
   String timerInHours(int hours);
+
+  /// No description provided for @eventPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was here'**
+  String eventPoint(String name);
+
+  /// No description provided for @historyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyHeading;
+
+  /// No description provided for @historyOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: history'**
+  String historyOf(String name);
+
+  /// No description provided for @historyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyOpen;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing for this day. History shows only while sharing is on.'**
+  String get historyEmpty;
+
+  /// No description provided for @historyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get historyToday;
+
+  /// No description provided for @historyYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get historyYesterday;
+
+  /// No description provided for @historyAt.
+  ///
+  /// In en, this message translates to:
+  /// **'At {place}'**
+  String historyAt(String place);
+
+  /// No description provided for @historyStayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed in one spot'**
+  String get historyStayed;
+
+  /// No description provided for @historySince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {time}'**
+  String historySince(String time);
+
+  /// No description provided for @historyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}, {length}'**
+  String historyRange(String from, String to, String length);
+
+  /// No description provided for @historyMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'On the move: {distance}, {length}'**
+  String historyMoved(String distance, String length);
+
+  /// No description provided for @kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String kilometers(String km);
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String durationHours(int hours, int minutes);
+
+  /// No description provided for @historyDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep history for'**
+  String get historyDaysTitle;
+
+  /// No description provided for @historyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String historyDays(int days);
+
+  /// No description provided for @historyKeptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Places people were, check-ins and alerts, end-to-end encrypted. The server deletes them after this many days.'**
+  String get historyKeptBody;
+
+  /// No description provided for @historyOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the circle\'s owner can change this.'**
+  String get historyOwnerOnly;
+
+  /// No description provided for @plusBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus'**
+  String get plusBadge;
+
+  /// No description provided for @historyNeedsPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeping history for more than 7 days is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.'**
+  String get historyNeedsPlus;
+
+  /// No description provided for @placesNeedPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'More than {count} places is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.'**
+  String placesNeedPlus(int count);
+
+  /// No description provided for @seePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get seePlans;
+
+  /// No description provided for @eraseMyHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase my history in this circle'**
+  String get eraseMyHistory;
+
+  /// No description provided for @eraseMyHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes every position, check-in and alert you sent to this circle. Your current location stays shared while sharing is on.'**
+  String get eraseMyHistoryBody;
+
+  /// No description provided for @erase.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get erase;
+
+  /// No description provided for @historyErased.
+  ///
+  /// In en, this message translates to:
+  /// **'Your history in this circle was erased'**
+  String get historyErased;
+
+  /// No description provided for @historyCouldNotLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the history. Check your internet connection.'**
+  String get historyCouldNotLoad;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

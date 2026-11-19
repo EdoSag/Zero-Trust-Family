@@ -22,5 +22,6 @@ String eventLine(AppL10n l, String name, String? place, FamilyEvent event) {
     FamilyEventKind.overdue => l.eventOverdue(name, hm(event.until)),
     FamilyEventKind.sos => l.eventSos(name),
     FamilyEventKind.sosEnd => l.eventSosEnd(name),
+    FamilyEventKind.point => l.eventPoint(name),
   };
 }

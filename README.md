@@ -5,7 +5,7 @@ phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
 apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
 The server stores only ciphertext and can never see where anyone is.
 
-> **Status: phase L3.** Family circles work (create, invite by link or QR
+> **Status: phase L4.** Family circles work (create, invite by link or QR
 > code, join, leave), and each member can share their location with a
 > circle, also while the phone is locked: an end-to-end encrypted position
 > and battery level, on a battery-saving schedule, with pause and "Share
@@ -18,7 +18,14 @@ The server stores only ciphertext and can never see where anyone is.
 > circle is alerted and sees them live for an hour, even if their phone is
 > off (every reader's phone watches the deadline itself). SOS is sent by
 > holding a button for 2 seconds; it rings past quiet hours and muting and
-> shares live for an hour. History and the retention setting come in L4.
+> shares live for an hour.
+>
+> Each member's history (stops, trips, check-ins and alerts) shows a day at
+> a time for as long as the circle keeps it: 7 days by default, chosen by
+> the owner, up to 30 with Plus. Anyone can erase their own history. Plus
+> also lifts the limit of 5 places; safety is always free. Play listing
+> text is in `fastlane/` and the Play Console answers in
+> `docs/play-declarations.md`.
 
 ## What it will do
 
