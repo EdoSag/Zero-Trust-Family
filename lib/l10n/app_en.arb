@@ -1,0 +1,518 @@
+{
+  "@@locale": "en",
+  "homeTitle": "Family",
+  "settings": "Settings",
+  "cancel": "Cancel",
+  "save": "Save",
+  "create": "Create",
+  "remove": "Remove",
+  "emptyTitle": "Start your family circle",
+  "emptyBody": "A circle is the group of people who share with each other. Create one and invite your family, or join a circle you were invited to. Everything in it is end-to-end encrypted: only the people in the circle can read it.",
+  "createCircle": "Create a circle",
+  "joinCircle": "Join with an invite",
+  "newCircleTitle": "New circle",
+  "circleName": "Circle name",
+  "circleNameHint": "For example: Family",
+  "circleNameRequired": "Enter a name",
+  "yourNameTitle": "Your name in the circle",
+  "renameCircle": "Rename circle",
+  "unnamedCircle": "Family circle",
+  "membersCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "membersHeading": "Members",
+  "youSuffix": "{name} (you)",
+  "@youSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "owner": "Owner",
+  "unnamedMember": "No name",
+  "manageMembers": "Members and invites",
+  "manageMembersHint": "Invite, let people in, remove, or leave the circle",
+  "inviteSomeone": "Invite someone",
+  "circleDescription": "Only the people in this circle can read what is shared in it.",
+  "waitingTitle": "Waiting to be let in",
+  "waitingBody": "The circle's owner has to compare a code with you. Tap to see it.",
+  "stopWaiting": "Stop waiting",
+  "couldNotCreate": "Couldn't create the circle. Check your internet connection and try again.",
+  "couldNotSave": "Couldn't save. Check your internet connection and try again.",
+  "couldNotLoad": "Couldn't load your circles. Check your internet connection.",
+  "circleGone": "You're no longer in this circle.",
+  "notifyChannelName": "Location sharing",
+  "notifySharingTitle": "Sharing your location",
+  "notifySharingBody": "Your family circle can see where you are. Open ZT Family to pause.",
+  "notifyPausedTitle": "Location sharing paused",
+  "notifyPausedBody": "Your circle sees \"Paused\". Open ZT Family to resume.",
+  "notifyUnlockTitle": "Open ZT Family to keep sharing",
+  "notifyUnlockBody": "Someone joined or left your circle. Open the app once so your location reaches them again.",
+  "notSharing": "Not sharing",
+  "pausedStatus": "Paused",
+  "pausedUntil": "Paused until {time}",
+  "@pausedUntil": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "battery": "Battery {percent}%",
+  "@battery": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "batteryCharging": "Charging {percent}%",
+  "@batteryCharging": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "justNow": "Just now",
+  "minutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareConsentTitle": "Share your location",
+  "shareConsentBody": "ZT Family collects your location to share it with the people in this circle, also when the app is closed or not in use. It is end-to-end encrypted: only the people in the circle can see it, not us and not the server.\n\nThe circle also sees where you have been, for as long as it keeps history (7 days unless its owner changes it). You can erase yours at any time.\n\nA notification shows while sharing is on. You can pause or stop at any time.",
+  "notNow": "Not now",
+  "continueLabel": "Continue",
+  "locationPermissionNeeded": "ZT Family needs location access to share where you are.",
+  "circleKeyNotReady": "This circle isn't ready on this phone yet. Try again in a moment.",
+  "pauseHour": "For 1 hour",
+  "pauseTomorrow": "Until tomorrow morning",
+  "pauseUntilResumed": "Until I turn it back on",
+  "shareOffTitle": "You're not sharing your location",
+  "shareOffBody": "Turn on sharing so this circle can see where you are.",
+  "shareOnTitle": "You're sharing your location",
+  "shareOnBody": "Your circle sees where you are and your battery. It updates more often when you move.",
+  "sharePausedTitle": "Sharing is paused",
+  "sharePausedOpenBody": "Your circle sees \"Paused\" until you resume.",
+  "sharePausedUntilBody": "Your circle sees \"Paused\" until {time}.",
+  "@sharePausedUntilBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLiveTitle": "Sharing live",
+  "shareLiveBody": "Your circle sees you move every few seconds until {time}.",
+  "@shareLiveBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shareStale": "Someone joined or left this circle. Sharing with it starts again now that the app is open.",
+  "needsAlwaysHint": "For sharing to keep going after your phone restarts, allow location \"All the time\" for ZT Family.",
+  "openSettings": "Open settings",
+  "shareTurnOn": "Share my location",
+  "shareTurnOff": "Stop sharing",
+  "pause": "Pause",
+  "resume": "Resume",
+  "shareLiveHour": "Share live for 1 hour",
+  "stopLive": "Stop live",
+  "showOnMap": "Show on map",
+  "notifyAlertsTitle": "Family alerts are on",
+  "notifyAlertsBody": "You'll be told when someone arrives at or leaves a place.",
+  "alertArrived": "{name} arrived at {place}",
+  "@alertArrived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "alertLeft": "{name} left {place}",
+  "@alertLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "alertArrivedSomewhere": "{name} arrived at a saved place",
+  "@alertArrivedSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertLeftSomewhere": "{name} left a saved place",
+  "@alertLeftSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertAt": "At {time}",
+  "@alertAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsChannelName": "Family alerts",
+  "alertsQuietChannelName": "Family alerts during quiet hours",
+  "placesHeading": "Places",
+  "placesEmpty": "Add Home, School or Work to know when someone arrives or leaves.",
+  "placeHere": "Here now: {names}",
+  "@placeHere": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "addPlace": "Add a place",
+  "editPlace": "Edit place",
+  "placeName": "Name",
+  "placeNameHint": "Home, School, Work",
+  "placeNameRequired": "Enter a name",
+  "placeWhere": "Where",
+  "placeNoPositionYet": "No position yet",
+  "placeUseHere": "Use where I am now",
+  "placePaste": "Or paste coordinates or a map link",
+  "placeBadPaste": "No position found in that text",
+  "placeNoLocation": "Couldn't get your position. Check that location is on.",
+  "placeNeedsPosition": "Choose where the place is",
+  "placeSize": "Size",
+  "meters": "{count} m",
+  "@meters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeSizeHint": "Bigger places notice arrivals sooner but less exactly. Arrivals are worked out on each phone; the server never sees your places.",
+  "tooManyPlaces": "This circle has as many places as it can keep.",
+  "removePlace": "Remove place",
+  "removePlaceTitle": "Remove {name}?",
+  "@removePlaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removePlaceBody": "Nobody in the circle will get alerts for it any more.",
+  "recentHeading": "Today",
+  "alertsTitle": "Alerts on this phone",
+  "alertsBody": "Get a notification when someone arrives at or leaves a place, also while ZT Family is locked. To read them, this phone keeps the circle's location key in its secure hardware.",
+  "alertsAbout": "Alerts about",
+  "quietHours": "Quiet hours",
+  "quietOff": "Off",
+  "quietOnSummary": "{from} to {to}, alerts without sound",
+  "@quietOnSummary": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "quietRange": "{from} to {to}",
+  "@quietRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "quietCustom": "Choose times",
+  "quietFrom": "Quiet from",
+  "quietTo": "Quiet until",
+  "eventCheckin": "{name} checked in",
+  "@eventCheckin": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventAsk": "{name} asks you to check in",
+  "@eventAsk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventTimer": "{name} started a safety timer until {time}",
+  "@eventTimer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventTimerEnd": "{name} is OK",
+  "@eventTimerEnd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventOverdue": "{name} didn't check in by {time}",
+  "@eventOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSos": "{name} sent an SOS",
+  "@eventSos": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSosEnd": "{name} is safe now",
+  "@eventSosEnd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sosChannelName": "SOS and missed check-ins",
+  "timerReminderTitle": "Your safety timer ends at {time}",
+  "@timerReminderTitle": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerReminderBody": "Tap I'm OK, or your circle is alerted.",
+  "imOk": "I'm OK",
+  "imSafe": "I'm safe",
+  "send": "Send",
+  "couldNotSend": "Couldn't send. Check your connection and try again.",
+  "safetyTitle": "Safety",
+  "safetyNeedsSharing": "Share your location with this circle to use check-ins, the safety timer and SOS.",
+  "safetyBody": "Check-ins and SOS go to everyone in this circle with your location.",
+  "checkinButton": "I'm here",
+  "checkinTitle": "Check in",
+  "checkinNote": "Note (optional)",
+  "checkinNoteHint": "Got to practice",
+  "checkinSent": "Checked in",
+  "askButton": "Ask someone to check in",
+  "askWho": "Who should check in?",
+  "askSent": "Asked {name} to check in",
+  "@askSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "timerButton": "Safety timer",
+  "timerQuestion": "Alert my circle if I don't check in",
+  "timerPick": "By a time I choose",
+  "timerStarted": "Timer set until {time}",
+  "@timerStarted": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerActive": "Safety timer until {time}. If you don't tap I'm OK by then, your circle is alerted and sees you live.",
+  "@timerActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timerEnded": "Timer ended",
+  "sosButton": "Hold for SOS",
+  "sosHoldHint": "Hold the button for 2 seconds to send an SOS",
+  "sosSent": "SOS sent. Your circle sees you live for an hour.",
+  "sosActive": "SOS sent. Your circle sees where you are, live.",
+  "sosEnded": "Your circle knows you're safe",
+  "timerInMinutes": "In {minutes} minutes",
+  "@timerInMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timerInHours": "{hours, plural, =1{In 1 hour} other{In {hours} hours}}",
+  "@timerInHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "eventPoint": "{name} was here",
+  "@eventPoint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyHeading": "History",
+  "historyOf": "{name}: history",
+  "@historyOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyOpen": "History",
+  "historyEmpty": "Nothing for this day. History shows only while sharing is on.",
+  "historyToday": "Today",
+  "historyYesterday": "Yesterday",
+  "historyAt": "At {place}",
+  "@historyAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "historyStayed": "Stayed in one spot",
+  "historySince": "Since {time}",
+  "@historySince": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historyRange": "{from} to {to}, {length}",
+  "@historyRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "historyMoved": "On the move: {distance}, {length}",
+  "@historyMoved": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "kilometers": "{km} km",
+  "@kilometers": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHours": "{hours} h {minutes} min",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "historyDaysTitle": "Keep history for",
+  "historyDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@historyDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "historyKeptBody": "Places people were, check-ins and alerts, end-to-end encrypted. The server deletes them after this many days.",
+  "historyOwnerOnly": "Only the circle's owner can change this.",
+  "plusBadge": "Plus",
+  "historyNeedsPlus": "Keeping history for more than 7 days is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.",
+  "placesNeedPlus": "More than {count} places is part of Plus. Safety (the map, check-ins, the safety timer and SOS) is always free.",
+  "@placesNeedPlus": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "seePlans": "See plans",
+  "eraseMyHistory": "Erase my history in this circle",
+  "eraseMyHistoryBody": "Deletes every position, check-in and alert you sent to this circle. Your current location stays shared while sharing is on.",
+  "erase": "Erase",
+  "historyErased": "Your history in this circle was erased",
+  "historyCouldNotLoad": "Couldn't load the history. Check your internet connection."
+}
