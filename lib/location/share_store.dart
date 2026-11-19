@@ -57,6 +57,7 @@ class ShareState {
     this.pausedUntil,
     this.pausedOpenEnded = false,
     this.liveUntil,
+    this.pendingDeletes = const [],
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -74,6 +75,10 @@ class ShareState {
   final bool pausedOpenEnded;
   final DateTime? liveUntil;
 
+  /// Circles whose last location of this phone still has to come off the
+  /// server (sharing was stopped while offline). Retried until it works.
+  final List<String> pendingDeletes;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -86,6 +91,7 @@ class ShareState {
     DateTime? Function()? pausedUntil,
     bool? pausedOpenEnded,
     DateTime? Function()? liveUntil,
+    List<String>? pendingDeletes,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -94,6 +100,7 @@ class ShareState {
     pausedUntil: pausedUntil == null ? this.pausedUntil : pausedUntil(),
     pausedOpenEnded: pausedOpenEnded ?? this.pausedOpenEnded,
     liveUntil: liveUntil == null ? this.liveUntil : liveUntil(),
+    pendingDeletes: pendingDeletes ?? this.pendingDeletes,
   );
 
   Map<String, Object?> toJson() => {
@@ -105,6 +112,7 @@ class ShareState {
     if (pausedUntil != null) 'pausedUntil': pausedUntil!.toIso8601String(),
     if (pausedOpenEnded) 'pausedOpenEnded': true,
     if (liveUntil != null) 'liveUntil': liveUntil!.toIso8601String(),
+    if (pendingDeletes.isNotEmpty) 'pendingDeletes': pendingDeletes,
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -118,6 +126,10 @@ class ShareState {
     pausedUntil: DateTime.tryParse(json['pausedUntil'] as String? ?? ''),
     pausedOpenEnded: json['pausedOpenEnded'] == true,
     liveUntil: DateTime.tryParse(json['liveUntil'] as String? ?? ''),
+    pendingDeletes: [
+      for (final d in (json['pendingDeletes'] as List? ?? const []))
+        if (d is String) d,
+    ],
   );
 
   /// A new device identity for [userId].
