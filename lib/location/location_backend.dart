@@ -328,6 +328,7 @@ class InMemoryLocationBackend implements LocationBackend {
     required String spaceId,
     required String deviceId,
   }) async {
+    if (server.offline) throw StateError('offline');
     server.rows.remove('$spaceId|$userId|$deviceId');
     server._changed(spaceId);
   }
@@ -394,6 +395,8 @@ class InMemoryLocationBackend implements LocationBackend {
 }
 
 class InMemoryLocationServer {
+  /// Every write fails, as with no connection.
+  bool offline = false;
   final Map<String, Set<String>> members = {};
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};
