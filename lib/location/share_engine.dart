@@ -77,6 +77,27 @@ class ShareEngine {
 
   DeviceStatus _status = const DeviceStatus();
   Fix? _lastFix;
+
+  /// The last history point sent, to space them out.
+  Fix? _lastPoint;
+
+  /// A history point at most this often while still...
+  static const pointEvery = Duration(minutes: 15);
+
+  /// ...and while moving, after [pointMoveM] metres but not more often
+  /// than [pointMinGap].
+  static const pointMoveM = 150.0;
+  static const pointMinGap = Duration(minutes: 2);
+
+  bool _pointDue(Fix fix) {
+    final last = _lastPoint;
+    if (last == null) return true;
+    final gap = fix.at.difference(last.at);
+    if (gap >= pointEvery) return true;
+    return gap >= pointMinGap &&
+        haversine(last.lat, last.lng, fix.lat, fix.lng) >= pointMoveM;
+  }
+
   Future<void> _queue = Future.value();
 
   /// One at a time: fixes, motion and the app's own requests queue up.
@@ -472,6 +493,8 @@ class ShareEngine {
     final keys = await Signing.fromSeed(current.deviceSeed);
 
     var offline = false;
+    var pointSent = false;
+    final point = !paused && newFix != null && _pointDue(newFix);
     final kept = <CirclePackage>[];
     for (final circle in current.circles) {
       if (circle.stale) {
@@ -512,6 +535,23 @@ class ShareEngine {
               ? circle
               : await _crossings(circle, newFix, me, current, keys),
         );
+        // A point for the circle's history.
+        if (point &&
+            await _event(
+              current,
+              circle.spaceId,
+              FamilyEvent(
+                id: _eventId(),
+                kind: FamilyEventKind.point,
+                at: newFix.at,
+                lat: newFix.lat,
+                lng: newFix.lng,
+                accuracyM: newFix.accuracyM,
+                battery: _status.battery,
+              ),
+            )) {
+          pointSent = true;
+        }
       } on StaleKeyException {
         kept.add(circle.copyWith(stale: true));
       } on NotInCircleException {
@@ -524,6 +564,7 @@ class ShareEngine {
         kept.add(circle);
       }
     }
+    if (pointSent) _lastPoint = newFix;
     var next = current.copyWith(circles: kept);
     if (!_samePackages(next.circles, current.circles)) {
       // The app may have changed the circles while this ran (started

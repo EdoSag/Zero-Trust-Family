@@ -72,7 +72,36 @@ abstract class LocationBackend {
 
   /// Fires when someone adds an event to one of [spaceIds] (realtime).
   Stream<void> eventInserts(List<String> spaceIds);
+
+  /// One member's events from [from] to [to], oldest first: their history.
+  Future<List<LocationRow>> memberEvents(
+    String spaceId,
+    String userId, {
+    required DateTime from,
+    required DateTime to,
+    int limit = 2000,
+  });
+
+  /// Erases every event this account sent to [spaceId].
+  Future<void> eraseMyEvents(String spaceId);
+
+  /// How many days the circle keeps history (7 when never set).
+  Future<int> historyDays(String spaceId);
+
+  /// Sets it (owners only; over 7 days needs Plus).
+  Future<void> setHistoryDays(String spaceId, int days);
 }
+
+/// Over 7 days of history without Plus.
+class NeedsPlusException implements Exception {
+  const NeedsPlusException();
+}
+
+/// Days of history a circle keeps when nobody chose.
+const defaultHistoryDays = 7;
+
+/// The most days of history without Plus.
+const freeHistoryDays = 7;
 
 class SupabaseLocationBackend implements LocationBackend {
   SupabaseLocationBackend([SupabaseClient? client]) : _client = client;
@@ -212,6 +241,68 @@ class SupabaseLocationBackend implements LocationBackend {
         .order('sent_at', ascending: !newestFirst)
         .limit(limit);
     return [for (final r in rows) _row(r)];
+  }
+
+  @override
+  Future<List<LocationRow>> memberEvents(
+    String spaceId,
+    String userId, {
+    required DateTime from,
+    required DateTime to,
+    int limit = 2000,
+  }) async {
+    await _fresh();
+    final rows = await client
+        .from('family_events')
+        .select(
+          'space_id,user_id,device_id,key_epoch,payload,signature,sent_at',
+        )
+        .eq('space_id', spaceId)
+        .eq('user_id', userId)
+        .gte('sent_at', from.toUtc().toIso8601String())
+        .lt('sent_at', to.toUtc().toIso8601String())
+        .order('sent_at')
+        .limit(limit);
+    return [for (final r in rows) _row(r)];
+  }
+
+  @override
+  Future<void> eraseMyEvents(String spaceId) async {
+    await _fresh();
+    final me = userId;
+    if (me == null) throw const SignedOutException();
+    await client
+        .from('family_events')
+        .delete()
+        .eq('space_id', spaceId)
+        .eq('user_id', me);
+  }
+
+  @override
+  Future<int> historyDays(String spaceId) async {
+    await _fresh();
+    final row = await client
+        .from('family_settings')
+        .select('history_days')
+        .eq('space_id', spaceId)
+        .maybeSingle();
+    return (row?['history_days'] as num?)?.toInt() ?? defaultHistoryDays;
+  }
+
+  @override
+  Future<void> setHistoryDays(String spaceId, int days) async {
+    await _fresh();
+    try {
+      await client.rpc<void>(
+        'family_set_history_days',
+        params: {'p_space': spaceId, 'p_days': days},
+      );
+    } on PostgrestException catch (e) {
+      if ('${e.message} ${e.details ?? ''}'.contains('family_needs_plus')) {
+        throw const NeedsPlusException();
+      }
+      throw _map(e);
+    }
   }
 
   @override
@@ -395,6 +486,47 @@ class InMemoryLocationBackend implements LocationBackend {
   }
 
   @override
+  Future<List<LocationRow>> memberEvents(
+    String spaceId,
+    String userId, {
+    required DateTime from,
+    required DateTime to,
+    int limit = 2000,
+  }) async {
+    final members = server.members[spaceId];
+    if (members == null || !members.contains(this.userId)) return const [];
+    return server.events
+        .where(
+          (e) =>
+              e.spaceId == spaceId &&
+              e.userId == userId &&
+              !e.sentAt!.isBefore(from) &&
+              e.sentAt!.isBefore(to),
+        )
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Future<void> eraseMyEvents(String spaceId) async {
+    server.events.removeWhere(
+      (e) => e.spaceId == spaceId && e.userId == userId,
+    );
+  }
+
+  @override
+  Future<int> historyDays(String spaceId) async =>
+      server.historyDays[spaceId] ?? defaultHistoryDays;
+
+  @override
+  Future<void> setHistoryDays(String spaceId, int days) async {
+    if (days > freeHistoryDays && !server.plus.contains(userId)) {
+      throw const NeedsPlusException();
+    }
+    server.historyDays[spaceId] = days;
+  }
+
+  @override
   Stream<void> eventInserts(List<String> spaceIds) =>
       server._events.stream.where(spaceIds.contains).map((_) {});
 }
@@ -406,6 +538,10 @@ class InMemoryLocationServer {
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};
   final List<LocationRow> events = [];
+  final Map<String, int> historyDays = {};
+
+  /// Accounts with Plus.
+  final Set<String> plus = {};
   DateTime Function() now = DateTime.now;
   final _events = StreamController<String>.broadcast();
   final _controller = StreamController<String>.broadcast();

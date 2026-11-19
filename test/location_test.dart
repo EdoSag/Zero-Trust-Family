@@ -393,6 +393,7 @@ void main() {
     late InMemoryAlertStore dadStore;
     late AlertEngine dad$;
     late DateTime now;
+    late Uint8List mumDevice;
     const home = WatchedPlace(id: 'home', lat: 32.0, lng: 34.8, radiusM: 150);
 
     setUp(() async {
@@ -425,6 +426,7 @@ void main() {
       final devicePub = (await Signing.fromSeed(
         state.deviceSeed,
       )).publicKeyBytes;
+      mumDevice = devicePub;
       dadStore = InMemoryAlertStore(
         AlertState(
           userId: dad,
@@ -453,6 +455,29 @@ void main() {
       );
     });
 
+    /// Everything mum's phone sent, opened as dad would.
+    Future<List<FamilyEvent>> sentAll() async {
+      final box = await LocationBox.derive(
+        spaceKey: spaceKey(1),
+        spaceId: circle,
+        epoch: 1,
+      );
+      return [
+        for (final row in server.events)
+          (await openEvent(
+            row,
+            devicePublic: mumDevice,
+            box: (_) async => box,
+          ))!,
+      ];
+    }
+
+    /// What mum's phone sent, without history points.
+    Future<List<FamilyEvent>> sent() async => [
+      for (final e in await sentAll())
+        if (e.kind != FamilyEventKind.point) e,
+    ];
+
     Future<void> mumAt(double lat) async {
       now = now.add(const Duration(minutes: 2));
       await mum$.onFix(fix(now, lat: lat), const DeviceStatus(battery: 50));
@@ -460,9 +485,9 @@ void main() {
 
     test('leaving home reaches dad\'s locked phone, once', () async {
       await mumAt(32.0); // First sighting: no event.
-      expect(server.events, isEmpty);
+      expect(await sent(), isEmpty);
       await mumAt(32.01);
-      expect(server.events, hasLength(1));
+      expect(await sent(), hasLength(1));
       final hits = await dad$.check();
       expect(hits.single.name, 'Mum');
       expect(hits.single.placeName, 'Home');
@@ -478,7 +503,7 @@ void main() {
       await mumAt(32.0);
       mumStore.state = mumStore.state!.copyWith(pausedOpenEnded: true);
       await mumAt(32.01);
-      expect(server.events, isEmpty);
+      expect(await sent(), isEmpty);
     });
 
     test('muted people, own events and old events stay silent', () async {
@@ -620,7 +645,7 @@ void main() {
         expect(await dad$.check(), isEmpty);
         // Her phone comes back and sends overdue: not a second alert.
         await mum$.onMotion();
-        expect(server.events, hasLength(2));
+        expect(await sent(), hasLength(2));
         expect(await dad$.check(), isEmpty);
       },
     );
@@ -680,7 +705,59 @@ void main() {
         await mum$.startTimer(circle, now.subtract(const Duration(minutes: 1))),
         isFalse,
       );
-      expect(server.events, isEmpty);
+      expect(await sent(), isEmpty);
+    });
+
+    test(
+      'history points: spaced out, never while paused, never alert',
+      () async {
+        await mumAt(32.0);
+        // Still, 2 minutes later: too soon for another point.
+        await mumAt(32.0);
+        var points = [
+          for (final e in await sentAll())
+            if (e.kind == FamilyEventKind.point) e,
+        ];
+        expect(points, hasLength(1));
+        expect(points.single.lat, 32.0);
+        expect(points.single.battery, 50);
+        // Moved 1 km: a new point (and a "leave" event).
+        await mumAt(32.01);
+        // Still for 15 minutes: one more.
+        now = now.add(const Duration(minutes: 15));
+        await mum$.onFix(fix(now, lat: 32.01), const DeviceStatus());
+        points = [
+          for (final e in await sentAll())
+            if (e.kind == FamilyEventKind.point) e,
+        ];
+        expect(points, hasLength(3));
+        // Dad hears about the leave only.
+        expect(
+          [for (final h in await dad$.check()) h.event.kind],
+          [FamilyEventKind.leave],
+        );
+
+        mumStore.state = mumStore.state!.copyWith(pausedOpenEnded: true);
+        now = now.add(const Duration(minutes: 30));
+        await mum$.onFix(fix(now, lat: 32.05), const DeviceStatus());
+        expect(await sentAll(), hasLength(4));
+      },
+    );
+
+    test('a page full of points does not hide an SOS', () async {
+      // 150 points, then an SOS: more than one page.
+      for (var i = 0; i < 150; i++) {
+        now = now.add(const Duration(minutes: 16));
+        await mum$.onFix(fix(now, lat: 32.0 + i * 0.001), const DeviceStatus());
+      }
+      await mum$.startSos(circle);
+      final c = dadStore.state!.circles[circle]!;
+      dadStore.state = dadStore.state!.copyWith(
+        circles: {circle: c.copyWith(cursor: DateTime.utc(2026, 11, 19, 8))},
+      );
+      expect([
+        for (final h in await dad$.check()) h.event.kind,
+      ], contains(FamilyEventKind.sos));
     });
 
     test('the newest events come first when asked (the Today list)', () async {

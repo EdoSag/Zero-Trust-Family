@@ -329,6 +329,9 @@ class AlertEngine {
 
   static const maxAge = Duration(hours: 2);
 
+  static const pageSize = 100;
+  static const maxPages = 10;
+
   Future<void> _queue = Future.value();
 
   /// One check at a time (realtime and the service can ask together).
@@ -352,9 +355,21 @@ class AlertEngine {
     final hits = <AlertHit>[];
     final circles = <String, AlertCircle>{};
     for (final circle in state.circles.values) {
-      List<LocationRow> rows;
+      final rows = <LocationRow>[];
       try {
-        rows = await backend.events(circle.spaceId, since: circle.cursor);
+        // Page through: history points can fill a page.
+        var since = circle.cursor;
+        for (var page = 0; page < maxPages; page++) {
+          final got = await backend.events(
+            circle.spaceId,
+            since: since,
+            limit: pageSize,
+          );
+          rows.addAll(got);
+          final last = got.lastOrNull?.sentAt;
+          if (got.length < pageSize || last == null) break;
+          since = last;
+        }
       } on SignedOutException {
         await store.clear();
         return const [];
@@ -380,7 +395,10 @@ class AlertEngine {
         if (sentAt != null && sentAt.isAfter(cursor)) cursor = sentAt;
         if (row.userId == me) continue;
         final event = await _open(circle, row, boxes);
-        if (event == null || seen.contains(event.id)) continue;
+        if (event == null) continue;
+        // History points never alert, and are too many to remember.
+        if (event.kind == FamilyEventKind.point) continue;
+        if (seen.contains(event.id)) continue;
         seen.add(event.id);
         // Timers are followed even for muted people: a missed one alerts.
         final had = timers[row.userId];

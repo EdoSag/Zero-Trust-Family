@@ -12,6 +12,8 @@ import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
 import 'family_map.dart';
+import 'history_page.dart';
+import 'history_section.dart';
 import 'places_section.dart';
 import 'safety_card.dart';
 import 'share_card.dart';
@@ -148,6 +150,12 @@ class _CirclePageState extends ConsumerState<CirclePage> {
                 locationSummary(l, locations[m.userId], now),
                 key: Key('member-status-${m.userId}'),
               ),
+              onTap: () => HistoryPage.open(
+                context,
+                spaceId: spaceId,
+                userId: m.userId,
+                name: m.name.isEmpty ? l.unnamedMember : m.name,
+              ),
               trailing: locations[m.userId]?.update.hasLocation == true
                   ? IconButton(
                       tooltip: l.showOnMap,
@@ -158,6 +166,7 @@ class _CirclePageState extends ConsumerState<CirclePage> {
             ),
           PlacesSection(spaceId: spaceId, locations: locations, names: names),
           RecentSection(spaceId: spaceId, names: names),
+          HistorySection(spaceId: spaceId, isOwner: circle.isAdmin),
           AlertsCard(spaceId: spaceId, members: circle.members, me: me),
           const Divider(height: 24),
           ListTile(

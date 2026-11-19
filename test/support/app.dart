@@ -6,10 +6,12 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zerotrust_family/app/family_config.dart';
 import 'package:zerotrust_family/data/family_data.dart';
 import 'package:zerotrust_family/data/alerts.dart';
+import 'package:zerotrust_family/data/history.dart';
 import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/data/places.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
 import 'package:zerotrust_family/location/alerts.dart';
+import 'package:zerotrust_family/location/timeline.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
 import 'package:zerotrust_family/model/circle.dart';
@@ -88,6 +90,7 @@ late FakeShareActions shareActions;
 late InMemoryAlertStore alertStore;
 late FakePlaceActions placeActions;
 late FakeAlertActions alertActions;
+late InMemoryLocationServer locationServer;
 
 class FakePlaceActions extends PlaceActions {
   FakePlaceActions(super.ref);
@@ -294,8 +297,11 @@ Widget app(
   List<ZtPlace> places = const [],
   List<CircleEvent> events = const [],
   AlertState? alerts,
+  bool plus = false,
+  Map<DateTime, List<TimelineEntry>> history = const {},
 }) {
   alertStore = InMemoryAlertStore(alerts);
+  locationServer = InMemoryLocationServer();
   shareService = service ?? FakeShareService();
   return ProviderScope(
     overrides: [
@@ -308,7 +314,7 @@ Widget app(
       familyActionsProvider.overrideWith((ref) => actions = FakeActions(ref)),
       shareStoreProvider.overrideWithValue(InMemoryShareStore(share)),
       locationBackendProvider.overrideWithValue(
-        InMemoryLocationBackend(userId: me),
+        InMemoryLocationBackend(userId: me, server: locationServer),
       ),
       shareServiceProvider.overrideWithValue(shareService),
       shareActionsProvider.overrideWith(
@@ -318,6 +324,10 @@ Widget app(
       circlePlacesProvider.overrideWith((ref, spaceId) async => places),
       circleEventsProvider.overrideWith((ref, spaceId) async => events),
       alertStoreProvider.overrideWithValue(alertStore),
+      familyPlusProvider.overrideWithValue(plus),
+      memberHistoryProvider.overrideWith(
+        (ref, key) async => history[key.day] ?? const [],
+      ),
       placeActionsProvider.overrideWith(
         (ref) => placeActions = FakePlaceActions(ref),
       ),
