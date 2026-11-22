@@ -151,6 +151,11 @@ class ShareEngine {
         if (!changed.containsKey(c.spaceId)) c.spaceId,
     };
     final was = {for (final c in before.circles) c.spaceId: c};
+    // Reminders that went off in the send: off the list, onto `fired`.
+    Set<String> gone(String spaceId) => {
+      for (final r in was[spaceId]?.reminders ?? const <PlaceReminder>[])
+        if (!changed[spaceId]!.reminders.any((n) => n.id == r.id)) r.id,
+    };
     final merged = latest.copyWith(
       circles: [
         for (final c in latest.circles)
@@ -158,7 +163,20 @@ class ShareEngine {
             ...const <CirclePackage>[]
           else if (changed.containsKey(c.spaceId) &&
               was[c.spaceId]?.epoch == c.epoch)
-            changed[c.spaceId]!
+            // Only what the engine owns; the person's settings (places,
+            // approximate, drives) stay as the app last saved them.
+            () {
+              final off = gone(c.spaceId);
+              return c.copyWith(
+                stale: changed[c.spaceId]!.stale,
+                inside: changed[c.spaceId]!.inside,
+                reminders: [
+                  for (final r in c.reminders)
+                    if (!off.contains(r.id)) r,
+                ],
+                fired: changed[c.spaceId]!.fired,
+              );
+            }()
           else
             c,
       ],
@@ -311,7 +329,7 @@ class ShareEngine {
       }
     }
     if (unsent.isNotEmpty) _drivesUnsent = true;
-    await drives.add(StoredDrive(drive, unsent: unsent), now);
+    await drives.add(state.userId, StoredDrive(drive, unsent: unsent), now);
   }
 
   static FamilyEvent _driveEvent(DriveSummary drive) => FamilyEvent(
@@ -325,8 +343,8 @@ class ShareEngine {
 
   /// Drives that couldn't reach a circle (offline) for up to a day.
   Future<void> _flushDrives(ShareState state) async {
-    final all = await drives.load();
     final now = _clock();
+    final all = await drives.load(state.userId, now);
     var changed = false;
     var left = false;
     final next = <StoredDrive>[];
@@ -354,7 +372,7 @@ class ShareEngine {
       if (still.isNotEmpty) left = true;
       next.add(d.copyWith(unsent: still));
     }
-    if (changed) await drives.save(next);
+    if (changed) await drives.save(state.userId, next);
     _drivesUnsent = left;
   }
 
@@ -411,14 +429,22 @@ class ShareEngine {
   /// The reminders waiting for this phone's member in [spaceId], from the
   /// circle's events (the open app) or from an alert (while locked).
   /// [replace] sets the whole list; otherwise [add] and [drop] change it.
+  /// With [droppedBy], a reminder is dropped only if that user set it or is
+  /// this phone's member (a cancel seen while locked: nobody else can take
+  /// someone's reminder away). Reminders that already went off here stay
+  /// off until their senders are told.
   Future<void> updateReminders(
     String spaceId, {
     List<PlaceReminder>? replace,
     List<PlaceReminder> add = const [],
     List<String> drop = const [],
+    String? droppedBy,
   }) => _serial(() async {
     final state = await store.load();
     if (state == null) return;
+    bool dropped(PlaceReminder r) =>
+        drop.contains(r.id) &&
+        (droppedBy == null || droppedBy == r.from || droppedBy == state.userId);
     var changed = false;
     final circles = [
       for (final c in state.circles)
@@ -426,10 +452,13 @@ class ShareEngine {
           c
         else
           () {
-            final byId = {
-              for (final r in replace ?? c.reminders) r.id: r,
-              for (final r in add) r.id: r,
-            }..removeWhere((id, _) => drop.contains(id));
+            final byId =
+                {
+                  for (final r in replace ?? c.reminders) r.id: r,
+                  for (final r in add) r.id: r,
+                }..removeWhere(
+                  (id, r) => dropped(r) || c.fired.any((f) => f.id == id),
+                );
             final next = byId.values.toList();
             if (listEquals(next, c.reminders)) return c;
             changed = true;
@@ -513,9 +542,11 @@ class ShareEngine {
     CrashRun crash,
     DateTime now,
   ) async {
-    final sent = <String>[];
+    // A retry (offline before) sends only to circles not reached yet.
+    final sent = [...crash.sent];
+    var missing = false;
     for (final c in state.circles) {
-      if (c.stale) continue;
+      if (c.stale || sent.contains(c.spaceId)) continue;
       final ok = await _event(
         state,
         c.spaceId,
@@ -529,24 +560,29 @@ class ShareEngine {
           crash: true,
         ),
       );
-      if (ok) sent.add(c.spaceId);
-    }
-    if (sent.isEmpty) {
-      if (now.difference(crash.deadline) < const Duration(hours: 1)) {
-        return state; // Offline: the next wake-up tries again.
+      if (ok) {
+        sent.add(c.spaceId);
+      } else {
+        missing = true;
       }
+    }
+    final retrying = now.difference(crash.deadline) < const Duration(hours: 1);
+    if (sent.isEmpty) {
+      if (retrying) return state; // Offline: the next wake-up tries again.
       final dropped = state.copyWith(crash: () => null);
       await store.save(dropped);
       return dropped;
     }
-    final until = now.add(liveAfterAlarm);
+    final first = crash.sent.isEmpty;
+    final until = first ? now.add(liveAfterAlarm) : state.sos?.until ?? now;
     final next = state.copyWith(
-      crash: () => null,
+      // Circles it didn't reach yet are retried for an hour.
+      crash: () => missing && retrying ? crash.copyWith(sent: sent) : null,
       sos: () =>
           SafetyRun(spaceId: sent.first, until: until, also: sent.sublist(1)),
-      liveUntil: () => until,
-      pausedUntil: () => null,
-      pausedOpenEnded: false,
+      liveUntil: first ? () => until : null,
+      pausedUntil: first ? () => null : null,
+      pausedOpenEnded: first ? false : null,
     );
     await store.save(next);
     return next;
@@ -751,19 +787,30 @@ class ShareEngine {
     final sos = state?.sos;
     if (state == null || sos == null) return false;
     var sent = false;
+    final failed = <String>[];
     for (final spaceId in sos.spaces) {
       if (await _event(state, spaceId, _now(FamilyEventKind.sosEnd, now))) {
         sent = true;
+      } else {
+        failed.add(spaceId);
       }
     }
     // Offline, the SOS stays on (with its "I'm safe" button) until the
     // circle can be told. A circle this phone no longer shares with can't
     // be told at all, so then it just ends here.
-    final reachable = state.circles.any(
-      (c) => sos.spaces.contains(c.spaceId) && !c.stale,
-    );
-    if (sent || !reachable) {
-      await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    final reachable = [
+      for (final c in state.circles)
+        if (failed.contains(c.spaceId) && !c.stale) c.spaceId,
+    ];
+    if (sent || reachable.isEmpty) {
+      // Told some: the rest are told with the next updates.
+      await store.save(
+        state.copyWith(
+          sos: () => null,
+          liveUntil: () => null,
+          sosEndPending: {...state.sosEndPending, ...reachable}.toList(),
+        ),
+      );
     }
     return sent;
   });
@@ -856,6 +903,24 @@ class ShareEngine {
     return next;
   }
 
+  /// "I'm safe" for circles that missed it (offline).
+  Future<ShareState> _flushSosEnds(ShareState state, DateTime now) async {
+    if (state.sosEndPending.isEmpty) return state;
+    final left = <String>[];
+    for (final spaceId in state.sosEndPending) {
+      final shares = state.circles.any((c) => c.spaceId == spaceId && !c.stale);
+      if (!shares) continue;
+      if (!await _event(state, spaceId, _now(FamilyEventKind.sosEnd, now))) {
+        left.add(spaceId);
+      }
+    }
+    if (left.length == state.sosEndPending.length) return state;
+    final latest = await store.load() ?? state;
+    final next = latest.copyWith(sosEndPending: left);
+    await store.save(next);
+    return next;
+  }
+
   ShareHealth _healthOf(ShareState? state, DateTime now) {
     if (state == null || !state.sharing) return ShareHealth.stopped;
     if (state.pausedAt(now)) return ShareHealth.paused;
@@ -888,6 +953,7 @@ class ShareEngine {
     }
     current = await _flushDeletes(current);
     current = await _flushTripDeletes(current);
+    current = await _flushSosEnds(current, now);
     final paused = current.pausedAt(now);
     final fix = _lastFix;
     final update = LocationUpdate(
@@ -983,7 +1049,15 @@ class ShareEngine {
         return ShareResult(ShareHealth.stopped, decision);
       } on Object {
         offline = true;
-        kept.add(circle);
+        // Reminders still go off offline; their senders are told later.
+        kept.add(
+          paused || newFix == null
+              ? circle
+              : _remindersHit(
+                  circle,
+                  Geofence.check(circle.inside, circle.places, newFix).$2,
+                ),
+        );
       }
     }
     if (pointSent) _lastPoint = newFix;
@@ -993,26 +1067,14 @@ class ShareEngine {
       // sharing with another, paused): keep its changes, apply only ours.
       next = await _merge(current, next) ?? next;
     }
-    // Place reminders that went off: shown here, and their senders told.
-    final fired = [..._fired];
+    // Place reminders that went off: shown here, and their senders told
+    // (now, or on a later send if this one can't reach them).
+    final shown = [..._fired];
     _fired.clear();
-    for (final (spaceId, r) in fired) {
+    for (final (spaceId, r) in shown) {
       onReminder?.call(spaceId, r);
-      await _event(
-        next,
-        spaceId,
-        FamilyEvent(
-          id: _eventId(),
-          kind: FamilyEventKind.remindDone,
-          at: now,
-          to: r.from,
-          ref: r.id,
-          placeId: r.placeId,
-          lat: newFix?.lat,
-          lng: newFix?.lng,
-        ),
-      );
     }
+    next = await _tellFired(next, now, paused ? null : newFix);
     final health = _healthOf(next, now);
     return ShareResult(
       health == ShareHealth.sharing && offline ? ShareHealth.offline : health,
@@ -1037,19 +1099,7 @@ class ShareEngine {
   ) async {
     if (circle.places.isEmpty) return circle;
     final (next, crossings) = Geofence.check(circle.inside, circle.places, fix);
-    var reminders = circle.reminders;
-    for (final c in crossings) {
-      final leaving = c.kind == FamilyEventKind.leave;
-      for (final r in reminders) {
-        if (r.placeId == c.placeId && r.onLeave == leaving) {
-          _fired.add((circle.spaceId, r));
-        }
-      }
-      reminders = [
-        for (final r in reminders)
-          if (r.placeId != c.placeId || r.onLeave != leaving) r,
-      ];
-    }
+    final hit = _remindersHit(circle, crossings);
     final context = LocationBox.context(
       table: 'family_events',
       spaceId: circle.spaceId,
@@ -1093,7 +1143,78 @@ class ShareEngine {
         if (was != null) inside[c.placeId] = was;
       }
     }
-    return circle.copyWith(inside: inside, reminders: reminders);
+    return hit.copyWith(inside: inside);
+  }
+
+  /// [circle] with the reminders [crossings] set off moved from its list to
+  /// `fired`, and queued to be shown.
+  CirclePackage _remindersHit(CirclePackage circle, List<Crossing> crossings) {
+    var reminders = circle.reminders;
+    final fired = [...circle.fired];
+    for (final c in crossings) {
+      final leaving = c.kind == FamilyEventKind.leave;
+      for (final r in reminders) {
+        if (r.placeId == c.placeId && r.onLeave == leaving) {
+          _fired.add((circle.spaceId, r));
+          fired.add(r);
+        }
+      }
+      reminders = [
+        for (final r in reminders)
+          if (r.placeId != c.placeId || r.onLeave != leaving) r,
+      ];
+    }
+    if (fired.length == circle.fired.length) return circle;
+    return circle.copyWith(reminders: reminders, fired: fired);
+  }
+
+  /// Tells the senders of reminders that went off here. The ones that
+  /// can't be told now stay on `fired` for the next send.
+  Future<ShareState> _tellFired(
+    ShareState state,
+    DateTime now,
+    Fix? fix,
+  ) async {
+    final told = <String, Set<String>>{};
+    for (final c in state.circles) {
+      for (final r in c.fired) {
+        final sent = await _event(
+          state,
+          c.spaceId,
+          FamilyEvent(
+            id: _eventId(),
+            kind: FamilyEventKind.remindDone,
+            at: now,
+            to: r.from,
+            ref: r.id,
+            placeId: r.placeId,
+            lat: fix?.lat,
+            lng: fix?.lng,
+          ),
+        );
+        if (sent) (told[c.spaceId] ??= {}).add(r.id);
+      }
+    }
+    if (told.isEmpty) return state;
+    // Onto the newest stored state: the app may have saved since.
+    final latest = await store.load();
+    if (latest == null || latest.userId != state.userId) return state;
+    final next = latest.copyWith(
+      circles: [
+        for (final c in latest.circles)
+          if (told[c.spaceId] case final ids?)
+            c.copyWith(
+              fired: [
+                for (final r in c.fired)
+                  if (!ids.contains(r.id)) r,
+              ],
+            )
+          else
+            c,
+      ],
+    );
+    await store.save(next);
+    return next;
   }
 
   /// Whether [circle] gets only approximate positions now: it asked for
@@ -1113,6 +1234,7 @@ class ShareEngine {
           a[i].epoch != b[i].epoch ||
           a[i].stale != b[i].stale ||
           !listEquals(a[i].reminders, b[i].reminders) ||
+          !listEquals(a[i].fired, b[i].fired) ||
           !mapEquals(a[i].inside, b[i].inside)) {
         return false;
       }

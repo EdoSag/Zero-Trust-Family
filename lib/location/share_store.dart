@@ -24,6 +24,7 @@ class CirclePackage {
     this.shareDrives = false,
     this.approximate = false,
     this.reminders = const [],
+    this.fired = const [],
   });
 
   final String spaceId;
@@ -48,6 +49,10 @@ class CirclePackage {
   /// leave one of the circle's places (L-4).
   final List<PlaceReminder> reminders;
 
+  /// Reminders that went off here whose senders haven't been told yet
+  /// (offline): told on a later send, and never armed again meanwhile.
+  final List<PlaceReminder> fired;
+
   CirclePackage copyWith({
     int? epoch,
     Uint8List? boxPublic,
@@ -57,6 +62,7 @@ class CirclePackage {
     bool? shareDrives,
     bool? approximate,
     List<PlaceReminder>? reminders,
+    List<PlaceReminder>? fired,
   }) => CirclePackage(
     spaceId: spaceId,
     epoch: epoch ?? this.epoch,
@@ -67,6 +73,7 @@ class CirclePackage {
     shareDrives: shareDrives ?? this.shareDrives,
     approximate: approximate ?? this.approximate,
     reminders: reminders ?? this.reminders,
+    fired: fired ?? this.fired,
   );
 
   Map<String, Object?> toJson() => {
@@ -80,6 +87,7 @@ class CirclePackage {
     if (approximate) 'approximate': true,
     if (reminders.isNotEmpty)
       'reminders': [for (final r in reminders) r.toJson()],
+    if (fired.isNotEmpty) 'fired': [for (final r in fired) r.toJson()],
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -100,6 +108,10 @@ class CirclePackage {
     approximate: json['approximate'] == true,
     reminders: [
       for (final r in (json['reminders'] as List? ?? const []))
+        ?PlaceReminder.fromJson(r),
+    ],
+    fired: [
+      for (final r in (json['fired'] as List? ?? const []))
         ?PlaceReminder.fromJson(r),
     ],
   );
@@ -155,6 +167,7 @@ class CrashRun {
     required this.deadline,
     this.lat,
     this.lng,
+    this.sent = const [],
   });
 
   final DateTime at;
@@ -162,11 +175,26 @@ class CrashRun {
   final double? lat;
   final double? lng;
 
+  /// Circles its SOS already reached. Non-empty: the countdown is over and
+  /// the SOS is still being retried for the others (offline).
+  final List<String> sent;
+
+  bool get counting => sent.isEmpty;
+
+  CrashRun copyWith({List<String>? sent}) => CrashRun(
+    at: at,
+    deadline: deadline,
+    lat: lat,
+    lng: lng,
+    sent: sent ?? this.sent,
+  );
+
   Map<String, Object?> toJson() => {
     'at': at.toUtc().toIso8601String(),
     'deadline': deadline.toUtc().toIso8601String(),
     if (lat != null) 'lat': lat,
     if (lng != null) 'lng': lng,
+    if (sent.isNotEmpty) 'sent': sent,
   };
 
   static CrashRun? fromJson(Object? json) {
@@ -179,6 +207,10 @@ class CrashRun {
       deadline: deadline,
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
+      sent: [
+        for (final s in (json['sent'] as List? ?? const []))
+          if (s is String) s,
+      ],
     );
   }
 }
@@ -200,6 +232,7 @@ class ShareState {
     this.crash,
     this.trip,
     this.tripDeletes = const [],
+    this.sosEndPending = const [],
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -245,6 +278,10 @@ class ShareState {
   /// Trip shares to take off the server (stopped while offline).
   final List<String> tripDeletes;
 
+  /// Circles still to be told an SOS ended ("I'm safe" reached the others
+  /// while this phone went offline). Retried with every update.
+  final List<String> sosEndPending;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -265,6 +302,7 @@ class ShareState {
     CrashRun? Function()? crash,
     TripShare? Function()? trip,
     List<String>? tripDeletes,
+    List<String>? sosEndPending,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -281,6 +319,7 @@ class ShareState {
     crash: crash == null ? this.crash : crash(),
     trip: trip == null ? this.trip : trip(),
     tripDeletes: tripDeletes ?? this.tripDeletes,
+    sosEndPending: sosEndPending ?? this.sosEndPending,
   );
 
   Map<String, Object?> toJson() => {
@@ -300,6 +339,7 @@ class ShareState {
     if (crash != null) 'crash': crash!.toJson(),
     if (trip != null) 'trip': trip!.toJson(),
     if (tripDeletes.isNotEmpty) 'tripDeletes': tripDeletes,
+    if (sosEndPending.isNotEmpty) 'sosEndPending': sosEndPending,
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -326,6 +366,10 @@ class ShareState {
     tripDeletes: [
       for (final d in (json['tripDeletes'] as List? ?? const []))
         if (d is String) d,
+    ],
+    sosEndPending: [
+      for (final s in (json['sosEndPending'] as List? ?? const []))
+        if (s is String) s,
     ],
   );
 
