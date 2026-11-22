@@ -440,7 +440,9 @@ class InMemoryLocationBackend implements LocationBackend {
 
   @override
   Future<void> insertEvent(LocationRow row) async {
-    if (server.offline) throw StateError('offline');
+    if (server.offline || server.failing.contains(row.spaceId)) {
+      throw StateError('offline');
+    }
     final me = userId;
     if (me == null) throw const SignedOutException();
     final members = server.members[row.spaceId];
@@ -534,6 +536,9 @@ class InMemoryLocationBackend implements LocationBackend {
 class InMemoryLocationServer {
   /// Every write fails, as with no connection.
   bool offline = false;
+
+  /// Events to these circles fail (the connection dropped part way).
+  final Set<String> failing = {};
   final Map<String, Set<String>> members = {};
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};

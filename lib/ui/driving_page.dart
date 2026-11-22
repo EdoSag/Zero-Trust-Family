@@ -238,7 +238,8 @@ class CrashBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final crash = ref.watch(shareStateProvider).value?.crash;
-    if (crash == null) return const SizedBox.shrink();
+    // After the countdown the SOS card shows it (still retrying offline).
+    if (crash == null || !crash.counting) return const SizedBox.shrink();
     final l = context.l;
     final scheme = Theme.of(context).colorScheme;
     final time = DateFormat.Hms(l.localeName).format(crash.deadline.toLocal());
