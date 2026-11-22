@@ -12,6 +12,8 @@ import '../l10n/event_text.dart';
 import '../l10n/l10n.dart';
 import 'alerts.dart';
 import 'drive.dart';
+import 'family_event.dart';
+import 'reminders.dart';
 import 'schedule.dart';
 import 'share_engine.dart';
 import 'share_store.dart';
@@ -23,7 +25,9 @@ import 'share_store.dart';
 /// the answer says how often to ask next and what the notification says.
 class ShareChannel implements ShareServiceControl {
   ShareChannel(this.engine, {required this.alerts, Future<void>? ready})
-    : _ready = ready;
+    : _ready = ready {
+    engine.onReminder = (spaceId, r) => unawaited(_showReminder(r));
+  }
 
   final ShareEngine engine;
 
@@ -261,10 +265,54 @@ class ShareChannel implements ShareServiceControl {
       if (hits.isEmpty) return;
       final l = lookupAppL10n(await _locale());
       for (final hit in hits) {
-        await _notify(hit, l);
+        await _reminderHit(hit);
+        if (!hit.silent) await _notify(hit, l);
       }
     } on Object {
       // Offline or signed out: the next wake-up tries again.
+    }
+  }
+
+  /// A reminder set for this phone's member (or taken back), seen while
+  /// locked: the service starts (or stops) watching for it.
+  Future<void> _reminderHit(AlertHit hit) async {
+    switch (hit.event.kind) {
+      case FamilyEventKind.remind:
+        final r = PlaceReminder.fromEvent(
+          hit.userId,
+          hit.event,
+          fromName: hit.name,
+          placeName: hit.placeName,
+        );
+        if (r != null) await engine.updateReminders(hit.spaceId, add: [r]);
+      case FamilyEventKind.remindCancel when hit.event.ref != null:
+        await engine.updateReminders(hit.spaceId, drop: [hit.event.ref!]);
+      default:
+    }
+  }
+
+  /// "Reminder from Mum: call me", when the member got to the place.
+  Future<void> _showReminder(PlaceReminder r) async {
+    final l = lookupAppL10n(await _locale());
+    final name = r.fromName.isEmpty ? l.unnamedMember : r.fromName;
+    final where = r.placeName == null
+        ? null
+        : r.onLeave
+        ? l.reminderLeaving(r.placeName!)
+        : l.reminderArriving(r.placeName!);
+    try {
+      await _channel.invokeMethod<void>('notify', {
+        'id': r.id.hashCode & 0x3fffffff,
+        'title': l.reminderFrom(name),
+        'text': [?r.note, ?where].join(' · '),
+        'quiet': false,
+        'urgent': false,
+        'channelName': l.alertsChannelName,
+        'quietChannelName': l.alertsQuietChannelName,
+        'urgentChannelName': l.sosChannelName,
+      });
+    } on MissingPluginException {
+      // Tests.
     }
   }
 

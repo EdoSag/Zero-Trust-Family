@@ -12,6 +12,7 @@ import 'geofence.dart';
 import 'location_backend.dart';
 import 'location_box.dart';
 import 'location_update.dart';
+import 'reminders.dart';
 import 'schedule.dart';
 import 'share_store.dart';
 
@@ -93,6 +94,12 @@ class ShareEngine {
 
   /// Drives that failed to reach a circle may wait in the drive store.
   bool _drivesUnsent = true;
+
+  /// Shows a place reminder that went off (the Android notification).
+  void Function(String spaceId, PlaceReminder reminder)? onReminder;
+
+  /// Reminders that went off during a send, told to their senders after.
+  final List<(String, PlaceReminder)> _fired = [];
 
   DeviceStatus _status = const DeviceStatus();
   Fix? _lastFix;
@@ -344,6 +351,87 @@ class ShareEngine {
     if (changed) await drives.save(next);
     _drivesUnsent = left;
   }
+
+  /// Sets a place reminder for [to]: their phone shows [note] when they
+  /// arrive at (or, with [onLeave], leave) [placeId]. Returns its id, or
+  /// null when it couldn't be sent.
+  Future<String?> remind(
+    String spaceId, {
+    required String to,
+    required String placeId,
+    bool onLeave = false,
+    String? note,
+  }) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null) return null;
+    final clean = note?.trim();
+    final event = FamilyEvent(
+      id: _eventId(),
+      kind: FamilyEventKind.remind,
+      at: now,
+      to: to,
+      placeId: placeId,
+      onLeave: onLeave,
+      note: clean == null || clean.isEmpty
+          ? null
+          : clean.characters.take(FamilyEvent.maxNote).toString(),
+    );
+    return await _event(state, spaceId, event) ? event.id : null;
+  });
+
+  /// Takes back a reminder this phone's member set for [to].
+  Future<bool> cancelReminder(
+    String spaceId,
+    String id, {
+    required String to,
+  }) => _serial(() async {
+    final now = _clock();
+    final state = await _load(now);
+    if (state == null) return false;
+    return _event(
+      state,
+      spaceId,
+      FamilyEvent(
+        id: _eventId(),
+        kind: FamilyEventKind.remindCancel,
+        at: now,
+        to: to,
+        ref: id,
+      ),
+    );
+  });
+
+  /// The reminders waiting for this phone's member in [spaceId], from the
+  /// circle's events (the open app) or from an alert (while locked).
+  /// [replace] sets the whole list; otherwise [add] and [drop] change it.
+  Future<void> updateReminders(
+    String spaceId, {
+    List<PlaceReminder>? replace,
+    List<PlaceReminder> add = const [],
+    List<String> drop = const [],
+  }) => _serial(() async {
+    final state = await store.load();
+    if (state == null) return;
+    var changed = false;
+    final circles = [
+      for (final c in state.circles)
+        if (c.spaceId != spaceId)
+          c
+        else
+          () {
+            final byId = {
+              for (final r in replace ?? c.reminders) r.id: r,
+              for (final r in add) r.id: r,
+            }..removeWhere((id, _) => drop.contains(id));
+            final next = byId.values.toList();
+            if (listEquals(next, c.reminders)) return c;
+            changed = true;
+            return c.copyWith(reminders: next);
+          }(),
+    ];
+    if (changed) await store.save(state.copyWith(circles: circles));
+  });
 
   /// "I'm OK" on the crash countdown: nobody is alerted.
   Future<bool> cancelCrash() => _serial(() async {
@@ -809,6 +897,26 @@ class ShareEngine {
       // sharing with another, paused): keep its changes, apply only ours.
       next = await _merge(current, next) ?? next;
     }
+    // Place reminders that went off: shown here, and their senders told.
+    final fired = [..._fired];
+    _fired.clear();
+    for (final (spaceId, r) in fired) {
+      onReminder?.call(spaceId, r);
+      await _event(
+        next,
+        spaceId,
+        FamilyEvent(
+          id: _eventId(),
+          kind: FamilyEventKind.remindDone,
+          at: now,
+          to: r.from,
+          ref: r.id,
+          placeId: r.placeId,
+          lat: newFix?.lat,
+          lng: newFix?.lng,
+        ),
+      );
+    }
     final health = _healthOf(next, now);
     return ShareResult(
       health == ShareHealth.sharing && offline ? ShareHealth.offline : health,
@@ -833,6 +941,19 @@ class ShareEngine {
   ) async {
     if (circle.places.isEmpty) return circle;
     final (next, crossings) = Geofence.check(circle.inside, circle.places, fix);
+    var reminders = circle.reminders;
+    for (final c in crossings) {
+      final leaving = c.kind == FamilyEventKind.leave;
+      for (final r in reminders) {
+        if (r.placeId == c.placeId && r.onLeave == leaving) {
+          _fired.add((circle.spaceId, r));
+        }
+      }
+      reminders = [
+        for (final r in reminders)
+          if (r.placeId != c.placeId || r.onLeave != leaving) r,
+      ];
+    }
     final context = LocationBox.context(
       table: 'family_events',
       spaceId: circle.spaceId,
@@ -876,7 +997,7 @@ class ShareEngine {
         if (was != null) inside[c.placeId] = was;
       }
     }
-    return circle.copyWith(inside: inside);
+    return circle.copyWith(inside: inside, reminders: reminders);
   }
 
   /// Whether [circle] gets only approximate positions now: it asked for
@@ -895,6 +1016,7 @@ class ShareEngine {
       if (a[i].spaceId != b[i].spaceId ||
           a[i].epoch != b[i].epoch ||
           a[i].stale != b[i].stale ||
+          !listEquals(a[i].reminders, b[i].reminders) ||
           !mapEquals(a[i].inside, b[i].inside)) {
         return false;
       }

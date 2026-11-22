@@ -13,6 +13,7 @@ import '../location/share_engine.dart';
 import '../location/share_store.dart';
 import '../model/family_place.dart';
 import 'family_data.dart';
+import 'reminders.dart';
 
 /// A sharing device, published by its member as a space item that only
 /// that member can write: `family.me/<user id>/device/<device id>`.
@@ -276,6 +277,7 @@ class ShareActions {
         package.copyWith(
           shareDrives: had?.shareDrives,
           approximate: had?.approximate,
+          reminders: had?.reminders,
         ),
       ],
     );
@@ -421,9 +423,23 @@ class ShareActions {
   Future<bool> crashSosNow() => _safety((e) => e.crashSosNow());
 
   /// After unlock and every sync: follows key changes (someone left or was
-  /// removed), drops circles this account isn't in, and stops sharing when
-  /// another account signed in on this phone.
+  /// removed), drops circles this account isn't in, stops sharing when
+  /// another account signed in on this phone, and picks up place reminders
+  /// set for this phone's member.
   Future<void> refreshPackages() async {
+    await _refreshPackages();
+    final state = await _store.load();
+    if (state == null) return;
+    for (final c in state.circles) {
+      try {
+        await ref.read(reminderActionsProvider).syncMine(c.spaceId);
+      } on Object {
+        // Offline: next time.
+      }
+    }
+  }
+
+  Future<void> _refreshPackages() async {
     // Deletes that failed offline, even when no longer sharing.
     try {
       await _engine.retryDeletes();
@@ -456,6 +472,7 @@ class ShareActions {
                 },
                 shareDrives: c.shareDrives,
                 approximate: c.approximate,
+                reminders: c.reminders,
               ),
       );
     }

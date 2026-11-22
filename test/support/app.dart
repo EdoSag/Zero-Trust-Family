@@ -9,9 +9,11 @@ import 'package:zerotrust_family/data/alerts.dart';
 import 'package:zerotrust_family/data/history.dart';
 import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/data/places.dart';
+import 'package:zerotrust_family/data/reminders.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
 import 'package:zerotrust_family/location/alerts.dart';
 import 'package:zerotrust_family/location/drive.dart';
+import 'package:zerotrust_family/location/reminders.dart';
 import 'package:zerotrust_family/location/timeline.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
@@ -308,6 +310,36 @@ class FakeShareActions extends ShareActions {
       _sent('crash sos', (s) => s.copyWith(crash: () => null));
 }
 
+late FakeReminderActions reminderActions;
+
+class FakeReminderActions extends ReminderActions {
+  FakeReminderActions(super.ref);
+  final calls = <String>[];
+
+  @override
+  Future<bool> create(
+    String spaceId, {
+    required String to,
+    required String placeId,
+    required bool onLeave,
+    String? note,
+  }) async {
+    calls.add(
+      'create $spaceId $to $placeId ${onLeave ? 'leave' : 'arrive'} $note',
+    );
+    return true;
+  }
+
+  @override
+  Future<bool> cancel(String spaceId, OpenReminder reminder) async {
+    calls.add('cancel $spaceId ${reminder.id}');
+    return true;
+  }
+
+  @override
+  Future<void> syncMine(String spaceId) async {}
+}
+
 Widget app(
   Widget home, {
   FamilyData family = const FamilyData(ready: true, loading: false),
@@ -322,6 +354,7 @@ Widget app(
   bool plus = false,
   Map<DateTime, List<TimelineEntry>> history = const {},
   List<DriveSummary> drives = const [],
+  List<OpenReminder> reminders = const [],
 }) {
   alertStore = InMemoryAlertStore(alerts);
   locationServer = InMemoryLocationServer();
@@ -348,6 +381,10 @@ Widget app(
       circleEventsProvider.overrideWith((ref, spaceId) async => events),
       alertStoreProvider.overrideWithValue(alertStore),
       myDrivesProvider.overrideWith((ref) async => drives),
+      circleRemindersProvider.overrideWith((ref, spaceId) async => reminders),
+      reminderActionsProvider.overrideWith(
+        (ref) => reminderActions = FakeReminderActions(ref),
+      ),
       familyPlusProvider.overrideWithValue(plus),
       memberHistoryProvider.overrideWith(
         (ref, key) async => history[key.day] ?? const [],
@@ -379,6 +416,7 @@ Widget app(
           ref.watch(shareActionsProvider);
           ref.watch(placeActionsProvider);
           ref.watch(alertActionsProvider);
+          ref.watch(reminderActionsProvider);
           return child!;
         },
       ),

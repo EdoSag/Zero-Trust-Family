@@ -23,6 +23,12 @@ String eventLine(AppL10n l, String name, String? place, FamilyEvent event) {
     FamilyEventKind.sos => event.crash ? l.eventCrash(name) : l.eventSos(name),
     FamilyEventKind.sosEnd => l.eventSosEnd(name),
     FamilyEventKind.point => l.eventPoint(name),
+    FamilyEventKind.remind => l.eventRemind(name),
+    FamilyEventKind.remindDone =>
+      place == null
+          ? l.eventRemindDoneSomewhere(name)
+          : l.eventRemindDone(name, place),
+    FamilyEventKind.remindCancel => l.eventRemindCancel(name),
     FamilyEventKind.drive => l.eventDrive(
       name,
       km(l, event.drive?.distanceM ?? 0),

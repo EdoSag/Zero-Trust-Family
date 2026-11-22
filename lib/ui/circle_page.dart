@@ -12,6 +12,7 @@ import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
 import 'driving_page.dart';
+import 'reminders_page.dart';
 import 'family_map.dart';
 import 'history_page.dart';
 import 'history_section.dart';
@@ -170,6 +171,19 @@ class _CirclePageState extends ConsumerState<CirclePage> {
           RecentSection(spaceId: spaceId, names: names),
           HistorySection(spaceId: spaceId, isOwner: circle.isAdmin),
           AlertsCard(spaceId: spaceId, members: circle.members, me: me),
+          ListTile(
+            key: const Key('reminders'),
+            leading: const Icon(Icons.notification_add_outlined),
+            title: Text(l.remindersTitle),
+            subtitle: Text(l.remindersSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => RemindersPage.open(
+              context,
+              spaceId: spaceId,
+              members: circle.members,
+              me: me,
+            ),
+          ),
           ListTile(
             key: const Key('driving'),
             leading: const Icon(Icons.directions_car_outlined),
