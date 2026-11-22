@@ -77,7 +77,14 @@ class ReminderActions {
   Future<bool> cancel(String spaceId, OpenReminder reminder) async {
     final ok = await ref
         .read(shareEngineProvider)
-        .cancelReminder(spaceId, reminder.id, to: reminder.to);
+        .cancelReminder(
+          spaceId,
+          reminder.id,
+          // Taken back by its sender, or turned down by its member.
+          to: reminder.to == ref.read(myUserIdProvider)
+              ? reminder.from
+              : reminder.to,
+        );
     if (ok) {
       _changed();
       if (reminder.to == ref.read(myUserIdProvider)) await syncMine(spaceId);

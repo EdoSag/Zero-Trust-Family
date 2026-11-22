@@ -100,7 +100,7 @@ class OpenReminder {
 
 /// The circle's open reminders, from its events (any order): each `remind`
 /// minus the ones a `remindDone` (by its member) or `remindCancel` (by who
-/// set it) closed. Newest first.
+/// set it, or by its member turning it down) closed. Newest first.
 List<OpenReminder> openReminders(
   Iterable<({String userId, FamilyEvent event})> events,
 ) {
@@ -119,10 +119,11 @@ List<OpenReminder> openReminders(
   }
   final out = [
     for (final r in reminds.values)
-      // Only its member can say it went off, and only its sender can take
-      // it back: nobody else can close someone's reminder.
+      // Only its member can say it went off, and only its sender or its
+      // member can take it back: nobody else can close it.
       if (!(closed[r.id]?.contains('remindDone:${r.to}') ?? false) &&
-          !(closed[r.id]?.contains('remindCancel:${r.from}') ?? false))
+          !(closed[r.id]?.contains('remindCancel:${r.from}') ?? false) &&
+          !(closed[r.id]?.contains('remindCancel:${r.to}') ?? false))
         r,
   ];
   out.sort((a, b) => b.event.at.compareTo(a.event.at));

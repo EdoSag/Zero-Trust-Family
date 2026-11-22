@@ -41,8 +41,8 @@ FamilyEvent ev(
 
 void main() {
   group('open reminders', () {
-    test('only its member closes it by going off, only its sender by '
-        'taking it back', () {
+    test('only its member closes it by going off; only its sender or '
+        'member by taking it back', () {
       final open = openReminders([
         (userId: mum, event: ev('r1', FamilyEventKind.remind, to: teen)),
         (userId: mum, event: ev('r2', FamilyEventKind.remind, to: teen)),
@@ -56,10 +56,7 @@ void main() {
         // Someone else can't say it went off...
         (userId: dad, event: ev('d2', FamilyEventKind.remindDone, ref: 'r2')),
         // ...or take back someone else's.
-        (
-          userId: teen,
-          event: ev('c3', FamilyEventKind.remindCancel, ref: 'r3'),
-        ),
+        (userId: mum, event: ev('c3', FamilyEventKind.remindCancel, ref: 'r3')),
         (userId: mum, event: ev('c4', FamilyEventKind.remindCancel, ref: 'r4')),
       ]);
       expect(open.map((r) => r.id), ['r2', 'r3']);
@@ -253,6 +250,12 @@ void main() {
     test('taken back: closed for everyone', () async {
       final id = await mumPhone.remind('family', to: teen, placeId: 'school');
       expect(await mumPhone.cancelReminder('family', id!, to: teen), isTrue);
+      expect(openReminders(await events()), isEmpty);
+    });
+
+    test('its member can turn it down', () async {
+      final id = await mumPhone.remind('family', to: teen, placeId: 'school');
+      expect(await teenPhone.cancelReminder('family', id!, to: mum), isTrue);
       expect(openReminders(await events()), isEmpty);
     });
 

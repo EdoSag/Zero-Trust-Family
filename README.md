@@ -151,7 +151,7 @@ releases are one `Dev` → `main` pull request.
   opened, or while locked when alerts are on) and shows it when the
   geofence sees them arrive at or leave the place, then sends `remindDone`
   to whoever set it. `remindCancel` takes one back. Only the member can
-  close it as done, and only the sender can take it back.
+  close it as done, and only the sender or the member can take it back.
 - The location tables (`family_latest`, `family_events`) are in
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
 
