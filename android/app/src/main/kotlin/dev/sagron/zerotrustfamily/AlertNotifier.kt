@@ -69,13 +69,16 @@ object AlertNotifier {
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle(title)
             .setContentText(text)
-            .setAutoCancel(true)
+            .setAutoCancel(args["ongoing"] != true)
+            .setOngoing(args["ongoing"] == true)
             .setCategory(if (urgent) Notification.CATEGORY_ALARM else Notification.CATEGORY_STATUS)
             .apply {
                 if (open != null) setContentIntent(open)
-                val label = args["actionLabel"] as? String
-                val kind = args["actionKind"] as? String
-                if (label != null && kind != null) {
+                // Up to two buttons ("I'm OK", and "Send SOS now" on a
+                // crash countdown); each wakes the service with its kind.
+                for ((n, suffix) in listOf(0 to "", 1 to "2")) {
+                    val label = args["action${suffix}Label"] as? String ?: continue
+                    val kind = args["action${suffix}Kind"] as? String ?: continue
                     val intent = Intent(context, ShareService::class.java)
                         .setAction(ShareService.ACTION_ALERT)
                         .putExtra(ShareService.EXTRA_KIND, kind)
@@ -83,7 +86,8 @@ object AlertNotifier {
                         .putExtra(ShareService.EXTRA_NOTIFICATION, id)
                     val pending = PendingIntent.getForegroundService(
                         context,
-                        id,
+                        // One request code per button, so they don't replace each other.
+                        id * 2 + n,
                         intent,
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                     )
@@ -92,9 +96,14 @@ object AlertNotifier {
             }
             .build()
         try {
+            if (args["ongoing"] == true) notification.flags = notification.flags or Notification.FLAG_INSISTENT
             manager.notify(id, notification)
         } catch (e: SecurityException) {
             // Notifications not allowed: the app shows the event when opened.
         }
+    }
+
+    fun cancel(context: Context, id: Int) {
+        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(id)
     }
 }

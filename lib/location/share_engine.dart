@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import 'drive.dart';
+import 'drive_store.dart';
 import 'family_event.dart';
 import 'geofence.dart';
 import 'location_backend.dart';
@@ -67,13 +69,29 @@ class ShareEngine {
   ShareEngine({
     required this.store,
     required this.backend,
+    DriveStore? drives,
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+  }) : drives = drives ?? InMemoryDriveStore(),
+       _clock = clock ?? DateTime.now;
 
   final ShareStore store;
   final LocationBackend backend;
+
+  /// This phone's own drive summaries.
+  final DriveStore drives;
   final DateTime Function() _clock;
   final AdaptiveSchedule schedule = AdaptiveSchedule();
+  final DriveTracker tracker = DriveTracker();
+  final CrashDetector crashes = CrashDetector();
+
+  /// How long a detected crash counts down before the circle is alerted.
+  static const crashCountdown = Duration(seconds: 60);
+
+  /// Where this phone started moving (a drive starts there).
+  Fix? _movingSince;
+
+  /// Drives that failed to reach a circle may wait in the drive store.
+  bool _drivesUnsent = true;
 
   DeviceStatus _status = const DeviceStatus();
   Fix? _lastFix;
@@ -198,8 +216,160 @@ class ShareEngine {
     final now = _clock();
     final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
+    final wasStill = schedule.mode == MotionMode.still;
     final decision = schedule.onFix(fix);
+    if (schedule.mode == MotionMode.still) {
+      _movingSince = null;
+    } else if (wasStill || _movingSince == null) {
+      _movingSince = fix;
+    }
+    if (schedule.mode == MotionMode.driving) tracker.hint(_movingSince);
+    await _tickDrives(state, now);
     return _send(state, now, decision, newFix: fix);
+  });
+
+  /// Driving samples (one a second) from the phone's sensors: drive
+  /// summaries and crash detection. The service sends them only while
+  /// [wantsDriveSensors] says so.
+  Future<ShareResult> onDrive(List<DriveSample> samples) => _serial(() async {
+    final now = _clock();
+    var state = await _load(now);
+    schedule.liveUntil = state?.liveUntil;
+    final decision = schedule.current(now);
+    if (state == null || !state.sharing || state.pausedAt(now)) {
+      return ShareResult(_healthOf(state, now), decision);
+    }
+    if (state.drives) {
+      tracker.hint(_movingSince);
+      for (final drive in tracker.add(samples)) {
+        await _keepDrive(state, drive, now);
+      }
+    }
+    if (state.crashDetection && state.crash == null && state.sos == null) {
+      final crash = crashes.add(samples);
+      if (crash != null) {
+        state = state.copyWith(
+          crash: () => CrashRun(
+            at: crash.at,
+            deadline: now.add(crashCountdown),
+            lat: crash.lat,
+            lng: crash.lng,
+          ),
+        );
+        await store.save(state);
+      }
+    }
+    return ShareResult(_healthOf(state, now), decision);
+  });
+
+  /// Whether the service should run the driving sensors (satellites every
+  /// second and the accelerometer): only while driving, sharing and not
+  /// paused, with drive summaries or crash detection on.
+  bool wantsDriveSensors(ShareState? state, DateTime now) =>
+      state != null &&
+      state.sharing &&
+      !state.pausedAt(now) &&
+      (state.drives || state.crashDetection) &&
+      (schedule.mode == MotionMode.driving ||
+          tracker.active ||
+          crashes.watching);
+
+  /// Ends a drive that went quiet, and retries drives a circle missed.
+  Future<void> _tickDrives(ShareState? state, DateTime now) async {
+    if (state == null) return;
+    final done = tracker.tick(now);
+    if (done != null && state.drives) await _keepDrive(state, done, now);
+    if (_drivesUnsent) await _flushDrives(state);
+  }
+
+  /// Keeps [drive] on this phone and sends it to the circles that get
+  /// this driver's drives.
+  Future<void> _keepDrive(
+    ShareState state,
+    DriveSummary drive,
+    DateTime now,
+  ) async {
+    final unsent = <String>[];
+    for (final c in state.circles) {
+      if (!c.shareDrives || c.stale) continue;
+      if (!await _event(state, c.spaceId, _driveEvent(drive))) {
+        unsent.add(c.spaceId);
+      }
+    }
+    if (unsent.isNotEmpty) _drivesUnsent = true;
+    await drives.add(StoredDrive(drive, unsent: unsent), now);
+  }
+
+  static FamilyEvent _driveEvent(DriveSummary drive) => FamilyEvent(
+    id: drive.id,
+    kind: FamilyEventKind.drive,
+    at: drive.end,
+    lat: drive.endLat,
+    lng: drive.endLng,
+    drive: drive,
+  );
+
+  /// Drives that couldn't reach a circle (offline) for up to a day.
+  Future<void> _flushDrives(ShareState state) async {
+    final all = await drives.load();
+    final now = _clock();
+    var changed = false;
+    var left = false;
+    final next = <StoredDrive>[];
+    for (final d in all) {
+      if (d.unsent.isEmpty) {
+        next.add(d);
+        continue;
+      }
+      if (now.difference(d.drive.end) > const Duration(days: 1)) {
+        next.add(d.copyWith(unsent: const []));
+        changed = true;
+        continue;
+      }
+      final still = <String>[];
+      for (final spaceId in d.unsent) {
+        final shares = state.circles.any(
+          (c) => c.spaceId == spaceId && c.shareDrives,
+        );
+        if (!shares) continue; // Turned off since: never sent.
+        if (!await _event(state, spaceId, _driveEvent(d.drive))) {
+          still.add(spaceId);
+        }
+      }
+      if (still.length != d.unsent.length) changed = true;
+      if (still.isNotEmpty) left = true;
+      next.add(d.copyWith(unsent: still));
+    }
+    if (changed) await drives.save(next);
+    _drivesUnsent = left;
+  }
+
+  /// "I'm OK" on the crash countdown: nobody is alerted.
+  Future<bool> cancelCrash() => _serial(() async {
+    final state = await store.load();
+    if (state?.crash == null) return false;
+    await store.save(state!.copyWith(crash: () => null));
+    return true;
+  });
+
+  /// "Send SOS now" on the crash countdown.
+  Future<bool> crashSosNow() => _serial(() async {
+    final now = _clock();
+    final state = await store.load();
+    final crash = state?.crash;
+    if (state == null || crash == null) return false;
+    await store.save(
+      state.copyWith(
+        crash: () => CrashRun(
+          at: crash.at,
+          deadline: now,
+          lat: crash.lat,
+          lng: crash.lng,
+        ),
+      ),
+    );
+    final after = await _load(now);
+    return after?.sos != null && after?.crash == null;
   });
 
   Future<ShareResult> onMotion() => _serial(() async {
@@ -216,6 +386,7 @@ class ShareEngine {
     final now = _clock();
     final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
+    await _tickDrives(state, now);
     return _send(state, now, schedule.current(now));
   });
 
@@ -224,12 +395,70 @@ class ShareEngine {
     final now = _clock();
     final state = await _load(now);
     schedule.liveUntil = state?.liveUntil;
+    await _tickDrives(state, now);
     return ShareResult(_healthOf(state, now), schedule.current(now));
   });
 
   /// The share state, after sending the alert for a safety timer that ran
-  /// out (and sharing live for an hour so the circle can find this phone).
+  /// out or a crash countdown nobody answered (and sharing live for an hour
+  /// so the circle can find this phone).
   Future<ShareState?> _load(DateTime now) async {
+    final state = await _loadTimer(now);
+    final crash = state?.crash;
+    if (state == null || crash == null || now.isBefore(crash.deadline)) {
+      return state;
+    }
+    return _crashSos(state, crash, now);
+  }
+
+  /// Nobody answered the crash countdown: SOS to every circle, with where
+  /// the crash was, and live sharing for an hour.
+  Future<ShareState> _crashSos(
+    ShareState state,
+    CrashRun crash,
+    DateTime now,
+  ) async {
+    final sent = <String>[];
+    for (final c in state.circles) {
+      if (c.stale) continue;
+      final ok = await _event(
+        state,
+        c.spaceId,
+        FamilyEvent(
+          id: _eventId(),
+          kind: FamilyEventKind.sos,
+          at: now,
+          lat: crash.lat ?? _lastFix?.lat,
+          lng: crash.lng ?? _lastFix?.lng,
+          battery: _status.battery,
+          crash: true,
+        ),
+      );
+      if (ok) sent.add(c.spaceId);
+    }
+    if (sent.isEmpty) {
+      if (now.difference(crash.deadline) < const Duration(hours: 1)) {
+        return state; // Offline: the next wake-up tries again.
+      }
+      final dropped = state.copyWith(crash: () => null);
+      await store.save(dropped);
+      return dropped;
+    }
+    final until = now.add(liveAfterAlarm);
+    final next = state.copyWith(
+      crash: () => null,
+      sos: () =>
+          SafetyRun(spaceId: sent.first, until: until, also: sent.sublist(1)),
+      liveUntil: () => until,
+      pausedUntil: () => null,
+      pausedOpenEnded: false,
+    );
+    await store.save(next);
+    return next;
+  }
+
+  /// The share state, after the missed safety timer's alert.
+  Future<ShareState?> _loadTimer(DateTime now) async {
     var state = await store.load();
     final timer = state?.timer;
     if (state == null || timer == null || now.isBefore(timer.until)) {
@@ -425,16 +654,17 @@ class ShareEngine {
     final state = await _load(now);
     final sos = state?.sos;
     if (state == null || sos == null) return false;
-    final sent = await _event(
-      state,
-      sos.spaceId,
-      _now(FamilyEventKind.sosEnd, now),
-    );
+    var sent = false;
+    for (final spaceId in sos.spaces) {
+      if (await _event(state, spaceId, _now(FamilyEventKind.sosEnd, now))) {
+        sent = true;
+      }
+    }
     // Offline, the SOS stays on (with its "I'm safe" button) until the
     // circle can be told. A circle this phone no longer shares with can't
     // be told at all, so then it just ends here.
     final reachable = state.circles.any(
-      (c) => c.spaceId == sos.spaceId && !c.stale,
+      (c) => sos.spaces.contains(c.spaceId) && !c.stale,
     );
     if (sent || !reachable) {
       await store.save(state.copyWith(sos: () => null, liveUntil: () => null));

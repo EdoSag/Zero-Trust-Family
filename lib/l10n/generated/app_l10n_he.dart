@@ -701,4 +701,123 @@ class AppL10nHe extends AppL10n {
   @override
   String get historyCouldNotLoad =>
       'לא הצלחנו לטעון את ההיסטוריה. בדקו את החיבור לאינטרנט.';
+
+  @override
+  String eventCrash(String name) {
+    return '$name: ייתכן שהייתה תאונת דרכים';
+  }
+
+  @override
+  String eventDrive(String name, String km, String kmh) {
+    return '$name: נסיעה של $km ק״מ (מהירות שיא $kmh קמ״ש)';
+  }
+
+  @override
+  String get crashCountdownTitle => 'הייתה תאונה?';
+
+  @override
+  String crashCountdownBody(String time) {
+    return 'המעגלים שלך יקבלו SOS עם המיקום שלך ב-$time, אלא אם תלחצו על ״אני בסדר״.';
+  }
+
+  @override
+  String get crashSendNow => 'לשלוח SOS עכשיו';
+
+  @override
+  String get crashSosSentTitle => 'נשלח SOS למעגלים שלך';
+
+  @override
+  String get crashSosSentBody =>
+      'הם רואים את המיקום החי שלך למשך שעה. לחצו על ״אני בטוח/ה״ כשזה נכון.';
+
+  @override
+  String get drivingTitle => 'נהיגה';
+
+  @override
+  String get drivingSubtitle => 'סיכומי נסיעות וזיהוי תאונות';
+
+  @override
+  String get drivingNeedsSharing =>
+      'כדי להשתמש באלה, צריך להפעיל שיתוף מיקום עם המעגל הזה.';
+
+  @override
+  String get drivesSwitch => 'סיכומי נסיעות';
+
+  @override
+  String get drivesSwitchBody =>
+      'שומר בטלפון הזה סיכום של כל נסיעה: מרחק, מהירות, בלימות חדות ושימוש בטלפון. משתמש בלוויינים כל שנייה בזמן נסיעה.';
+
+  @override
+  String get shareDrivesSwitch => 'לשתף את הנסיעות שלי עם המעגל הזה';
+
+  @override
+  String get shareDrivesBody =>
+      'המעגל רואה את הסיכום של כל נסיעה בהיסטוריה שלך, מוצפן מקצה לקצה.';
+
+  @override
+  String get shareDrivesNeedsPlus =>
+      'שיתוף סיכומי נסיעות עם מעגל הוא חלק מ-Plus. סיכומי הנסיעות שלך וזיהוי תאונות נשארים בחינם.';
+
+  @override
+  String get crashSwitch => 'זיהוי תאונות';
+
+  @override
+  String get crashSwitchBody =>
+      'אם הטלפון מרגיש מכה חזקה בזמן נסיעה ואז עוצר, הוא מצלצל 60 שניות ואז שולח SOS עם המיקום שלך לכל המעגלים שלך.';
+
+  @override
+  String get crashDisclaimer =>
+      'זיהוי תאונות יכול לפספס תאונה או לצלצל כשלא הייתה. הוא לא מתקשר לשירותי חירום: במקרה חירום, התקשרו למספר החירום המקומי.';
+
+  @override
+  String get turnOn => 'להפעיל';
+
+  @override
+  String get myDrivesHeading => 'הנסיעות שלי (בטלפון הזה)';
+
+  @override
+  String get noDrivesYet =>
+      'עדיין אין נסיעות. הן יופיעו כאן אחרי נסיעה כשסיכומי הנסיעות פעילים.';
+
+  @override
+  String driveSpeeds(String top, String average) {
+    return 'שיא $top קמ״ש · ממוצע $average קמ״ש';
+  }
+
+  @override
+  String hardBrakes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בלימות חדות',
+      one: 'בלימה חדה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rapidStarts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count האצות חדות',
+      one: 'האצה חדה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String phoneUseMinutes(int minutes) {
+    return 'שימוש בטלפון $minutes דק׳';
+  }
+
+  @override
+  String get eraseMyDrives => 'למחוק את הנסיעות שלי';
+
+  @override
+  String get eraseMyDrivesBody =>
+      'מוחק את הנסיעות שנשמרו בטלפון הזה. נסיעות שכבר שותפו נשארות בהיסטוריה של המעגל עד שהיא נמחקת.';
+
+  @override
+  String get drivesErased => 'הנסיעות נמחקו';
 }

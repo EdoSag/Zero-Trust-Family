@@ -11,6 +11,7 @@ import '../data/family_data.dart';
 import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
+import 'driving_page.dart';
 import 'family_map.dart';
 import 'history_page.dart';
 import 'history_section.dart';
@@ -124,6 +125,7 @@ class _CirclePageState extends ConsumerState<CirclePage> {
                 ),
               ),
             ),
+          const CrashBanner(),
           ShareCard(spaceId: widget.spaceId),
           SafetyCard(spaceId: spaceId, members: circle.members, me: me),
           Padding(
@@ -168,6 +170,14 @@ class _CirclePageState extends ConsumerState<CirclePage> {
           RecentSection(spaceId: spaceId, names: names),
           HistorySection(spaceId: spaceId, isOwner: circle.isAdmin),
           AlertsCard(spaceId: spaceId, members: circle.members, me: me),
+          ListTile(
+            key: const Key('driving'),
+            leading: const Icon(Icons.directions_car_outlined),
+            title: Text(l.drivingTitle),
+            subtitle: Text(l.drivingSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => DrivingPage.open(context, spaceId),
+          ),
           const Divider(height: 24),
           ListTile(
             leading: const Icon(Icons.group_outlined),

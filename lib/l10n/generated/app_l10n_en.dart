@@ -707,4 +707,123 @@ class AppL10nEn extends AppL10n {
   @override
   String get historyCouldNotLoad =>
       'Couldn\'t load the history. Check your internet connection.';
+
+  @override
+  String eventCrash(String name) {
+    return '$name may have been in a car crash';
+  }
+
+  @override
+  String eventDrive(String name, String km, String kmh) {
+    return '$name drove $km km (top speed $kmh km/h)';
+  }
+
+  @override
+  String get crashCountdownTitle => 'Were you in a crash?';
+
+  @override
+  String crashCountdownBody(String time) {
+    return 'Your circles get an SOS with your location at $time, unless you tap I\'m OK.';
+  }
+
+  @override
+  String get crashSendNow => 'Send SOS now';
+
+  @override
+  String get crashSosSentTitle => 'SOS sent to your circles';
+
+  @override
+  String get crashSosSentBody =>
+      'They see your live location for an hour. Tap I\'m safe when you are.';
+
+  @override
+  String get drivingTitle => 'Driving';
+
+  @override
+  String get drivingSubtitle => 'Drive summaries and crash detection';
+
+  @override
+  String get drivingNeedsSharing =>
+      'Turn on location sharing with this circle to use these.';
+
+  @override
+  String get drivesSwitch => 'Drive summaries';
+
+  @override
+  String get drivesSwitchBody =>
+      'Keeps a summary of each drive on this phone: distance, speed, hard braking and phone use. Uses satellites every second while you drive.';
+
+  @override
+  String get shareDrivesSwitch => 'Share my drives with this circle';
+
+  @override
+  String get shareDrivesBody =>
+      'The circle sees each drive\'s summary in your history, end-to-end encrypted.';
+
+  @override
+  String get shareDrivesNeedsPlus =>
+      'Sharing drive summaries with a circle is part of Plus. Your own drive summaries and crash detection stay free.';
+
+  @override
+  String get crashSwitch => 'Crash detection';
+
+  @override
+  String get crashSwitchBody =>
+      'If the phone feels a hard crash while driving and then stops, it rings for 60 seconds, then sends an SOS with your location to all your circles.';
+
+  @override
+  String get crashDisclaimer =>
+      'Crash detection can miss a crash or ring when there was none. It does not call emergency services: in an emergency, call your local emergency number.';
+
+  @override
+  String get turnOn => 'Turn on';
+
+  @override
+  String get myDrivesHeading => 'My drives (on this phone)';
+
+  @override
+  String get noDrivesYet =>
+      'No drives yet. They show here after you drive with drive summaries on.';
+
+  @override
+  String driveSpeeds(String top, String average) {
+    return 'Top $top km/h · average $average km/h';
+  }
+
+  @override
+  String hardBrakes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hard brakes',
+      one: '1 hard brake',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rapidStarts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rapid starts',
+      one: '1 rapid start',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String phoneUseMinutes(int minutes) {
+    return 'Phone used $minutes min';
+  }
+
+  @override
+  String get eraseMyDrives => 'Erase my drives';
+
+  @override
+  String get eraseMyDrivesBody =>
+      'Deletes the drives kept on this phone. Drives already shared stay in the circle\'s history until it deletes them.';
+
+  @override
+  String get drivesErased => 'Drives erased';
 }
