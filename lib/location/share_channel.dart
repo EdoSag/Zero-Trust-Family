@@ -291,7 +291,12 @@ class ShareChannel implements ShareServiceControl {
         );
         if (r != null) await engine.updateReminders(hit.spaceId, add: [r]);
       case FamilyEventKind.remindCancel when hit.event.ref != null:
-        await engine.updateReminders(hit.spaceId, drop: [hit.event.ref!]);
+        // Only by who set it, or by its member on another phone.
+        await engine.updateReminders(
+          hit.spaceId,
+          drop: [hit.event.ref!],
+          droppedBy: hit.userId,
+        );
       default:
     }
   }

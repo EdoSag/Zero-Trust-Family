@@ -150,6 +150,11 @@ class ShareEngine {
         if (!changed.containsKey(c.spaceId)) c.spaceId,
     };
     final was = {for (final c in before.circles) c.spaceId: c};
+    // Reminders that went off in the send: off the list, onto `fired`.
+    Set<String> gone(String spaceId) => {
+      for (final r in was[spaceId]?.reminders ?? const <PlaceReminder>[])
+        if (!changed[spaceId]!.reminders.any((n) => n.id == r.id)) r.id,
+    };
     final merged = latest.copyWith(
       circles: [
         for (final c in latest.circles)
@@ -159,10 +164,18 @@ class ShareEngine {
               was[c.spaceId]?.epoch == c.epoch)
             // Only what the engine owns; the person's settings (places,
             // approximate, drives) stay as the app last saved them.
-            c.copyWith(
-              stale: changed[c.spaceId]!.stale,
-              inside: changed[c.spaceId]!.inside,
-            )
+            () {
+              final off = gone(c.spaceId);
+              return c.copyWith(
+                stale: changed[c.spaceId]!.stale,
+                inside: changed[c.spaceId]!.inside,
+                reminders: [
+                  for (final r in c.reminders)
+                    if (!off.contains(r.id)) r,
+                ],
+                fired: changed[c.spaceId]!.fired,
+              );
+            }()
           else
             c,
       ],
@@ -410,14 +423,22 @@ class ShareEngine {
   /// The reminders waiting for this phone's member in [spaceId], from the
   /// circle's events (the open app) or from an alert (while locked).
   /// [replace] sets the whole list; otherwise [add] and [drop] change it.
+  /// With [droppedBy], a reminder is dropped only if that user set it or is
+  /// this phone's member (a cancel seen while locked: nobody else can take
+  /// someone's reminder away). Reminders that already went off here stay
+  /// off until their senders are told.
   Future<void> updateReminders(
     String spaceId, {
     List<PlaceReminder>? replace,
     List<PlaceReminder> add = const [],
     List<String> drop = const [],
+    String? droppedBy,
   }) => _serial(() async {
     final state = await store.load();
     if (state == null) return;
+    bool dropped(PlaceReminder r) =>
+        drop.contains(r.id) &&
+        (droppedBy == null || droppedBy == r.from || droppedBy == state.userId);
     var changed = false;
     final circles = [
       for (final c in state.circles)
@@ -425,10 +446,13 @@ class ShareEngine {
           c
         else
           () {
-            final byId = {
-              for (final r in replace ?? c.reminders) r.id: r,
-              for (final r in add) r.id: r,
-            }..removeWhere((id, _) => drop.contains(id));
+            final byId =
+                {
+                  for (final r in replace ?? c.reminders) r.id: r,
+                  for (final r in add) r.id: r,
+                }..removeWhere(
+                  (id, r) => dropped(r) || c.fired.any((f) => f.id == id),
+                );
             final next = byId.values.toList();
             if (listEquals(next, c.reminders)) return c;
             changed = true;
@@ -929,7 +953,15 @@ class ShareEngine {
         return ShareResult(ShareHealth.stopped, decision);
       } on Object {
         offline = true;
-        kept.add(circle);
+        // Reminders still go off offline; their senders are told later.
+        kept.add(
+          paused || newFix == null
+              ? circle
+              : _remindersHit(
+                  circle,
+                  Geofence.check(circle.inside, circle.places, newFix).$2,
+                ),
+        );
       }
     }
     if (pointSent) _lastPoint = newFix;
@@ -939,26 +971,14 @@ class ShareEngine {
       // sharing with another, paused): keep its changes, apply only ours.
       next = await _merge(current, next) ?? next;
     }
-    // Place reminders that went off: shown here, and their senders told.
-    final fired = [..._fired];
+    // Place reminders that went off: shown here, and their senders told
+    // (now, or on a later send if this one can't reach them).
+    final shown = [..._fired];
     _fired.clear();
-    for (final (spaceId, r) in fired) {
+    for (final (spaceId, r) in shown) {
       onReminder?.call(spaceId, r);
-      await _event(
-        next,
-        spaceId,
-        FamilyEvent(
-          id: _eventId(),
-          kind: FamilyEventKind.remindDone,
-          at: now,
-          to: r.from,
-          ref: r.id,
-          placeId: r.placeId,
-          lat: newFix?.lat,
-          lng: newFix?.lng,
-        ),
-      );
     }
+    next = await _tellFired(next, now, paused ? null : newFix);
     final health = _healthOf(next, now);
     return ShareResult(
       health == ShareHealth.sharing && offline ? ShareHealth.offline : health,
@@ -983,19 +1003,7 @@ class ShareEngine {
   ) async {
     if (circle.places.isEmpty) return circle;
     final (next, crossings) = Geofence.check(circle.inside, circle.places, fix);
-    var reminders = circle.reminders;
-    for (final c in crossings) {
-      final leaving = c.kind == FamilyEventKind.leave;
-      for (final r in reminders) {
-        if (r.placeId == c.placeId && r.onLeave == leaving) {
-          _fired.add((circle.spaceId, r));
-        }
-      }
-      reminders = [
-        for (final r in reminders)
-          if (r.placeId != c.placeId || r.onLeave != leaving) r,
-      ];
-    }
+    final hit = _remindersHit(circle, crossings);
     final context = LocationBox.context(
       table: 'family_events',
       spaceId: circle.spaceId,
@@ -1039,7 +1047,78 @@ class ShareEngine {
         if (was != null) inside[c.placeId] = was;
       }
     }
-    return circle.copyWith(inside: inside, reminders: reminders);
+    return hit.copyWith(inside: inside);
+  }
+
+  /// [circle] with the reminders [crossings] set off moved from its list to
+  /// `fired`, and queued to be shown.
+  CirclePackage _remindersHit(CirclePackage circle, List<Crossing> crossings) {
+    var reminders = circle.reminders;
+    final fired = [...circle.fired];
+    for (final c in crossings) {
+      final leaving = c.kind == FamilyEventKind.leave;
+      for (final r in reminders) {
+        if (r.placeId == c.placeId && r.onLeave == leaving) {
+          _fired.add((circle.spaceId, r));
+          fired.add(r);
+        }
+      }
+      reminders = [
+        for (final r in reminders)
+          if (r.placeId != c.placeId || r.onLeave != leaving) r,
+      ];
+    }
+    if (fired.length == circle.fired.length) return circle;
+    return circle.copyWith(reminders: reminders, fired: fired);
+  }
+
+  /// Tells the senders of reminders that went off here. The ones that
+  /// can't be told now stay on `fired` for the next send.
+  Future<ShareState> _tellFired(
+    ShareState state,
+    DateTime now,
+    Fix? fix,
+  ) async {
+    final told = <String, Set<String>>{};
+    for (final c in state.circles) {
+      for (final r in c.fired) {
+        final sent = await _event(
+          state,
+          c.spaceId,
+          FamilyEvent(
+            id: _eventId(),
+            kind: FamilyEventKind.remindDone,
+            at: now,
+            to: r.from,
+            ref: r.id,
+            placeId: r.placeId,
+            lat: fix?.lat,
+            lng: fix?.lng,
+          ),
+        );
+        if (sent) (told[c.spaceId] ??= {}).add(r.id);
+      }
+    }
+    if (told.isEmpty) return state;
+    // Onto the newest stored state: the app may have saved since.
+    final latest = await store.load();
+    if (latest == null || latest.userId != state.userId) return state;
+    final next = latest.copyWith(
+      circles: [
+        for (final c in latest.circles)
+          if (told[c.spaceId] case final ids?)
+            c.copyWith(
+              fired: [
+                for (final r in c.fired)
+                  if (!ids.contains(r.id)) r,
+              ],
+            )
+          else
+            c,
+      ],
+    );
+    await store.save(next);
+    return next;
   }
 
   /// Whether [circle] gets only approximate positions now: it asked for
@@ -1059,6 +1138,7 @@ class ShareEngine {
           a[i].epoch != b[i].epoch ||
           a[i].stale != b[i].stale ||
           !listEquals(a[i].reminders, b[i].reminders) ||
+          !listEquals(a[i].fired, b[i].fired) ||
           !mapEquals(a[i].inside, b[i].inside)) {
         return false;
       }

@@ -23,6 +23,7 @@ class CirclePackage {
     this.shareDrives = false,
     this.approximate = false,
     this.reminders = const [],
+    this.fired = const [],
   });
 
   final String spaceId;
@@ -47,6 +48,10 @@ class CirclePackage {
   /// leave one of the circle's places (L-4).
   final List<PlaceReminder> reminders;
 
+  /// Reminders that went off here whose senders haven't been told yet
+  /// (offline): told on a later send, and never armed again meanwhile.
+  final List<PlaceReminder> fired;
+
   CirclePackage copyWith({
     int? epoch,
     Uint8List? boxPublic,
@@ -56,6 +61,7 @@ class CirclePackage {
     bool? shareDrives,
     bool? approximate,
     List<PlaceReminder>? reminders,
+    List<PlaceReminder>? fired,
   }) => CirclePackage(
     spaceId: spaceId,
     epoch: epoch ?? this.epoch,
@@ -66,6 +72,7 @@ class CirclePackage {
     shareDrives: shareDrives ?? this.shareDrives,
     approximate: approximate ?? this.approximate,
     reminders: reminders ?? this.reminders,
+    fired: fired ?? this.fired,
   );
 
   Map<String, Object?> toJson() => {
@@ -79,6 +86,7 @@ class CirclePackage {
     if (approximate) 'approximate': true,
     if (reminders.isNotEmpty)
       'reminders': [for (final r in reminders) r.toJson()],
+    if (fired.isNotEmpty) 'fired': [for (final r in fired) r.toJson()],
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -99,6 +107,10 @@ class CirclePackage {
     approximate: json['approximate'] == true,
     reminders: [
       for (final r in (json['reminders'] as List? ?? const []))
+        ?PlaceReminder.fromJson(r),
+    ],
+    fired: [
+      for (final r in (json['fired'] as List? ?? const []))
         ?PlaceReminder.fromJson(r),
     ],
   );
