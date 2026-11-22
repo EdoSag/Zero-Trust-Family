@@ -7,6 +7,7 @@ import 'package:zerotrust_family/app/family_config.dart';
 import 'package:zerotrust_family/data/family_data.dart';
 import 'package:zerotrust_family/data/alerts.dart';
 import 'package:zerotrust_family/data/history.dart';
+import 'package:zerotrust_family/data/hub.dart';
 import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/data/places.dart';
 import 'package:zerotrust_family/data/reminders.dart';
@@ -19,6 +20,7 @@ import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
 import 'package:zerotrust_family/location/trip_share.dart';
 import 'package:zerotrust_family/model/circle.dart';
+import 'package:zerotrust_family/model/family_hub.dart';
 import 'package:zt_places/zt_places.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
@@ -371,6 +373,7 @@ Widget app(
   Map<DateTime, List<TimelineEntry>> history = const {},
   List<DriveSummary> drives = const [],
   List<OpenReminder> reminders = const [],
+  FamilyHub hub = const FamilyHub(),
 }) {
   alertStore = InMemoryAlertStore(alerts);
   locationServer = InMemoryLocationServer();
@@ -394,6 +397,7 @@ Widget app(
       ),
       circleLocationsProvider.overrideWith((ref, spaceId) async => locations),
       circlePlacesProvider.overrideWith((ref, spaceId) async => places),
+      circleHubProvider.overrideWith((ref, spaceId) async => hub),
       circleEventsProvider.overrideWith((ref, spaceId) async => events),
       alertStoreProvider.overrideWithValue(alertStore),
       myDrivesProvider.overrideWith((ref) async => drives),

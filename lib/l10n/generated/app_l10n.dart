@@ -1650,6 +1650,108 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Trip link on until {time}'**
   String tripOn(String time);
+
+  /// No description provided for @hubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family hub'**
+  String get hubTitle;
+
+  /// No description provided for @hubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar, lists and medicines shared with this circle'**
+  String get hubSubtitle;
+
+  /// No description provided for @hubComingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get hubComingUp;
+
+  /// No description provided for @hubLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get hubLists;
+
+  /// No description provided for @hubMedsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines today'**
+  String get hubMedsToday;
+
+  /// No description provided for @hubOther.
+  ///
+  /// In en, this message translates to:
+  /// **'From other apps'**
+  String get hubOther;
+
+  /// No description provided for @hubOtherTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Other tasks'**
+  String get hubOtherTasks;
+
+  /// No description provided for @hubUnnamedList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get hubUnnamedList;
+
+  /// No description provided for @hubAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done'**
+  String get hubAllDone;
+
+  /// No description provided for @hubDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} done'**
+  String hubDoneCount(int count);
+
+  /// No description provided for @hubTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get hubTaken;
+
+  /// No description provided for @hubDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {when}'**
+  String hubDue(String when);
+
+  /// No description provided for @hubEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing shared with this circle yet'**
+  String get hubEmptyTitle;
+
+  /// No description provided for @hubEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.'**
+  String get hubEmptyBody;
+
+  /// No description provided for @hubReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'To change something, open the app it comes from.'**
+  String get hubReadOnly;
+
+  /// No description provided for @hubToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get hubToday;
+
+  /// No description provided for @hubTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get hubTomorrow;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

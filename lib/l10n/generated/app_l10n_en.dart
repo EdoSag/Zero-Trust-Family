@@ -996,4 +996,61 @@ class AppL10nEn extends AppL10n {
   String tripOn(String time) {
     return 'Trip link on until $time';
   }
+
+  @override
+  String get hubTitle => 'Family hub';
+
+  @override
+  String get hubSubtitle =>
+      'Calendar, lists and medicines shared with this circle';
+
+  @override
+  String get hubComingUp => 'Coming up';
+
+  @override
+  String get hubLists => 'Lists';
+
+  @override
+  String get hubMedsToday => 'Medicines today';
+
+  @override
+  String get hubOther => 'From other apps';
+
+  @override
+  String get hubOtherTasks => 'Other tasks';
+
+  @override
+  String get hubUnnamedList => 'List';
+
+  @override
+  String get hubAllDone => 'All done';
+
+  @override
+  String hubDoneCount(int count) {
+    return '$count done';
+  }
+
+  @override
+  String get hubTaken => 'Taken';
+
+  @override
+  String hubDue(String when) {
+    return 'Due $when';
+  }
+
+  @override
+  String get hubEmptyTitle => 'Nothing shared with this circle yet';
+
+  @override
+  String get hubEmptyBody =>
+      'When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.';
+
+  @override
+  String get hubReadOnly => 'To change something, open the app it comes from.';
+
+  @override
+  String get hubToday => 'Today';
+
+  @override
+  String get hubTomorrow => 'Tomorrow';
 }

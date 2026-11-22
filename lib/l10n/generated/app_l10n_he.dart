@@ -990,4 +990,60 @@ class AppL10nHe extends AppL10n {
   String tripOn(String time) {
     return 'קישור מסלול פעיל עד $time';
   }
+
+  @override
+  String get hubTitle => 'מרכז המשפחה';
+
+  @override
+  String get hubSubtitle => 'יומן, רשימות ותרופות שמשותפים עם המעגל';
+
+  @override
+  String get hubComingUp => 'בקרוב';
+
+  @override
+  String get hubLists => 'רשימות';
+
+  @override
+  String get hubMedsToday => 'תרופות היום';
+
+  @override
+  String get hubOther => 'מאפליקציות אחרות';
+
+  @override
+  String get hubOtherTasks => 'משימות נוספות';
+
+  @override
+  String get hubUnnamedList => 'רשימה';
+
+  @override
+  String get hubAllDone => 'הכול בוצע';
+
+  @override
+  String hubDoneCount(int count) {
+    return '$count בוצעו';
+  }
+
+  @override
+  String get hubTaken => 'נלקחה';
+
+  @override
+  String hubDue(String when) {
+    return 'עד $when';
+  }
+
+  @override
+  String get hubEmptyTitle => 'עדיין לא שותף כלום עם המעגל';
+
+  @override
+  String get hubEmptyBody =>
+      'כשבני המשפחה משתפים עם המעגל אירועים ב-ZT Calendar, רשימות ב-ZT Tasks או תרופות ב-ZT Meds, הם יופיעו כאן יחד.';
+
+  @override
+  String get hubReadOnly => 'כדי לשנות משהו, פתחו את האפליקציה שהוא מגיע ממנה.';
+
+  @override
+  String get hubToday => 'היום';
+
+  @override
+  String get hubTomorrow => 'מחר';
 }

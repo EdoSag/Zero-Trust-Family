@@ -17,6 +17,7 @@ import 'reminders_page.dart';
 import 'family_map.dart';
 import 'history_page.dart';
 import 'history_section.dart';
+import 'hub_page.dart';
 import 'places_section.dart';
 import 'safety_card.dart';
 import 'share_card.dart';
@@ -131,6 +132,14 @@ class _CirclePageState extends ConsumerState<CirclePage> {
           const CrashBanner(),
           ShareCard(spaceId: widget.spaceId),
           SafetyCard(spaceId: spaceId, members: circle.members, me: me),
+          ListTile(
+            key: const Key('hub'),
+            leading: const Icon(Icons.dashboard_outlined),
+            title: Text(l.hubTitle),
+            subtitle: Text(l.hubSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => HubPage.open(context, spaceId),
+          ),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
             child: Text(
