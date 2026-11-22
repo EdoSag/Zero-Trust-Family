@@ -247,6 +247,73 @@ void main() {
       expect(fired.single.id, 'r');
     });
 
+    test('goes off offline; its sender is told once back online, and it '
+        'is not armed again meanwhile', () async {
+      const r = PlaceReminder(id: 'r', from: mum, placeId: 'school');
+      await teenPhone.updateReminders('family', add: const [r]);
+      await teenPhone.onFix(
+        Fix(lat: 32.2, lng: 34.9, at: now, accuracyM: 8),
+        const DeviceStatus(),
+      );
+      server.offline = true;
+      now = now.add(const Duration(minutes: 20));
+      await teenPhone.onFix(
+        Fix(lat: 32.0853, lng: 34.7818, at: now, accuracyM: 8),
+        const DeviceStatus(),
+      );
+      expect(fired.single.id, 'r');
+      expect(teenStore.state!.circles.single.reminders, isEmpty);
+      expect(teenStore.state!.circles.single.fired.single.id, 'r');
+
+      // The app syncs from the circle's events, where it's still open.
+      await teenPhone.updateReminders('family', replace: const [r]);
+      expect(teenStore.state!.circles.single.reminders, isEmpty);
+
+      server.offline = false;
+      now = now.add(const Duration(minutes: 5));
+      await teenPhone.onFix(
+        Fix(lat: 32.0854, lng: 34.7818, at: now, accuracyM: 8),
+        const DeviceStatus(),
+      );
+      final done = (await events()).singleWhere(
+        (e) => e.event.kind == FamilyEventKind.remindDone,
+      );
+      expect(done.event.ref, 'r');
+      expect(teenStore.state!.circles.single.fired, isEmpty);
+      expect(fired, hasLength(1));
+
+      // The fired list survives the store.
+      final package = teenStore.state!.circles.single.copyWith(
+        fired: const [r],
+      );
+      expect(CirclePackage.fromJson(package.toJson()).fired, const [r]);
+    });
+
+    test('a cancel seen while locked counts only from its sender or its '
+        'member', () async {
+      const r = PlaceReminder(id: 'r', from: mum, placeId: 'school');
+      await teenPhone.updateReminders('family', add: const [r]);
+      await teenPhone.updateReminders(
+        'family',
+        drop: const ['r'],
+        droppedBy: dad,
+      );
+      expect(teenStore.state!.circles.single.reminders, const [r]);
+      await teenPhone.updateReminders(
+        'family',
+        drop: const ['r'],
+        droppedBy: mum,
+      );
+      expect(teenStore.state!.circles.single.reminders, isEmpty);
+      await teenPhone.updateReminders('family', add: const [r]);
+      await teenPhone.updateReminders(
+        'family',
+        drop: const ['r'],
+        droppedBy: teen,
+      );
+      expect(teenStore.state!.circles.single.reminders, isEmpty);
+    });
+
     test('taken back: closed for everyone', () async {
       final id = await mumPhone.remind('family', to: teen, placeId: 'school');
       expect(await mumPhone.cancelReminder('family', id!, to: teen), isTrue);

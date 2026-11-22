@@ -133,9 +133,14 @@ class ShareChannel implements ShareServiceControl {
     final crash = state?.crash;
     if (crash != null) {
       // The countdown's end comes first: an SOS can't wait for a timer.
-      if (wakeAt == null || crash.deadline.isBefore(wakeAt)) {
-        wakeAt = crash.deadline;
-      }
+      // Past it (offline, or some circles not reached yet), try again in a
+      // minute.
+      final at = crash.deadline.isAfter(now)
+          ? crash.deadline
+          : now.add(const Duration(minutes: 1));
+      if (wakeAt == null || at.isBefore(wakeAt)) wakeAt = at;
+    }
+    if (crash != null && crash.counting) {
       await _crashCountdown(crash, l);
     } else {
       await _crashOver(state, l);
@@ -286,7 +291,12 @@ class ShareChannel implements ShareServiceControl {
         );
         if (r != null) await engine.updateReminders(hit.spaceId, add: [r]);
       case FamilyEventKind.remindCancel when hit.event.ref != null:
-        await engine.updateReminders(hit.spaceId, drop: [hit.event.ref!]);
+        // Only by who set it, or by its member on another phone.
+        await engine.updateReminders(
+          hit.spaceId,
+          drop: [hit.event.ref!],
+          droppedBy: hit.userId,
+        );
       default:
     }
   }
