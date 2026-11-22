@@ -21,6 +21,7 @@ String locationSummary(AppL10n l, MemberLocation? m, DateTime now) {
     );
   } else {
     parts.add(ago(l, u.at, now));
+    if (u.approximate && u.hasLocation) parts.add(l.approximateStatus);
   }
   if (u.battery != null) {
     parts.add(
@@ -158,11 +159,11 @@ class _ShareCardState extends ConsumerState<ShareCard> {
     final now = DateTime.now();
     final paused = state?.pausedAt(now) ?? false;
     final live = state?.liveUntil != null && now.isBefore(state!.liveUntil!);
-    final stale =
-        state?.circles
-            .where((c) => c.spaceId == widget.spaceId)
-            .any((c) => c.stale) ??
-        false;
+    final mine = state?.circles
+        .where((c) => c.spaceId == widget.spaceId)
+        .firstOrNull;
+    final stale = mine?.stale ?? false;
+    final approximate = mine?.approximate ?? false;
 
     final (icon, title, body) = !sharing
         ? (Icons.location_off_outlined, l.shareOffTitle, l.shareOffBody)
@@ -284,6 +285,21 @@ class _ShareCardState extends ConsumerState<ShareCard> {
                     child: Text(l.shareTurnOff),
                   ),
                 ],
+              ),
+            if (sharing)
+              SwitchListTile(
+                key: const Key('share-approximate'),
+                contentPadding: EdgeInsets.zero,
+                title: Text(l.approximateSwitch),
+                subtitle: Text(l.approximateBody),
+                value: approximate,
+                onChanged: _busy
+                    ? null
+                    : (on) => _run(
+                        () => ref
+                            .read(shareActionsProvider)
+                            .setApproximate(widget.spaceId, on),
+                      ),
               ),
           ],
         ),

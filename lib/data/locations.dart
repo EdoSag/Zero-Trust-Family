@@ -273,7 +273,10 @@ class ShareActions {
       circles: [
         for (final c in state.circles)
           if (c.spaceId != spaceId) c,
-        package.copyWith(shareDrives: had?.shareDrives),
+        package.copyWith(
+          shareDrives: had?.shareDrives,
+          approximate: had?.approximate,
+        ),
       ],
     );
     await _store.save(state);
@@ -389,6 +392,20 @@ class ShareActions {
     ),
   );
 
+  /// Shows [spaceId] only roughly where this phone is (L-5), or the exact
+  /// spot again. Sends at once, so the circle's map follows.
+  Future<void> setApproximate(String spaceId, bool on) async {
+    await _setting(
+      (s) => s.copyWith(
+        circles: [
+          for (final c in s.circles)
+            c.spaceId == spaceId ? c.copyWith(approximate: on) : c,
+        ],
+      ),
+    );
+    await _engine.sendNow();
+  }
+
   Future<void> _setting(ShareState Function(ShareState) change) async {
     final state = await _store.load();
     if (state == null) return;
@@ -438,6 +455,7 @@ class ShareActions {
                     if (c.inside[p.id] != null) p.id: c.inside[p.id]!,
                 },
                 shareDrives: c.shareDrives,
+                approximate: c.approximate,
               ),
       );
     }

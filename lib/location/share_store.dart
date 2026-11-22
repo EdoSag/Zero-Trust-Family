@@ -20,6 +20,7 @@ class CirclePackage {
     this.places = const [],
     this.inside = const {},
     this.shareDrives = false,
+    this.approximate = false,
   });
 
   final String spaceId;
@@ -37,6 +38,9 @@ class CirclePackage {
   /// This phone's driver shares drive summaries with the circle.
   final bool shareDrives;
 
+  /// This phone shows the circle only roughly where it is (L-5).
+  final bool approximate;
+
   CirclePackage copyWith({
     int? epoch,
     Uint8List? boxPublic,
@@ -44,6 +48,7 @@ class CirclePackage {
     List<WatchedPlace>? places,
     Map<String, bool>? inside,
     bool? shareDrives,
+    bool? approximate,
   }) => CirclePackage(
     spaceId: spaceId,
     epoch: epoch ?? this.epoch,
@@ -52,6 +57,7 @@ class CirclePackage {
     places: places ?? this.places,
     inside: inside ?? this.inside,
     shareDrives: shareDrives ?? this.shareDrives,
+    approximate: approximate ?? this.approximate,
   );
 
   Map<String, Object?> toJson() => {
@@ -62,6 +68,7 @@ class CirclePackage {
     if (places.isNotEmpty) 'places': [for (final p in places) p.toJson()],
     if (inside.isNotEmpty) 'inside': inside,
     if (shareDrives) 'drives': true,
+    if (approximate) 'approximate': true,
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -79,6 +86,7 @@ class CirclePackage {
           e.key as String: e.value as bool,
     },
     shareDrives: json['drives'] == true,
+    approximate: json['approximate'] == true,
   );
 }
 

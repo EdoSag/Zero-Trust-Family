@@ -1,7 +1,7 @@
 name: zerotrust_family
 description: "Zero-Trust Family: end-to-end encrypted family location sharing and safety check-ins."
 publish_to: none
-version: 0.6.0+6
+version: 0.7.0+7
 
 environment:
   sdk: ^3.9.0

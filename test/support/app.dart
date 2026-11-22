@@ -240,6 +240,19 @@ class FakeShareActions extends ShareActions {
   }
 
   @override
+  Future<void> setApproximate(String spaceId, bool on) async {
+    calls.add('approximate $spaceId $on');
+    await _set(
+      _now.copyWith(
+        circles: [
+          for (final c in _now.circles)
+            c.spaceId == spaceId ? c.copyWith(approximate: on) : c,
+        ],
+      ),
+    );
+  }
+
+  @override
   Future<void> refreshPackages() async {}
 
   /// What the safety buttons send; [online] false makes them fail.
