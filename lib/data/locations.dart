@@ -502,6 +502,11 @@ final myDrivesProvider = FutureProvider.autoDispose<List<DriveSummary>>((
   ref,
 ) async {
   ref.watch(shareRevisionProvider);
-  final stored = await ref.read(shareEngineProvider).drives.load();
+  final me = ref.watch(myUserIdProvider);
+  if (me == null) return const [];
+  final stored = await ref
+      .read(shareEngineProvider)
+      .drives
+      .load(me, DateTime.now());
   return [for (final d in stored) d.drive];
 });

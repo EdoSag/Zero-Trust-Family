@@ -157,7 +157,12 @@ class ShareEngine {
             ...const <CirclePackage>[]
           else if (changed.containsKey(c.spaceId) &&
               was[c.spaceId]?.epoch == c.epoch)
-            changed[c.spaceId]!
+            // Only what the engine owns; the person's settings (places,
+            // approximate, drives) stay as the app last saved them.
+            c.copyWith(
+              stale: changed[c.spaceId]!.stale,
+              inside: changed[c.spaceId]!.inside,
+            )
           else
             c,
       ],
@@ -305,7 +310,7 @@ class ShareEngine {
       }
     }
     if (unsent.isNotEmpty) _drivesUnsent = true;
-    await drives.add(StoredDrive(drive, unsent: unsent), now);
+    await drives.add(state.userId, StoredDrive(drive, unsent: unsent), now);
   }
 
   static FamilyEvent _driveEvent(DriveSummary drive) => FamilyEvent(
@@ -319,8 +324,8 @@ class ShareEngine {
 
   /// Drives that couldn't reach a circle (offline) for up to a day.
   Future<void> _flushDrives(ShareState state) async {
-    final all = await drives.load();
     final now = _clock();
+    final all = await drives.load(state.userId, now);
     var changed = false;
     var left = false;
     final next = <StoredDrive>[];
@@ -348,7 +353,7 @@ class ShareEngine {
       if (still.isNotEmpty) left = true;
       next.add(d.copyWith(unsent: still));
     }
-    if (changed) await drives.save(next);
+    if (changed) await drives.save(state.userId, next);
     _drivesUnsent = left;
   }
 
@@ -507,9 +512,11 @@ class ShareEngine {
     CrashRun crash,
     DateTime now,
   ) async {
-    final sent = <String>[];
+    // A retry (offline before) sends only to circles not reached yet.
+    final sent = [...crash.sent];
+    var missing = false;
     for (final c in state.circles) {
-      if (c.stale) continue;
+      if (c.stale || sent.contains(c.spaceId)) continue;
       final ok = await _event(
         state,
         c.spaceId,
@@ -523,24 +530,29 @@ class ShareEngine {
           crash: true,
         ),
       );
-      if (ok) sent.add(c.spaceId);
-    }
-    if (sent.isEmpty) {
-      if (now.difference(crash.deadline) < const Duration(hours: 1)) {
-        return state; // Offline: the next wake-up tries again.
+      if (ok) {
+        sent.add(c.spaceId);
+      } else {
+        missing = true;
       }
+    }
+    final retrying = now.difference(crash.deadline) < const Duration(hours: 1);
+    if (sent.isEmpty) {
+      if (retrying) return state; // Offline: the next wake-up tries again.
       final dropped = state.copyWith(crash: () => null);
       await store.save(dropped);
       return dropped;
     }
-    final until = now.add(liveAfterAlarm);
+    final first = crash.sent.isEmpty;
+    final until = first ? now.add(liveAfterAlarm) : state.sos?.until ?? now;
     final next = state.copyWith(
-      crash: () => null,
+      // Circles it didn't reach yet are retried for an hour.
+      crash: () => missing && retrying ? crash.copyWith(sent: sent) : null,
       sos: () =>
           SafetyRun(spaceId: sent.first, until: until, also: sent.sublist(1)),
-      liveUntil: () => until,
-      pausedUntil: () => null,
-      pausedOpenEnded: false,
+      liveUntil: first ? () => until : null,
+      pausedUntil: first ? () => null : null,
+      pausedOpenEnded: first ? false : null,
     );
     await store.save(next);
     return next;
@@ -745,22 +757,51 @@ class ShareEngine {
     final sos = state?.sos;
     if (state == null || sos == null) return false;
     var sent = false;
+    final failed = <String>[];
     for (final spaceId in sos.spaces) {
       if (await _event(state, spaceId, _now(FamilyEventKind.sosEnd, now))) {
         sent = true;
+      } else {
+        failed.add(spaceId);
       }
     }
     // Offline, the SOS stays on (with its "I'm safe" button) until the
     // circle can be told. A circle this phone no longer shares with can't
     // be told at all, so then it just ends here.
-    final reachable = state.circles.any(
-      (c) => sos.spaces.contains(c.spaceId) && !c.stale,
-    );
-    if (sent || !reachable) {
-      await store.save(state.copyWith(sos: () => null, liveUntil: () => null));
+    final reachable = [
+      for (final c in state.circles)
+        if (failed.contains(c.spaceId) && !c.stale) c.spaceId,
+    ];
+    if (sent || reachable.isEmpty) {
+      // Told some: the rest are told with the next updates.
+      await store.save(
+        state.copyWith(
+          sos: () => null,
+          liveUntil: () => null,
+          sosEndPending: {...state.sosEndPending, ...reachable}.toList(),
+        ),
+      );
     }
     return sent;
   });
+
+  /// "I'm safe" for circles that missed it (offline).
+  Future<ShareState> _flushSosEnds(ShareState state, DateTime now) async {
+    if (state.sosEndPending.isEmpty) return state;
+    final left = <String>[];
+    for (final spaceId in state.sosEndPending) {
+      final shares = state.circles.any((c) => c.spaceId == spaceId && !c.stale);
+      if (!shares) continue;
+      if (!await _event(state, spaceId, _now(FamilyEventKind.sosEnd, now))) {
+        left.add(spaceId);
+      }
+    }
+    if (left.length == state.sosEndPending.length) return state;
+    final latest = await store.load() ?? state;
+    final next = latest.copyWith(sosEndPending: left);
+    await store.save(next);
+    return next;
+  }
 
   ShareHealth _healthOf(ShareState? state, DateTime now) {
     if (state == null || !state.sharing) return ShareHealth.stopped;
@@ -793,6 +834,7 @@ class ShareEngine {
       await store.save(current);
     }
     current = await _flushDeletes(current);
+    current = await _flushSosEnds(current, now);
     final paused = current.pausedAt(now);
     final fix = _lastFix;
     final update = LocationUpdate(

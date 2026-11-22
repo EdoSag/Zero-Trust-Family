@@ -33,18 +33,38 @@ class StoredDrive {
 }
 
 /// This phone's own drives, newest first. They never leave the phone except
-/// as an encrypted summary to a circle the driver chose. Kept for [keep].
+/// as an encrypted summary to a circle the driver chose. Kept for [keep],
+/// and only for the account that drove them: another account signing in on
+/// this phone finds none (the old ones are erased).
 abstract class DriveStore {
   static const keep = Duration(days: 30);
   static const maxDrives = 300;
 
-  Future<List<StoredDrive>> load();
-  Future<void> save(List<StoredDrive> drives);
+  /// What is stored, and for which account.
+  Future<(String?, List<StoredDrive>)> read();
+  Future<void> write(String owner, List<StoredDrive> drives);
   Future<void> clear();
 
+  /// [owner]'s drives, without those past [keep] (erased as they're found,
+  /// so turning drive summaries off still forgets old drives on time).
+  Future<List<StoredDrive>> load(String owner, DateTime now) async {
+    final (stored, drives) = await read();
+    if (drives.isEmpty) return const [];
+    if (stored != owner) {
+      await clear();
+      return const [];
+    }
+    final kept = trim(drives, now);
+    if (kept.length != drives.length) await write(owner, kept);
+    return kept;
+  }
+
+  Future<void> save(String owner, List<StoredDrive> drives) =>
+      write(owner, drives);
+
   /// Adds [drive], dropping old ones.
-  Future<void> add(StoredDrive drive, DateTime now) async {
-    await save(trim([drive, ...await load()], now));
+  Future<void> add(String owner, StoredDrive drive, DateTime now) async {
+    await write(owner, trim([drive, ...await load(owner, now)], now));
   }
 
   static List<StoredDrive> trim(List<StoredDrive> drives, DateTime now) {
@@ -69,22 +89,31 @@ class SecureDriveStore extends DriveStore {
   static const _key = 'drives';
 
   @override
-  Future<List<StoredDrive>> load() async {
+  Future<(String?, List<StoredDrive>)> read() async {
     try {
       final raw = await _storage.read(key: _key);
-      if (raw == null) return const [];
-      return [
-        for (final d in (jsonDecode(raw) as List)) ?StoredDrive.fromJson(d),
-      ];
+      if (raw == null) return (null, const <StoredDrive>[]);
+      final json = jsonDecode(raw);
+      if (json is! Map) return (null, const <StoredDrive>[]);
+      return (
+        json['owner'] as String?,
+        [
+          for (final d in (json['drives'] as List? ?? const []))
+            ?StoredDrive.fromJson(d),
+        ],
+      );
     } on Object {
-      return const [];
+      return (null, const <StoredDrive>[]);
     }
   }
 
   @override
-  Future<void> save(List<StoredDrive> drives) => _storage.write(
+  Future<void> write(String owner, List<StoredDrive> drives) => _storage.write(
     key: _key,
-    value: jsonEncode([for (final d in drives) d.toJson()]),
+    value: jsonEncode({
+      'owner': owner,
+      'drives': [for (final d in drives) d.toJson()],
+    }),
   );
 
   @override
@@ -92,14 +121,21 @@ class SecureDriveStore extends DriveStore {
 }
 
 class InMemoryDriveStore extends DriveStore {
+  String? owner;
   List<StoredDrive> drives = [];
 
   @override
-  Future<List<StoredDrive>> load() async => drives;
+  Future<(String?, List<StoredDrive>)> read() async => (owner, drives);
 
   @override
-  Future<void> save(List<StoredDrive> drives) async => this.drives = drives;
+  Future<void> write(String owner, List<StoredDrive> drives) async {
+    this.owner = owner;
+    this.drives = drives;
+  }
 
   @override
-  Future<void> clear() async => drives = [];
+  Future<void> clear() async {
+    owner = null;
+    drives = [];
+  }
 }

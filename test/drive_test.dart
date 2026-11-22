@@ -176,7 +176,7 @@ void main() {
         distanceM: 1,
         topSpeedMps: 1,
       );
-      await store.save([StoredDrive(old)]);
+      await store.save(mum, [StoredDrive(old)]);
       final d = DriveSummary(
         id: 'new',
         start: t0,
@@ -187,7 +187,7 @@ void main() {
         startLat: 32,
         endLng: 34.9,
       );
-      await store.add(StoredDrive(d, unsent: ['c']), t0);
+      await store.add(mum, StoredDrive(d, unsent: ['c']), t0);
       expect(store.drives.map((s) => s.drive.id), ['new']);
       final back = StoredDrive.fromJson(store.drives.single.toJson())!;
       expect(back.unsent, ['c']);
@@ -200,6 +200,39 @@ void main() {
   });
 
   group('crash detector', () {
+    test('old drives go when loaded, not only when a new one comes', () async {
+      final store = InMemoryDriveStore();
+      final d = DriveSummary(
+        id: 'd',
+        start: t0,
+        end: t0.add(const Duration(minutes: 20)),
+        distanceM: 1000,
+        topSpeedMps: 10,
+      );
+      await store.save(mum, [StoredDrive(d)]);
+      expect(
+        await store.load(mum, t0.add(const Duration(days: 29))),
+        hasLength(1),
+      );
+      expect(await store.load(mum, t0.add(const Duration(days: 31))), isEmpty);
+      expect(store.drives, isEmpty);
+    });
+
+    test('another account on this phone sees none and erases them', () async {
+      final store = InMemoryDriveStore();
+      final d = DriveSummary(
+        id: 'd',
+        start: t0,
+        end: t0.add(const Duration(minutes: 20)),
+        distanceM: 1000,
+        topSpeedMps: 10,
+      );
+      await store.save(mum, [StoredDrive(d)]);
+      expect(await store.load(dad, t0), isEmpty);
+      expect(store.drives, isEmpty);
+      expect(await store.load(mum, t0), isEmpty);
+    });
+
     test('a hard impact at speed, then stopped: a crash', () {
       final crashes = CrashDetector();
       final samples = road(
@@ -396,6 +429,58 @@ void main() {
         );
       }
     });
+
+    test(
+      'a crash SOS that reached only one circle keeps trying the other',
+      () async {
+        await engine.onDrive(
+          road([...steady(20, 10), ...steady(0, 15)], jolts: {10: 6.0}),
+        );
+        final deadline = store.state!.crash!.deadline;
+        server.failing.add('work');
+        now = deadline.add(const Duration(seconds: 1));
+        await engine.onMotion();
+        var state = store.state!;
+        expect(state.sos!.spaces, ['home']);
+        expect(state.crash!.sent, ['home']);
+        expect(state.crash!.counting, isFalse);
+        final live = state.liveUntil;
+
+        server.failing.clear();
+        now = now.add(const Duration(minutes: 2));
+        await engine.onMotion();
+        state = store.state!;
+        expect(state.crash, isNull);
+        expect(state.sos!.spaces..sort(), ['home', 'work']);
+        expect(state.liveUntil, live, reason: 'live sharing not extended');
+        expect(
+          (await eventsOf('home')).where((e) => e.kind == FamilyEventKind.sos),
+          hasLength(1),
+        );
+        expect((await eventsOf('work')).single.crash, isTrue);
+      },
+    );
+
+    test(
+      "I'm safe that missed a circle reaches it with the next update",
+      () async {
+        await engine.onDrive(
+          road([...steady(20, 10), ...steady(0, 15)], jolts: {10: 6.0}),
+        );
+        expect(await engine.crashSosNow(), isTrue);
+        server.failing.add('work');
+        expect(await engine.endSos(), isTrue);
+        expect(store.state!.sos, isNull);
+        expect(store.state!.sosEndPending, ['work']);
+        server.failing.clear();
+        await engine.sendNow();
+        expect(store.state!.sosEndPending, isEmpty);
+        expect(
+          (await eventsOf('work')).map((e) => e.kind),
+          contains(FamilyEventKind.sosEnd),
+        );
+      },
+    );
 
     test("I'm OK stops the countdown; nobody is told", () async {
       await engine.onDrive(

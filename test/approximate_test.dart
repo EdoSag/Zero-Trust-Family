@@ -165,6 +165,40 @@ void main() {
       ];
     }
 
+    test('turning approximate on during a send is not undone by it', () async {
+      // Away first, so the next fix is an arrival (the engine then saves
+      // the circle's inside state).
+      await engine.onFix(
+        Fix(lat: 32.2, lng: 34.9, at: now, accuracyM: 8),
+        const DeviceStatus(),
+      );
+      final slow = _OnPut(
+        userId: teen,
+        server: server,
+        onPut: () async {
+          final s = store.state!;
+          await store.save(
+            s.copyWith(
+              circles: [
+                for (final c in s.circles)
+                  c.spaceId == 'family' ? c.copyWith(approximate: true) : c,
+              ],
+            ),
+          );
+        },
+      );
+      final racing = ShareEngine(store: store, backend: slow, clock: () => now);
+      await racing.onFix(
+        Fix(lat: 32.0853, lng: 34.7818, at: now, accuracyM: 8),
+        const DeviceStatus(),
+      );
+      final family = store.state!.circles.firstWhere(
+        (c) => c.spaceId == 'family',
+      );
+      expect(family.approximate, isTrue);
+      expect(family.inside['school'], isTrue);
+    });
+
     test('one circle gets the exact spot, the other only the area', () async {
       // Away from school first, so arriving there is a crossing.
       await engine.onFix(
@@ -316,4 +350,19 @@ void main() {
     );
     expect(line, contains('Approximate'));
   });
+}
+
+/// A backend that runs [onPut] the first time a location is put, as if the
+/// person changed a setting while the upload was on its way.
+class _OnPut extends InMemoryLocationBackend {
+  _OnPut({required super.userId, required super.server, required this.onPut});
+  Future<void> Function()? onPut;
+
+  @override
+  Future<void> putLatest(LocationRow row) async {
+    final run = onPut;
+    onPut = null;
+    await run?.call();
+    await super.putLatest(row);
+  }
 }
