@@ -150,7 +150,12 @@ class ShareEngine {
             ...const <CirclePackage>[]
           else if (changed.containsKey(c.spaceId) &&
               was[c.spaceId]?.epoch == c.epoch)
-            changed[c.spaceId]!
+            // Only what the engine owns; the person's settings (places,
+            // approximate, drives) stay as the app last saved them.
+            c.copyWith(
+              stale: changed[c.spaceId]!.stale,
+              inside: changed[c.spaceId]!.inside,
+            )
           else
             c,
       ],
