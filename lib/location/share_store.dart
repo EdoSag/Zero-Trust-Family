@@ -6,6 +6,7 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'geofence.dart';
 import 'reminders.dart';
+import 'trip_share.dart';
 
 /// What a sharing phone's background service needs for one circle: the
 /// circle's location box public key for the current key epoch, and where
@@ -197,6 +198,8 @@ class ShareState {
     this.drives = false,
     this.crashDetection = false,
     this.crash,
+    this.trip,
+    this.tripDeletes = const [],
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -235,6 +238,13 @@ class ShareState {
   /// A detected crash counting down to an SOS.
   final CrashRun? crash;
 
+  /// "Share my trip": this phone's location for anyone with the link,
+  /// until [TripShare.until].
+  final TripShare? trip;
+
+  /// Trip shares to take off the server (stopped while offline).
+  final List<String> tripDeletes;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -253,6 +263,8 @@ class ShareState {
     bool? drives,
     bool? crashDetection,
     CrashRun? Function()? crash,
+    TripShare? Function()? trip,
+    List<String>? tripDeletes,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -267,6 +279,8 @@ class ShareState {
     drives: drives ?? this.drives,
     crashDetection: crashDetection ?? this.crashDetection,
     crash: crash == null ? this.crash : crash(),
+    trip: trip == null ? this.trip : trip(),
+    tripDeletes: tripDeletes ?? this.tripDeletes,
   );
 
   Map<String, Object?> toJson() => {
@@ -284,6 +298,8 @@ class ShareState {
     if (drives) 'drives': true,
     if (crashDetection) 'crashDetection': true,
     if (crash != null) 'crash': crash!.toJson(),
+    if (trip != null) 'trip': trip!.toJson(),
+    if (tripDeletes.isNotEmpty) 'tripDeletes': tripDeletes,
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -306,6 +322,11 @@ class ShareState {
     drives: json['drives'] == true,
     crashDetection: json['crashDetection'] == true,
     crash: CrashRun.fromJson(json['crash']),
+    trip: TripShare.fromJson(json['trip']),
+    tripDeletes: [
+      for (final d in (json['tripDeletes'] as List? ?? const []))
+        if (d is String) d,
+    ],
   );
 
   /// A new device identity for [userId].

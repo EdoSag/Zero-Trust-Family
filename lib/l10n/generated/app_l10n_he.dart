@@ -923,4 +923,71 @@ class AppL10nHe extends AppL10n {
 
   @override
   String get unknownPlace => 'מקום';
+
+  @override
+  String get tripTitle => 'שיתוף המסלול שלי';
+
+  @override
+  String get tripSubtitle => 'קישור שכל אחד יכול לפתוח, לשעה בערך';
+
+  @override
+  String get tripBody =>
+      'מי שתשלחו לו את הקישור יראה בדף אינטרנט איפה אתם עד שהשיתוף יסתיים. לא צריך את האפליקציה או חשבון. המפתח הוא חלק מהקישור, כך שהשרת שלנו לא יכול לראות את המיקום שלכם.';
+
+  @override
+  String get tripLength => 'לכמה זמן';
+
+  @override
+  String get tripOneHour => 'שעה';
+
+  @override
+  String get tripTwoHours => 'שעתיים';
+
+  @override
+  String get tripFourHours => '4 שעות';
+
+  @override
+  String get tripStart => 'התחלת שיתוף';
+
+  @override
+  String tripActive(String time) {
+    return 'המסלול שלכם משותף עד $time';
+  }
+
+  @override
+  String get tripActiveBody =>
+      'כל מי שיש לו את הקישור רואה איפה אתם. אפשר להפסיק בכל רגע, ואז הקישור יפסיק לעבוד.';
+
+  @override
+  String get tripSend => 'שליחת הקישור';
+
+  @override
+  String get tripCopy => 'העתקת הקישור';
+
+  @override
+  String get tripCopied => 'הקישור הועתק';
+
+  @override
+  String get tripStop => 'הפסקת השיתוף';
+
+  @override
+  String get tripStopped => 'המסלול שלכם כבר לא משותף';
+
+  @override
+  String get tripNeedsSharing =>
+      'קודם צריך להפעיל שיתוף מיקום עם מעגל: קישור המסלול משתמש באותם עדכונים.';
+
+  @override
+  String tripShareText(String time, String link) {
+    return 'אפשר לעקוב אחרי המסלול שלי עד $time: $link';
+  }
+
+  @override
+  String get tripPausedNote =>
+      'השיתוף מושהה, אז הקישור מראה \"מושהה\" עד שתחדשו.';
+
+  @override
+  String tripOn(String time) {
+    return 'קישור מסלול פעיל עד $time';
+  }
 }

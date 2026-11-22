@@ -1536,6 +1536,120 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'a place'**
   String get unknownPlace;
+
+  /// No description provided for @tripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my trip'**
+  String get tripTitle;
+
+  /// No description provided for @tripSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A link anyone can open, for an hour or so'**
+  String get tripSubtitle;
+
+  /// No description provided for @tripBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone you send the link to sees where you are on a web page until it ends. They don\'t need the app or an account. The key is part of the link, so our server can\'t see your location.'**
+  String get tripBody;
+
+  /// No description provided for @tripLength.
+  ///
+  /// In en, this message translates to:
+  /// **'For how long'**
+  String get tripLength;
+
+  /// No description provided for @tripOneHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get tripOneHour;
+
+  /// No description provided for @tripTwoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'2 hours'**
+  String get tripTwoHours;
+
+  /// No description provided for @tripFourHours.
+  ///
+  /// In en, this message translates to:
+  /// **'4 hours'**
+  String get tripFourHours;
+
+  /// No description provided for @tripStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start sharing'**
+  String get tripStart;
+
+  /// No description provided for @tripActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trip is shared until {time}'**
+  String tripActive(String time);
+
+  /// No description provided for @tripActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.'**
+  String get tripActiveBody;
+
+  /// No description provided for @tripSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get tripSend;
+
+  /// No description provided for @tripCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get tripCopy;
+
+  /// No description provided for @tripCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get tripCopied;
+
+  /// No description provided for @tripStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop sharing'**
+  String get tripStop;
+
+  /// No description provided for @tripStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trip isn\'t shared any more'**
+  String get tripStopped;
+
+  /// No description provided for @tripNeedsSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location sharing with a circle first: the trip link uses the same updates.'**
+  String get tripNeedsSharing;
+
+  /// No description provided for @tripShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow my trip until {time}: {link}'**
+  String tripShareText(String time, String link);
+
+  /// No description provided for @tripPausedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is paused, so the link shows \"Paused\" until you resume.'**
+  String get tripPausedNote;
+
+  /// No description provided for @tripOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip link on until {time}'**
+  String tripOn(String time);
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

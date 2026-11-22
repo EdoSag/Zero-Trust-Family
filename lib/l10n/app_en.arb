@@ -693,5 +693,48 @@
   "reminderSent": "Reminder set",
   "reminderNotSent": "Couldn't set the reminder. Location sharing must be on in this circle, and you need a connection.",
   "reminderNeedsPlace": "Add a place to the circle first.",
-  "unknownPlace": "a place"
+  "unknownPlace": "a place",
+  "tripTitle": "Share my trip",
+  "tripSubtitle": "A link anyone can open, for an hour or so",
+  "tripBody": "Anyone you send the link to sees where you are on a web page until it ends. They don't need the app or an account. The key is part of the link, so our server can't see your location.",
+  "tripLength": "For how long",
+  "tripOneHour": "1 hour",
+  "tripTwoHours": "2 hours",
+  "tripFourHours": "4 hours",
+  "tripStart": "Start sharing",
+  "tripActive": "Your trip is shared until {time}",
+  "@tripActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tripActiveBody": "Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.",
+  "tripSend": "Send link",
+  "tripCopy": "Copy link",
+  "tripCopied": "Link copied",
+  "tripStop": "Stop sharing",
+  "tripStopped": "Your trip isn't shared any more",
+  "tripNeedsSharing": "Turn on location sharing with a circle first: the trip link uses the same updates.",
+  "tripShareText": "Follow my trip until {time}: {link}",
+  "@tripShareText": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "tripPausedNote": "Sharing is paused, so the link shows \"Paused\" until you resume.",
+  "tripOn": "Trip link on until {time}",
+  "@tripOn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

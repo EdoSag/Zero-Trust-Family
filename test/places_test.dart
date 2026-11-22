@@ -194,6 +194,8 @@ void main() {
     expect(aboutNoa.top, greaterThanOrEqualTo(aboutDad.bottom));
     expect(quiet.top, greaterThanOrEqualTo(aboutNoa.bottom));
 
+    await tester.ensureVisible(find.byKey(Key('alert-about-$teen')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(Key('alert-about-$teen')));
     await tester.pumpAndSettle();
     expect(alertStore.state!.circles['c1']!.muted, {teen});

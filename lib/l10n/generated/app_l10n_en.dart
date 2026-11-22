@@ -929,4 +929,71 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get unknownPlace => 'a place';
+
+  @override
+  String get tripTitle => 'Share my trip';
+
+  @override
+  String get tripSubtitle => 'A link anyone can open, for an hour or so';
+
+  @override
+  String get tripBody =>
+      'Anyone you send the link to sees where you are on a web page until it ends. They don\'t need the app or an account. The key is part of the link, so our server can\'t see your location.';
+
+  @override
+  String get tripLength => 'For how long';
+
+  @override
+  String get tripOneHour => '1 hour';
+
+  @override
+  String get tripTwoHours => '2 hours';
+
+  @override
+  String get tripFourHours => '4 hours';
+
+  @override
+  String get tripStart => 'Start sharing';
+
+  @override
+  String tripActive(String time) {
+    return 'Your trip is shared until $time';
+  }
+
+  @override
+  String get tripActiveBody =>
+      'Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.';
+
+  @override
+  String get tripSend => 'Send link';
+
+  @override
+  String get tripCopy => 'Copy link';
+
+  @override
+  String get tripCopied => 'Link copied';
+
+  @override
+  String get tripStop => 'Stop sharing';
+
+  @override
+  String get tripStopped => 'Your trip isn\'t shared any more';
+
+  @override
+  String get tripNeedsSharing =>
+      'Turn on location sharing with a circle first: the trip link uses the same updates.';
+
+  @override
+  String tripShareText(String time, String link) {
+    return 'Follow my trip until $time: $link';
+  }
+
+  @override
+  String get tripPausedNote =>
+      'Sharing is paused, so the link shows \"Paused\" until you resume.';
+
+  @override
+  String tripOn(String time) {
+    return 'Trip link on until $time';
+  }
 }

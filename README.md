@@ -152,8 +152,17 @@ releases are one `Dev` → `main` pull request.
   geofence sees them arrive at or leave the place, then sends `remindDone`
   to whoever set it. `remindCancel` takes one back. Only the member can
   close it as done, and only the sender or the member can take it back.
+- `lib/location/trip_share.dart`: "Share my trip" links (L-1). The phone
+  makes a random id and AES-256-GCM key; the link is
+  `https://zerotrust.bz/trip/#<id>.<key>`, so the key never reaches a
+  server. While the trip runs (1, 2 or 4 hours) each update is sealed under
+  it and put in `family_trip_shares`; the website's trip page reads it with
+  `family_trip_get(id)` and opens it in the browser. Stopping, a new trip,
+  or turning sharing off deletes the row; the server ignores and purges
+  ended ones.
 - The location tables (`family_latest`, `family_events`) are in
-  Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
+  Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`;
+  trip links in `20261123090000_family_trip_shares.sql`.
 
 ## License
 
