@@ -514,5 +514,258 @@
   "eraseMyHistoryBody": "Deletes every position, check-in and alert you sent to this circle. Your current location stays shared while sharing is on.",
   "erase": "Erase",
   "historyErased": "Your history in this circle was erased",
-  "historyCouldNotLoad": "Couldn't load the history. Check your internet connection."
+  "historyCouldNotLoad": "Couldn't load the history. Check your internet connection.",
+  "eventCrash": "{name} may have been in a car crash",
+  "@eventCrash": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventDrive": "{name} drove {km} km (top speed {kmh} km/h)",
+  "@eventDrive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      },
+      "kmh": {
+        "type": "String"
+      }
+    }
+  },
+  "crashCountdownTitle": "Were you in a crash?",
+  "crashCountdownBody": "Your circles get an SOS with your location at {time}, unless you tap I'm OK.",
+  "@crashCountdownBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "crashSendNow": "Send SOS now",
+  "crashSosSentTitle": "SOS sent to your circles",
+  "crashSosSentBody": "They see your live location for an hour. Tap I'm safe when you are.",
+  "drivingTitle": "Driving",
+  "drivingSubtitle": "Drive summaries and crash detection",
+  "drivingNeedsSharing": "Turn on location sharing with this circle to use these.",
+  "drivesSwitch": "Drive summaries",
+  "drivesSwitchBody": "Keeps a summary of each drive on this phone: distance, speed, hard braking and phone use. Uses satellites every second while you drive.",
+  "shareDrivesSwitch": "Share my drives with this circle",
+  "shareDrivesBody": "The circle sees each drive's summary in your history, end-to-end encrypted.",
+  "shareDrivesNeedsPlus": "Sharing drive summaries with a circle is part of Plus. Your own drive summaries and crash detection stay free.",
+  "crashSwitch": "Crash detection",
+  "crashSwitchBody": "If the phone feels a hard crash while driving and then stops, it rings for 60 seconds, then sends an SOS with your location to all your circles.",
+  "crashDisclaimer": "Crash detection can miss a crash or ring when there was none. It does not call emergency services: in an emergency, call your local emergency number.",
+  "turnOn": "Turn on",
+  "myDrivesHeading": "My drives (on this phone)",
+  "noDrivesYet": "No drives yet. They show here after you drive with drive summaries on.",
+  "driveSpeeds": "Top {top} km/h · average {average} km/h",
+  "@driveSpeeds": {
+    "placeholders": {
+      "top": {
+        "type": "String"
+      },
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "hardBrakes": "{count, plural, =1{1 hard brake} other{{count} hard brakes}}",
+  "@hardBrakes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rapidStarts": "{count, plural, =1{1 rapid start} other{{count} rapid starts}}",
+  "@rapidStarts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "phoneUseMinutes": "Phone used {minutes} min",
+  "@phoneUseMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "eraseMyDrives": "Erase my drives",
+  "eraseMyDrivesBody": "Deletes the drives kept on this phone. Drives already shared stay in the circle's history until it deletes them.",
+  "drivesErased": "Drives erased",
+  "approximateStatus": "Approximate",
+  "approximateSwitch": "Approximate location",
+  "approximateBody": "This circle sees only the area you're in (about 3 km across), not the exact spot. An SOS always sends your exact location.",
+  "eventRemind": "{name} set a place reminder",
+  "@eventRemind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindDone": "{name} got a reminder at {place}",
+  "@eventRemindDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindDoneSomewhere": "{name} got a place reminder",
+  "@eventRemindDoneSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindCancel": "{name} took back a place reminder",
+  "@eventRemindCancel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderFrom": "Reminder from {name}",
+  "@reminderFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderArriving": "when arriving at {place}",
+  "@reminderArriving": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLeaving": "when leaving {place}",
+  "@reminderLeaving": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersTitle": "Place reminders",
+  "remindersSubtitle": "Remind someone when they get somewhere",
+  "remindersBody": "A reminder goes off on that person's own phone when they arrive at or leave one of the circle's places, and you're told when it does. Like everything here, it's end-to-end encrypted.",
+  "remindersEmpty": "No reminders waiting",
+  "reminderNew": "New reminder",
+  "reminderWho": "For",
+  "reminderWhere": "Place",
+  "reminderOnArrive": "Arriving",
+  "reminderOnLeave": "Leaving",
+  "reminderWhat": "Reminder",
+  "reminderWhatHint": "Call me when you get there",
+  "reminderNoNote": "Reminder",
+  "reminderFor": "For {who}, {when} · from {from}",
+  "@reminderFor": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCancel": "Take back",
+  "reminderSent": "Reminder set",
+  "reminderNotSent": "Couldn't set the reminder. Location sharing must be on in this circle, and you need a connection.",
+  "reminderNeedsPlace": "Add a place to the circle first.",
+  "unknownPlace": "a place",
+  "tripTitle": "Share my trip",
+  "tripSubtitle": "A link anyone can open, for an hour or so",
+  "tripBody": "Anyone you send the link to sees where you are on a web page until it ends. They don't need the app or an account. The key is part of the link, so our server can't see your location.",
+  "tripLength": "For how long",
+  "tripOneHour": "1 hour",
+  "tripTwoHours": "2 hours",
+  "tripFourHours": "4 hours",
+  "tripStart": "Start sharing",
+  "tripActive": "Your trip is shared until {time}",
+  "@tripActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tripActiveBody": "Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.",
+  "tripSend": "Send link",
+  "tripCopy": "Copy link",
+  "tripCopied": "Link copied",
+  "tripStop": "Stop sharing",
+  "tripStopped": "Your trip isn't shared any more",
+  "tripNeedsSharing": "Turn on location sharing with a circle first: the trip link uses the same updates.",
+  "tripShareText": "Follow my trip until {time}: {link}",
+  "@tripShareText": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "tripPausedNote": "Sharing is paused, so the link shows \"Paused\" until you resume.",
+  "tripOn": "Trip link on until {time}",
+  "@tripOn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "hubTitle": "Family hub",
+  "hubSubtitle": "Calendar, lists and medicines shared with this circle",
+  "hubComingUp": "Coming up",
+  "hubLists": "Lists",
+  "hubMedsToday": "Medicines today",
+  "hubOther": "From other apps",
+  "hubOtherTasks": "Other tasks",
+  "hubUnnamedList": "List",
+  "hubAllDone": "All done",
+  "hubDoneCount": "{count} done",
+  "@hubDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hubTaken": "Taken",
+  "hubDue": "Due {when}",
+  "@hubDue": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "hubEmptyTitle": "Nothing shared with this circle yet",
+  "hubEmptyBody": "When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.",
+  "hubReadOnly": "To change something, open the app it comes from.",
+  "hubToday": "Today",
+  "hubTomorrow": "Tomorrow"
 }

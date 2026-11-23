@@ -41,7 +41,8 @@ Started only when the person turns sharing or alerts on, or after a reboot or up
 | `POST_NOTIFICATIONS` | The sharing notification, arrival alerts, check-in requests, SOS |
 | `RECEIVE_BOOT_COMPLETED` | Restart sharing after a reboot, if it was on |
 | `WAKE_LOCK` | Send a position before the phone sleeps again |
-| No exact alarms | The safety timer uses `setAndAllowWhileIdle`, which needs no special permission |
+| No exact alarms | The safety timer uses `setAndAllowWhileIdle`, which needs no special permission. The 60-second crash countdown runs inside the already running foreground service (a handler plus a wake lock) |
+| Motion sensors (no permission) | Drive summaries and crash detection (opt-in, off by default): the accelerometer and satellites every second, only while the phone is driving and sharing is on |
 
 ## 4. Stalkerware and monitoring policy
 
@@ -58,6 +59,11 @@ ZT Family is not monitoring software. Every person installs it on their own phon
 | App activity: other user-generated content | Yes | No | Places, check-in notes; end-to-end encrypted. Optional. |
 | Device or other IDs | No | | A random per-install device id is used only to sign location rows. |
 | Battery level | (not a Play data type) | | Sent with each location, end-to-end encrypted. |
+| App activity: other actions (drive summaries) | Yes | No | Opt-in. Each drive's distance, speeds, hard braking and phone use are kept on the phone; sent end-to-end encrypted only to circles the driver turns sharing on for. |
+
+Crash detection (opt-in) sends an SOS to the person's own circles, end-to-end encrypted, after a 60-second countdown. Nothing goes to Zero-Trust or to emergency services; the app says so.
+
+"Share my trip" (opt-in, one tap each time) shows the person's location for 1 to 4 hours to whoever they send the link to. It is a user-initiated transfer, which Play doesn't count as sharing. The key is only in the link, so the server stores encrypted text it can't read, deletes it when the trip ends, and purges ended ones within 10 minutes.
 
 - **Is all data encrypted in transit?** Yes (TLS, plus end-to-end encryption).
 - **Can users request data deletion?** Yes: in the app (Settings > Account > Delete account, and "Erase my history in this circle") and at support@zerotrust.bz.

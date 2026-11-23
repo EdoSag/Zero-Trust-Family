@@ -701,4 +701,349 @@ class AppL10nHe extends AppL10n {
   @override
   String get historyCouldNotLoad =>
       'לא הצלחנו לטעון את ההיסטוריה. בדקו את החיבור לאינטרנט.';
+
+  @override
+  String eventCrash(String name) {
+    return '$name: ייתכן שהייתה תאונת דרכים';
+  }
+
+  @override
+  String eventDrive(String name, String km, String kmh) {
+    return '$name: נסיעה של $km ק״מ (מהירות שיא $kmh קמ״ש)';
+  }
+
+  @override
+  String get crashCountdownTitle => 'הייתה תאונה?';
+
+  @override
+  String crashCountdownBody(String time) {
+    return 'המעגלים שלך יקבלו SOS עם המיקום שלך ב-$time, אלא אם תלחצו על ״אני בסדר״.';
+  }
+
+  @override
+  String get crashSendNow => 'לשלוח SOS עכשיו';
+
+  @override
+  String get crashSosSentTitle => 'נשלח SOS למעגלים שלך';
+
+  @override
+  String get crashSosSentBody =>
+      'הם רואים את המיקום החי שלך למשך שעה. לחצו על ״אני בטוח/ה״ כשזה נכון.';
+
+  @override
+  String get drivingTitle => 'נהיגה';
+
+  @override
+  String get drivingSubtitle => 'סיכומי נסיעות וזיהוי תאונות';
+
+  @override
+  String get drivingNeedsSharing =>
+      'כדי להשתמש באלה, צריך להפעיל שיתוף מיקום עם המעגל הזה.';
+
+  @override
+  String get drivesSwitch => 'סיכומי נסיעות';
+
+  @override
+  String get drivesSwitchBody =>
+      'שומר בטלפון הזה סיכום של כל נסיעה: מרחק, מהירות, בלימות חדות ושימוש בטלפון. משתמש בלוויינים כל שנייה בזמן נסיעה.';
+
+  @override
+  String get shareDrivesSwitch => 'לשתף את הנסיעות שלי עם המעגל הזה';
+
+  @override
+  String get shareDrivesBody =>
+      'המעגל רואה את הסיכום של כל נסיעה בהיסטוריה שלך, מוצפן מקצה לקצה.';
+
+  @override
+  String get shareDrivesNeedsPlus =>
+      'שיתוף סיכומי נסיעות עם מעגל הוא חלק מ-Plus. סיכומי הנסיעות שלך וזיהוי תאונות נשארים בחינם.';
+
+  @override
+  String get crashSwitch => 'זיהוי תאונות';
+
+  @override
+  String get crashSwitchBody =>
+      'אם הטלפון מרגיש מכה חזקה בזמן נסיעה ואז עוצר, הוא מצלצל 60 שניות ואז שולח SOS עם המיקום שלך לכל המעגלים שלך.';
+
+  @override
+  String get crashDisclaimer =>
+      'זיהוי תאונות יכול לפספס תאונה או לצלצל כשלא הייתה. הוא לא מתקשר לשירותי חירום: במקרה חירום, התקשרו למספר החירום המקומי.';
+
+  @override
+  String get turnOn => 'להפעיל';
+
+  @override
+  String get myDrivesHeading => 'הנסיעות שלי (בטלפון הזה)';
+
+  @override
+  String get noDrivesYet =>
+      'עדיין אין נסיעות. הן יופיעו כאן אחרי נסיעה כשסיכומי הנסיעות פעילים.';
+
+  @override
+  String driveSpeeds(String top, String average) {
+    return 'שיא $top קמ״ש · ממוצע $average קמ״ש';
+  }
+
+  @override
+  String hardBrakes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בלימות חדות',
+      one: 'בלימה חדה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rapidStarts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count האצות חדות',
+      one: 'האצה חדה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String phoneUseMinutes(int minutes) {
+    return 'שימוש בטלפון $minutes דק׳';
+  }
+
+  @override
+  String get eraseMyDrives => 'למחוק את הנסיעות שלי';
+
+  @override
+  String get eraseMyDrivesBody =>
+      'מוחק את הנסיעות שנשמרו בטלפון הזה. נסיעות שכבר שותפו נשארות בהיסטוריה של המעגל עד שהיא נמחקת.';
+
+  @override
+  String get drivesErased => 'הנסיעות נמחקו';
+
+  @override
+  String get approximateStatus => 'מיקום משוער';
+
+  @override
+  String get approximateSwitch => 'מיקום משוער';
+
+  @override
+  String get approximateBody =>
+      'המעגל הזה רואה רק את האזור שלך (בערך 3 ק״מ), לא את המקום המדויק. SOS תמיד שולח את המיקום המדויק.';
+
+  @override
+  String eventRemind(String name) {
+    return '$name הגדיר/ה תזכורת למקום';
+  }
+
+  @override
+  String eventRemindDone(String name, String place) {
+    return '$name קיבל/ה תזכורת ב$place';
+  }
+
+  @override
+  String eventRemindDoneSomewhere(String name) {
+    return '$name קיבל/ה תזכורת למקום';
+  }
+
+  @override
+  String eventRemindCancel(String name) {
+    return '$name ביטל/ה תזכורת למקום';
+  }
+
+  @override
+  String reminderFrom(String name) {
+    return 'תזכורת מ$name';
+  }
+
+  @override
+  String reminderArriving(String place) {
+    return 'בהגעה ל$place';
+  }
+
+  @override
+  String reminderLeaving(String place) {
+    return 'ביציאה מ$place';
+  }
+
+  @override
+  String get remindersTitle => 'תזכורות למקומות';
+
+  @override
+  String get remindersSubtitle => 'להזכיר למישהו משהו כשהוא מגיע למקום';
+
+  @override
+  String get remindersBody =>
+      'התזכורת קופצת בטלפון של אותו אדם כשהוא מגיע לאחד המקומות של המעגל או יוצא ממנו, ואת/ה מקבל/ת הודעה כשזה קורה. כמו כל השאר כאן, הכול מוצפן מקצה לקצה.';
+
+  @override
+  String get remindersEmpty => 'אין תזכורות ממתינות';
+
+  @override
+  String get reminderNew => 'תזכורת חדשה';
+
+  @override
+  String get reminderWho => 'למי';
+
+  @override
+  String get reminderWhere => 'מקום';
+
+  @override
+  String get reminderOnArrive => 'בהגעה';
+
+  @override
+  String get reminderOnLeave => 'ביציאה';
+
+  @override
+  String get reminderWhat => 'תזכורת';
+
+  @override
+  String get reminderWhatHint => 'תתקשר/י אליי כשתגיע/י';
+
+  @override
+  String get reminderNoNote => 'תזכורת';
+
+  @override
+  String reminderFor(String who, String when, String from) {
+    return 'ל$who, $when · מאת $from';
+  }
+
+  @override
+  String get reminderCancel => 'לבטל';
+
+  @override
+  String get reminderSent => 'התזכורת נקבעה';
+
+  @override
+  String get reminderNotSent =>
+      'לא הצלחנו לקבוע את התזכורת. צריך שיתוף מיקום פעיל במעגל הזה וחיבור לאינטרנט.';
+
+  @override
+  String get reminderNeedsPlace => 'קודם צריך להוסיף מקום למעגל.';
+
+  @override
+  String get unknownPlace => 'מקום';
+
+  @override
+  String get tripTitle => 'שיתוף המסלול שלי';
+
+  @override
+  String get tripSubtitle => 'קישור שכל אחד יכול לפתוח, לשעה בערך';
+
+  @override
+  String get tripBody =>
+      'מי שתשלחו לו את הקישור יראה בדף אינטרנט איפה אתם עד שהשיתוף יסתיים. לא צריך את האפליקציה או חשבון. המפתח הוא חלק מהקישור, כך שהשרת שלנו לא יכול לראות את המיקום שלכם.';
+
+  @override
+  String get tripLength => 'לכמה זמן';
+
+  @override
+  String get tripOneHour => 'שעה';
+
+  @override
+  String get tripTwoHours => 'שעתיים';
+
+  @override
+  String get tripFourHours => '4 שעות';
+
+  @override
+  String get tripStart => 'התחלת שיתוף';
+
+  @override
+  String tripActive(String time) {
+    return 'המסלול שלכם משותף עד $time';
+  }
+
+  @override
+  String get tripActiveBody =>
+      'כל מי שיש לו את הקישור רואה איפה אתם. אפשר להפסיק בכל רגע, ואז הקישור יפסיק לעבוד.';
+
+  @override
+  String get tripSend => 'שליחת הקישור';
+
+  @override
+  String get tripCopy => 'העתקת הקישור';
+
+  @override
+  String get tripCopied => 'הקישור הועתק';
+
+  @override
+  String get tripStop => 'הפסקת השיתוף';
+
+  @override
+  String get tripStopped => 'המסלול שלכם כבר לא משותף';
+
+  @override
+  String get tripNeedsSharing =>
+      'קודם צריך להפעיל שיתוף מיקום עם מעגל: קישור המסלול משתמש באותם עדכונים.';
+
+  @override
+  String tripShareText(String time, String link) {
+    return 'אפשר לעקוב אחרי המסלול שלי עד $time: $link';
+  }
+
+  @override
+  String get tripPausedNote =>
+      'השיתוף מושהה, אז הקישור מראה \"מושהה\" עד שתחדשו.';
+
+  @override
+  String tripOn(String time) {
+    return 'קישור מסלול פעיל עד $time';
+  }
+
+  @override
+  String get hubTitle => 'מרכז המשפחה';
+
+  @override
+  String get hubSubtitle => 'יומן, רשימות ותרופות שמשותפים עם המעגל';
+
+  @override
+  String get hubComingUp => 'בקרוב';
+
+  @override
+  String get hubLists => 'רשימות';
+
+  @override
+  String get hubMedsToday => 'תרופות היום';
+
+  @override
+  String get hubOther => 'מאפליקציות אחרות';
+
+  @override
+  String get hubOtherTasks => 'משימות נוספות';
+
+  @override
+  String get hubUnnamedList => 'רשימה';
+
+  @override
+  String get hubAllDone => 'הכול בוצע';
+
+  @override
+  String hubDoneCount(int count) {
+    return '$count בוצעו';
+  }
+
+  @override
+  String get hubTaken => 'נלקחה';
+
+  @override
+  String hubDue(String when) {
+    return 'עד $when';
+  }
+
+  @override
+  String get hubEmptyTitle => 'עדיין לא שותף כלום עם המעגל';
+
+  @override
+  String get hubEmptyBody =>
+      'כשבני המשפחה משתפים עם המעגל אירועים ב-ZT Calendar, רשימות ב-ZT Tasks או תרופות ב-ZT Meds, הם יופיעו כאן יחד.';
+
+  @override
+  String get hubReadOnly => 'כדי לשנות משהו, פתחו את האפליקציה שהוא מגיע ממנה.';
+
+  @override
+  String get hubToday => 'היום';
+
+  @override
+  String get hubTomorrow => 'מחר';
 }

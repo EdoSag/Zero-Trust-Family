@@ -7,14 +7,20 @@ import 'package:zerotrust_family/app/family_config.dart';
 import 'package:zerotrust_family/data/family_data.dart';
 import 'package:zerotrust_family/data/alerts.dart';
 import 'package:zerotrust_family/data/history.dart';
+import 'package:zerotrust_family/data/hub.dart';
 import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/data/places.dart';
+import 'package:zerotrust_family/data/reminders.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
 import 'package:zerotrust_family/location/alerts.dart';
+import 'package:zerotrust_family/location/drive.dart';
+import 'package:zerotrust_family/location/reminders.dart';
 import 'package:zerotrust_family/location/timeline.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
+import 'package:zerotrust_family/location/trip_share.dart';
 import 'package:zerotrust_family/model/circle.dart';
+import 'package:zerotrust_family/model/family_hub.dart';
 import 'package:zt_places/zt_places.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
@@ -239,6 +245,34 @@ class FakeShareActions extends ShareActions {
   }
 
   @override
+  Future<void> setApproximate(String spaceId, bool on) async {
+    calls.add('approximate $spaceId $on');
+    await _set(
+      _now.copyWith(
+        circles: [
+          for (final c in _now.circles)
+            c.spaceId == spaceId ? c.copyWith(approximate: on) : c,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<TripShare?> startTrip({Duration? length, String? name}) async {
+    calls.add('trip ${length?.inHours}');
+    if (!_now.sharing) return null;
+    final trip = TripShare.create(DateTime.now(), length: length, name: name);
+    await _set(_now.copyWith(trip: () => trip));
+    return trip;
+  }
+
+  @override
+  Future<void> stopTrip() async {
+    calls.add('stop trip');
+    await _set(_now.copyWith(trip: () => null));
+  }
+
+  @override
   Future<void> refreshPackages() async {}
 
   /// What the safety buttons send; [online] false makes them fail.
@@ -284,6 +318,44 @@ class FakeShareActions extends ShareActions {
 
   @override
   Future<bool> endSos() => _sent('sos end', (s) => s.copyWith(sos: () => null));
+
+  @override
+  Future<bool> cancelCrash() =>
+      _sent('crash ok', (s) => s.copyWith(crash: () => null));
+
+  @override
+  Future<bool> crashSosNow() =>
+      _sent('crash sos', (s) => s.copyWith(crash: () => null));
+}
+
+late FakeReminderActions reminderActions;
+
+class FakeReminderActions extends ReminderActions {
+  FakeReminderActions(super.ref);
+  final calls = <String>[];
+
+  @override
+  Future<bool> create(
+    String spaceId, {
+    required String to,
+    required String placeId,
+    required bool onLeave,
+    String? note,
+  }) async {
+    calls.add(
+      'create $spaceId $to $placeId ${onLeave ? 'leave' : 'arrive'} $note',
+    );
+    return true;
+  }
+
+  @override
+  Future<bool> cancel(String spaceId, OpenReminder reminder) async {
+    calls.add('cancel $spaceId ${reminder.id}');
+    return true;
+  }
+
+  @override
+  Future<void> syncMine(String spaceId) async {}
 }
 
 Widget app(
@@ -299,6 +371,9 @@ Widget app(
   AlertState? alerts,
   bool plus = false,
   Map<DateTime, List<TimelineEntry>> history = const {},
+  List<DriveSummary> drives = const [],
+  List<OpenReminder> reminders = const [],
+  FamilyHub hub = const FamilyHub(),
 }) {
   alertStore = InMemoryAlertStore(alerts);
   locationServer = InMemoryLocationServer();
@@ -322,8 +397,14 @@ Widget app(
       ),
       circleLocationsProvider.overrideWith((ref, spaceId) async => locations),
       circlePlacesProvider.overrideWith((ref, spaceId) async => places),
+      circleHubProvider.overrideWith((ref, spaceId) async => hub),
       circleEventsProvider.overrideWith((ref, spaceId) async => events),
       alertStoreProvider.overrideWithValue(alertStore),
+      myDrivesProvider.overrideWith((ref) async => drives),
+      circleRemindersProvider.overrideWith((ref, spaceId) async => reminders),
+      reminderActionsProvider.overrideWith(
+        (ref) => reminderActions = FakeReminderActions(ref),
+      ),
       familyPlusProvider.overrideWithValue(plus),
       memberHistoryProvider.overrideWith(
         (ref, key) async => history[key.day] ?? const [],
@@ -355,6 +436,7 @@ Widget app(
           ref.watch(shareActionsProvider);
           ref.watch(placeActionsProvider);
           ref.watch(alertActionsProvider);
+          ref.watch(reminderActionsProvider);
           return child!;
         },
       ),

@@ -194,6 +194,8 @@ void main() {
     expect(aboutNoa.top, greaterThanOrEqualTo(aboutDad.bottom));
     expect(quiet.top, greaterThanOrEqualTo(aboutNoa.bottom));
 
+    await tester.ensureVisible(find.byKey(Key('alert-about-$teen')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(Key('alert-about-$teen')));
     await tester.pumpAndSettle();
     expect(alertStore.state!.circles['c1']!.muted, {teen});
@@ -205,6 +207,8 @@ void main() {
     expect(alertStore.state!.quiet, QuietHours.standard);
     expect(find.text('22:00 to 07:00, alerts without sound'), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const Key('alerts-locked')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('alerts-locked')));
     await tester.pumpAndSettle();
     expect(alertStore.state!.circles, isEmpty);

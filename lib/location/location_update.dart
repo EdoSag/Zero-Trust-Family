@@ -21,6 +21,7 @@ class LocationUpdate {
     this.mode = MotionMode.still,
     this.pausedUntil,
     this.pausedOpenEnded = false,
+    this.approximate = false,
   });
 
   /// When the phone took the fix (or paused).
@@ -44,6 +45,10 @@ class LocationUpdate {
   final DateTime? pausedUntil;
   final bool pausedOpenEnded;
 
+  /// The member shares only roughly where they are (L-5): [lat] and [lng]
+  /// are the middle of an area about 3 km across.
+  final bool approximate;
+
   bool get paused => pausedOpenEnded || pausedUntil != null;
   bool get hasLocation => lat != null && lng != null;
 
@@ -61,6 +66,7 @@ class LocationUpdate {
     'm': mode.name,
     if (pausedUntil != null) 'pu': pausedUntil!.toUtc().millisecondsSinceEpoch,
     if (pausedOpenEnded) 'po': 1,
+    if (approximate) 'ax': 1,
   };
 
   static LocationUpdate fromJson(Map<String, Object?> json) {
@@ -87,8 +93,25 @@ class LocationUpdate {
           ? DateTime.fromMillisecondsSinceEpoch(pu, isUtc: true)
           : null,
       pausedOpenEnded: json['po'] == 1,
+      approximate: json['ax'] == 1,
     );
   }
+
+  LocationUpdate copyWith({bool? approximate}) => LocationUpdate(
+    at: at,
+    lat: lat,
+    lng: lng,
+    accuracyM: accuracyM,
+    speedMps: speedMps,
+    heading: heading,
+    battery: battery,
+    charging: charging,
+    powerSave: powerSave,
+    mode: mode,
+    pausedUntil: pausedUntil,
+    pausedOpenEnded: pausedOpenEnded,
+    approximate: approximate ?? this.approximate,
+  );
 
   /// JSON, padded to a fixed size before sealing.
   Uint8List encode() => PayloadPadding.pad(utf8.encode(jsonEncode(toJson())));

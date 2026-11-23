@@ -707,4 +707,350 @@ class AppL10nEn extends AppL10n {
   @override
   String get historyCouldNotLoad =>
       'Couldn\'t load the history. Check your internet connection.';
+
+  @override
+  String eventCrash(String name) {
+    return '$name may have been in a car crash';
+  }
+
+  @override
+  String eventDrive(String name, String km, String kmh) {
+    return '$name drove $km km (top speed $kmh km/h)';
+  }
+
+  @override
+  String get crashCountdownTitle => 'Were you in a crash?';
+
+  @override
+  String crashCountdownBody(String time) {
+    return 'Your circles get an SOS with your location at $time, unless you tap I\'m OK.';
+  }
+
+  @override
+  String get crashSendNow => 'Send SOS now';
+
+  @override
+  String get crashSosSentTitle => 'SOS sent to your circles';
+
+  @override
+  String get crashSosSentBody =>
+      'They see your live location for an hour. Tap I\'m safe when you are.';
+
+  @override
+  String get drivingTitle => 'Driving';
+
+  @override
+  String get drivingSubtitle => 'Drive summaries and crash detection';
+
+  @override
+  String get drivingNeedsSharing =>
+      'Turn on location sharing with this circle to use these.';
+
+  @override
+  String get drivesSwitch => 'Drive summaries';
+
+  @override
+  String get drivesSwitchBody =>
+      'Keeps a summary of each drive on this phone: distance, speed, hard braking and phone use. Uses satellites every second while you drive.';
+
+  @override
+  String get shareDrivesSwitch => 'Share my drives with this circle';
+
+  @override
+  String get shareDrivesBody =>
+      'The circle sees each drive\'s summary in your history, end-to-end encrypted.';
+
+  @override
+  String get shareDrivesNeedsPlus =>
+      'Sharing drive summaries with a circle is part of Plus. Your own drive summaries and crash detection stay free.';
+
+  @override
+  String get crashSwitch => 'Crash detection';
+
+  @override
+  String get crashSwitchBody =>
+      'If the phone feels a hard crash while driving and then stops, it rings for 60 seconds, then sends an SOS with your location to all your circles.';
+
+  @override
+  String get crashDisclaimer =>
+      'Crash detection can miss a crash or ring when there was none. It does not call emergency services: in an emergency, call your local emergency number.';
+
+  @override
+  String get turnOn => 'Turn on';
+
+  @override
+  String get myDrivesHeading => 'My drives (on this phone)';
+
+  @override
+  String get noDrivesYet =>
+      'No drives yet. They show here after you drive with drive summaries on.';
+
+  @override
+  String driveSpeeds(String top, String average) {
+    return 'Top $top km/h · average $average km/h';
+  }
+
+  @override
+  String hardBrakes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hard brakes',
+      one: '1 hard brake',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rapidStarts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rapid starts',
+      one: '1 rapid start',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String phoneUseMinutes(int minutes) {
+    return 'Phone used $minutes min';
+  }
+
+  @override
+  String get eraseMyDrives => 'Erase my drives';
+
+  @override
+  String get eraseMyDrivesBody =>
+      'Deletes the drives kept on this phone. Drives already shared stay in the circle\'s history until it deletes them.';
+
+  @override
+  String get drivesErased => 'Drives erased';
+
+  @override
+  String get approximateStatus => 'Approximate';
+
+  @override
+  String get approximateSwitch => 'Approximate location';
+
+  @override
+  String get approximateBody =>
+      'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.';
+
+  @override
+  String eventRemind(String name) {
+    return '$name set a place reminder';
+  }
+
+  @override
+  String eventRemindDone(String name, String place) {
+    return '$name got a reminder at $place';
+  }
+
+  @override
+  String eventRemindDoneSomewhere(String name) {
+    return '$name got a place reminder';
+  }
+
+  @override
+  String eventRemindCancel(String name) {
+    return '$name took back a place reminder';
+  }
+
+  @override
+  String reminderFrom(String name) {
+    return 'Reminder from $name';
+  }
+
+  @override
+  String reminderArriving(String place) {
+    return 'when arriving at $place';
+  }
+
+  @override
+  String reminderLeaving(String place) {
+    return 'when leaving $place';
+  }
+
+  @override
+  String get remindersTitle => 'Place reminders';
+
+  @override
+  String get remindersSubtitle => 'Remind someone when they get somewhere';
+
+  @override
+  String get remindersBody =>
+      'A reminder goes off on that person\'s own phone when they arrive at or leave one of the circle\'s places, and you\'re told when it does. Like everything here, it\'s end-to-end encrypted.';
+
+  @override
+  String get remindersEmpty => 'No reminders waiting';
+
+  @override
+  String get reminderNew => 'New reminder';
+
+  @override
+  String get reminderWho => 'For';
+
+  @override
+  String get reminderWhere => 'Place';
+
+  @override
+  String get reminderOnArrive => 'Arriving';
+
+  @override
+  String get reminderOnLeave => 'Leaving';
+
+  @override
+  String get reminderWhat => 'Reminder';
+
+  @override
+  String get reminderWhatHint => 'Call me when you get there';
+
+  @override
+  String get reminderNoNote => 'Reminder';
+
+  @override
+  String reminderFor(String who, String when, String from) {
+    return 'For $who, $when · from $from';
+  }
+
+  @override
+  String get reminderCancel => 'Take back';
+
+  @override
+  String get reminderSent => 'Reminder set';
+
+  @override
+  String get reminderNotSent =>
+      'Couldn\'t set the reminder. Location sharing must be on in this circle, and you need a connection.';
+
+  @override
+  String get reminderNeedsPlace => 'Add a place to the circle first.';
+
+  @override
+  String get unknownPlace => 'a place';
+
+  @override
+  String get tripTitle => 'Share my trip';
+
+  @override
+  String get tripSubtitle => 'A link anyone can open, for an hour or so';
+
+  @override
+  String get tripBody =>
+      'Anyone you send the link to sees where you are on a web page until it ends. They don\'t need the app or an account. The key is part of the link, so our server can\'t see your location.';
+
+  @override
+  String get tripLength => 'For how long';
+
+  @override
+  String get tripOneHour => '1 hour';
+
+  @override
+  String get tripTwoHours => '2 hours';
+
+  @override
+  String get tripFourHours => '4 hours';
+
+  @override
+  String get tripStart => 'Start sharing';
+
+  @override
+  String tripActive(String time) {
+    return 'Your trip is shared until $time';
+  }
+
+  @override
+  String get tripActiveBody =>
+      'Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.';
+
+  @override
+  String get tripSend => 'Send link';
+
+  @override
+  String get tripCopy => 'Copy link';
+
+  @override
+  String get tripCopied => 'Link copied';
+
+  @override
+  String get tripStop => 'Stop sharing';
+
+  @override
+  String get tripStopped => 'Your trip isn\'t shared any more';
+
+  @override
+  String get tripNeedsSharing =>
+      'Turn on location sharing with a circle first: the trip link uses the same updates.';
+
+  @override
+  String tripShareText(String time, String link) {
+    return 'Follow my trip until $time: $link';
+  }
+
+  @override
+  String get tripPausedNote =>
+      'Sharing is paused, so the link shows \"Paused\" until you resume.';
+
+  @override
+  String tripOn(String time) {
+    return 'Trip link on until $time';
+  }
+
+  @override
+  String get hubTitle => 'Family hub';
+
+  @override
+  String get hubSubtitle =>
+      'Calendar, lists and medicines shared with this circle';
+
+  @override
+  String get hubComingUp => 'Coming up';
+
+  @override
+  String get hubLists => 'Lists';
+
+  @override
+  String get hubMedsToday => 'Medicines today';
+
+  @override
+  String get hubOther => 'From other apps';
+
+  @override
+  String get hubOtherTasks => 'Other tasks';
+
+  @override
+  String get hubUnnamedList => 'List';
+
+  @override
+  String get hubAllDone => 'All done';
+
+  @override
+  String hubDoneCount(int count) {
+    return '$count done';
+  }
+
+  @override
+  String get hubTaken => 'Taken';
+
+  @override
+  String hubDue(String when) {
+    return 'Due $when';
+  }
+
+  @override
+  String get hubEmptyTitle => 'Nothing shared with this circle yet';
+
+  @override
+  String get hubEmptyBody =>
+      'When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.';
+
+  @override
+  String get hubReadOnly => 'To change something, open the app it comes from.';
+
+  @override
+  String get hubToday => 'Today';
+
+  @override
+  String get hubTomorrow => 'Tomorrow';
 }

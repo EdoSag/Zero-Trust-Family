@@ -90,6 +90,22 @@ abstract class LocationBackend {
 
   /// Sets it (owners only; over 7 days needs Plus).
   Future<void> setHistoryDays(String spaceId, int days);
+
+  /// Puts a trip share's sealed update (`family_trip_shares`, Core
+  /// migration `family_trip_shares`), shown until [expiresAt].
+  Future<void> putTrip({
+    required String id,
+    required String payload,
+    required DateTime expiresAt,
+  });
+
+  /// Takes a trip share off the server (nothing if it's gone already).
+  Future<void> deleteTrip(String id);
+}
+
+/// The trip share ended on the server (its time ran out).
+class TripEndedException implements Exception {
+  const TripEndedException();
 }
 
 /// Over 7 days of history without Plus.
@@ -279,6 +295,33 @@ class SupabaseLocationBackend implements LocationBackend {
   }
 
   @override
+  Future<void> putTrip({
+    required String id,
+    required String payload,
+    required DateTime expiresAt,
+  }) async {
+    await _fresh();
+    try {
+      await client.from('family_trip_shares').upsert({
+        'id': id,
+        'payload': payload,
+        'expires_at': expiresAt.toUtc().toIso8601String(),
+      }, onConflict: 'id');
+    } on PostgrestException catch (e) {
+      if (e.message.contains('family_trip_ended')) {
+        throw const TripEndedException();
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteTrip(String id) async {
+    await _fresh();
+    await client.from('family_trip_shares').delete().eq('id', id);
+  }
+
+  @override
   Future<int> historyDays(String spaceId) async {
     await _fresh();
     final row = await client
@@ -440,7 +483,9 @@ class InMemoryLocationBackend implements LocationBackend {
 
   @override
   Future<void> insertEvent(LocationRow row) async {
-    if (server.offline) throw StateError('offline');
+    if (server.offline || server.failing.contains(row.spaceId)) {
+      throw StateError('offline');
+    }
     final me = userId;
     if (me == null) throw const SignedOutException();
     final members = server.members[row.spaceId];
@@ -527,6 +572,27 @@ class InMemoryLocationBackend implements LocationBackend {
   }
 
   @override
+  Future<void> putTrip({
+    required String id,
+    required String payload,
+    required DateTime expiresAt,
+  }) async {
+    if (server.offline) throw StateError('offline');
+    final me = userId;
+    if (me == null) throw const SignedOutException();
+    final old = server.trips[id];
+    if (old != null && old.owner != me) throw StateError('not yours');
+    if (!expiresAt.isAfter(server.now())) throw const TripEndedException();
+    server.trips[id] = (owner: me, payload: payload, expiresAt: expiresAt);
+  }
+
+  @override
+  Future<void> deleteTrip(String id) async {
+    if (server.offline) throw StateError('offline');
+    if (server.trips[id]?.owner == userId) server.trips.remove(id);
+  }
+
+  @override
   Stream<void> eventInserts(List<String> spaceIds) =>
       server._events.stream.where(spaceIds.contains).map((_) {});
 }
@@ -534,11 +600,18 @@ class InMemoryLocationBackend implements LocationBackend {
 class InMemoryLocationServer {
   /// Every write fails, as with no connection.
   bool offline = false;
+
+  /// Events to these circles fail (the connection dropped part way).
+  final Set<String> failing = {};
   final Map<String, Set<String>> members = {};
   final Map<String, int> epochs = {};
   final Map<String, LocationRow> rows = {};
   final List<LocationRow> events = [];
   final Map<String, int> historyDays = {};
+
+  /// `family_trip_shares` rows by id.
+  final Map<String, ({String owner, String payload, DateTime expiresAt})>
+  trips = {};
 
   /// Accounts with Plus.
   final Set<String> plus = {};

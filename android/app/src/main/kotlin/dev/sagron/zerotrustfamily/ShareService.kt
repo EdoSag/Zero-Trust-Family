@@ -10,7 +10,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.app.KeyguardManager
 import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.TriggerEvent
 import android.hardware.TriggerEventListener
@@ -57,6 +60,15 @@ class ShareService : Service(), LocationListener {
         const val EXTRA_SPACE = "space"
         const val EXTRA_NOTIFICATION = "notification"
         private const val DEFAULT_INTERVAL_MS = 15 * 60 * 1000L
+
+        /** Driving samples go to Dart in batches of this many seconds... */
+        private const val DRIVE_BATCH = 15
+
+        /** ...or at once after a jolt this hard (g), for crash detection. */
+        private const val JOLT_G = 3.0
+
+        /** A satellite speed older than this isn't this second's speed. */
+        private const val FRESH_MS = 3_000L
 
         /** Waits this long to retry when Dart isn't listening yet. */
         private const val RETRY_MS = 3_000L
@@ -115,6 +127,121 @@ class ShareService : Service(), LocationListener {
     /** Alerts only: wake Dart now and then to look for new alerts. */
     private val alertsTick = Runnable { ask("started", emptyMap()) }
 
+    // --- Driving sensors (drive summaries, crash detection) -------------
+
+    /** On while Dart says the phone is driving (answer `drive`). */
+    private var driving = false
+    private var driveWake: PowerManager.WakeLock? = null
+    private var lastGps: Location? = null
+    private var peakG = 0.0
+    private var linear = true
+    private val driveSamples = ArrayList<Map<String, Any?>>()
+
+    private val gpsListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            lastGps = location
+        }
+
+        @Deprecated("Needed below API 30")
+        override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
+        override fun onProviderEnabled(provider: String) {}
+        override fun onProviderDisabled(provider: String) {}
+    }
+
+    private val accel = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            val v = event.values
+            val magnitude = Math.sqrt((v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).toDouble()) /
+                SensorManager.GRAVITY_EARTH
+            // The plain accelerometer includes gravity (1 g at rest).
+            val g = if (linear) magnitude else Math.max(0.0, magnitude - 1.0)
+            if (g > peakG) peakG = g
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    }
+
+    /** Once a second while driving: one sample, sent in batches. */
+    private val driveTick = object : Runnable {
+        override fun run() {
+            if (!driving || stopped) return
+            driveWake?.acquire(2 * 60 * 1000L)
+            val now = System.currentTimeMillis()
+            val gps = lastGps
+            val fresh = gps != null && now - gps.time <= FRESH_MS
+            val keyguard = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+            val power = getSystemService(POWER_SERVICE) as PowerManager
+            val sample = HashMap<String, Any?>()
+            sample["t"] = now
+            if (fresh && gps!!.hasSpeed()) sample["sp"] = gps.speed.toDouble()
+            if (fresh) {
+                sample["la"] = gps!!.latitude
+                sample["lo"] = gps.longitude
+                if (gps.hasAccuracy()) sample["ac"] = gps.accuracy.toDouble()
+            }
+            sample["g"] = peakG
+            sample["scr"] = power.isInteractive && !keyguard.isKeyguardLocked
+            val jolt = peakG >= JOLT_G
+            peakG = 0.0
+            driveSamples.add(sample)
+            if (jolt || driveSamples.size >= DRIVE_BATCH) sendDrive()
+            main.postDelayed(this, 1000L)
+        }
+    }
+
+    private fun sendDrive() {
+        if (driveSamples.isEmpty()) return
+        val batch = ArrayList(driveSamples)
+        driveSamples.clear()
+        ask("drive", mapOf("samples" to batch))
+    }
+
+    private fun startDriving() {
+        if (driving) return
+        driving = true
+        peakG = 0.0
+        lastGps = null
+        val power = getSystemService(POWER_SERVICE) as PowerManager
+        if (driveWake == null) {
+            driveWake = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ztfamily:drive").apply {
+                setReferenceCounted(false)
+            }
+        }
+        driveWake?.acquire(2 * 60 * 1000L)
+        val linearSensor = sensors?.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        val sensor = linearSensor ?: sensors?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        linear = linearSensor != null
+        sensor?.let { sensors?.registerListener(accel, it, SensorManager.SENSOR_DELAY_GAME) }
+        try {
+            val enabled = locations.getProviders(true)
+            val provider = when {
+                LocationManager.GPS_PROVIDER in enabled -> LocationManager.GPS_PROVIDER
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    LocationManager.FUSED_PROVIDER in enabled -> LocationManager.FUSED_PROVIDER
+                else -> null
+            }
+            if (provider != null) {
+                @Suppress("DEPRECATION")
+                locations.requestLocationUpdates(provider, 1000L, 0f, gpsListener, Looper.getMainLooper())
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "no location permission for driving", e)
+        }
+        main.removeCallbacks(driveTick)
+        main.postDelayed(driveTick, 1000L)
+    }
+
+    private fun stopDriving() {
+        if (!driving) return
+        driving = false
+        main.removeCallbacks(driveTick)
+        sensors?.unregisterListener(accel)
+        locations.removeUpdates(gpsListener)
+        // The last seconds still count (the end of the drive).
+        sendDrive()
+        driveWake?.let { if (it.isHeld) it.release() }
+    }
+
     private val motion = object : TriggerEventListener() {
         override fun onTrigger(event: TriggerEvent?) {
             // One-shot: it is armed again after Dart answers.
@@ -149,7 +276,7 @@ class ShareService : Service(), LocationListener {
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(id)
             when (kind) {
                 "checkin" -> ask("checkin", mapOf("spaceId" to intent.getStringExtra(EXTRA_SPACE)))
-                "timerOk" -> ask("timerOk", emptyMap())
+                "timerOk", "crashOk", "crashSos", "sosEnd" -> ask(kind.orEmpty(), emptyMap())
             }
         } else if (intent?.action == ACTION_POKE) {
             if (locate) {
@@ -171,10 +298,12 @@ class ShareService : Service(), LocationListener {
 
     override fun onDestroy() {
         stopped = true
+        stopDriving()
         stopListening()
         motionSensor?.let { sensors?.cancelTriggerSensor(motion, it) }
         main.removeCallbacksAndMessages(null)
         releaseWake()
+        countdownWake?.let { if (it.isHeld) it.release() }
         super.onDestroy()
     }
 
@@ -423,6 +552,7 @@ class ShareService : Service(), LocationListener {
         main.removeCallbacks(alertsTick)
         scheduleWake((answer["wakeAt"] as? Number)?.toLong())
         locate = answer["locate"] != false
+        if (locate && answer["drive"] == true) startDriving() else stopDriving()
         if (!locate) {
             // Alerts only: no location, no motion sensor.
             intervalMs = next
@@ -453,12 +583,30 @@ class ShareService : Service(), LocationListener {
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+        main.removeCallbacks(exactWake)
         if (at == null) {
             alarms.cancel(pending)
         } else {
             alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending)
+            // A crash countdown is a minute: the alarm alone may come
+            // minutes late, so the running service also keeps the phone
+            // awake and wakes itself on time.
+            val wait = at - System.currentTimeMillis()
+            if (wait in 0..(5 * 60 * 1000L)) {
+                if (countdownWake == null) {
+                    val power = getSystemService(POWER_SERVICE) as PowerManager
+                    countdownWake = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ztfamily:countdown").apply {
+                        setReferenceCounted(false)
+                    }
+                }
+                countdownWake?.acquire(wait + 30_000L)
+                main.postDelayed(exactWake, wait)
+            }
         }
     }
+
+    private var countdownWake: PowerManager.WakeLock? = null
+    private val exactWake = Runnable { ask("motion", emptyMap()) }
 
     /** Waits for the phone to start moving (only matters while still). */
     private fun arm() {
@@ -468,6 +616,7 @@ class ShareService : Service(), LocationListener {
     }
 
     private fun finish() {
+        stopDriving()
         stopped = true
         stopListening()
         motionSensor?.let { sensors?.cancelTriggerSensor(motion, it) }

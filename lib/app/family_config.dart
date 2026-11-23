@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
-import '../model/circle.dart';
 
 /// Family in the suite. Not in the core's `ZtSuite` list yet, so the other
 /// apps don't link to it before it's released.
@@ -24,7 +23,8 @@ const ZtAppConfig familyAppConfig = ZtAppConfig(
 /// about themselves (`family.me/<userId>`, from phase L1 on) can be written
 /// by that member alone, not even by an owner: nobody can put a location or
 /// a check-in in someone else's name. The server enforces both too.
-const SpacePolicy familySpacePolicy = SpacePolicy(
-  adminOnlyKinds: {Circle.kind},
-  ownedPrefixes: {'family.me/'},
-);
+///
+/// Since S-10 the circle is every app's family space, and all of them check
+/// it with the same rules, so this is Core's [ZtFamilySpace.policy]
+/// (admin only: `family.circle`, `Circle.kind`; owned: `family.me/`).
+const SpacePolicy familySpacePolicy = ZtFamilySpace.policy;

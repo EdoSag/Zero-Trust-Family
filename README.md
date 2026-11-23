@@ -70,7 +70,7 @@ Not planned: hidden tracking of any kind, and screen time or app blocking.
 | L2 | Places with arrive and leave alerts |
 | L3 | Check-ins, safety timer, SOS |
 | L4 | History, Play Store declarations and listing, release checks |
-| L5 | Drive summaries, crash detection, Wear OS SOS |
+| L5 | Drive summaries, crash detection (Wear OS SOS later) |
 | L6 | iOS |
 
 ## Build
@@ -131,8 +131,46 @@ releases are one `Dev` → `main` pull request.
   by a device its member published), and turning sharing on, off, paused or
   live. Each sharing phone publishes its device key as the item
   `family.me/<user id>/device/<device id>`.
+- `lib/location/drive.dart`: drive summaries and crash detection (opt-in,
+  L5). While the phone is driving, `ShareService.kt` takes one sample a
+  second (satellite speed and position, the hardest accelerometer jolt,
+  whether the phone was in use) and sends them in batches. `DriveTracker`
+  turns them into drive summaries (kept on the phone in the Keystore,
+  `drive_store.dart`, and sent as sealed `drive` events only to circles the
+  driver chose); `CrashDetector` looks for a hard jolt at speed followed by
+  a stop, then the phone rings for 60 seconds and sends an SOS to every
+  circle unless the driver taps "I'm OK".
+- `lib/location/approximate.dart`: approximate sharing (L-5), per circle on
+  each phone. Positions to that circle are snapped to the centre of a grid
+  cell about 3 km across (no speed or heading), so repeated updates can't be
+  averaged into the real spot. An SOS or missed safety timer always sends
+  the exact position, and while an SOS runs every circle gets it.
+- `lib/location/reminders.dart`: place reminders for someone else (L-4).
+  A reminder is a sealed `remind` event addressed to one member; their
+  phone keeps the open ones in the share store (picked up when the app is
+  opened, or while locked when alerts are on) and shows it when the
+  geofence sees them arrive at or leave the place, then sends `remindDone`
+  to whoever set it. `remindCancel` takes one back. Only the member can
+  close it as done, and only the sender or the member can take it back.
+- `lib/location/trip_share.dart`: "Share my trip" links (L-1). The phone
+  makes a random id and AES-256-GCM key; the link is
+  `https://zerotrust.bz/trip/#<id>.<key>`, so the key never reaches a
+  server. While the trip runs (1, 2 or 4 hours) each update is sealed under
+  it and put in `family_trip_shares`; the website's trip page reads it with
+  `family_trip_get(id)` and opens it in the browser. Stopping, a new trip,
+  or turning sharing off deletes the row; the server ignores and purges
+  ended ones.
+- `lib/model/family_hub.dart`, `lib/ui/hub_page.dart`: the family hub
+  (L-2). Since S-10 the circle is every app's family space: ZT Calendar,
+  ZT Tasks and ZT Meds keep their family items in it as
+  `<app>/<kind>/<id>` with a common summary under `zt`
+  (`ZtFamilySummary` in Core). The hub reads those summaries, read-only:
+  events of the next 14 days, task lists with their open items, today's
+  doses, and anything else. The circle is checked with Core's
+  `ZtFamilySpace.policy`, the same in every app.
 - The location tables (`family_latest`, `family_events`) are in
-  Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
+  Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`;
+  trip links in `20261123090000_family_trip_shares.sql`.
 
 ## License
 

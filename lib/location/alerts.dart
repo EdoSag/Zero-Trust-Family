@@ -306,6 +306,9 @@ class AlertHit {
   /// an "I'm OK" button.
   bool get asksMe => event.kind == FamilyEventKind.ask;
 
+  /// Shown to nobody: a reminder taken back only leaves this phone's list.
+  bool get silent => event.kind == FamilyEventKind.remindCancel;
+
   /// A stable notification id for this event.
   int get notificationId => eventId.hashCode & 0x3fffffff;
 }
@@ -397,7 +400,7 @@ class AlertEngine {
         final event = await _open(circle, row, boxes);
         if (event == null) continue;
         // History points never alert, and are too many to remember.
-        if (event.kind == FamilyEventKind.point) continue;
+        if (event.kind.quiet) continue;
         if (seen.contains(event.id)) continue;
         seen.add(event.id);
         // Timers are followed even for muted people: a missed one alerts.
@@ -419,10 +422,10 @@ class AlertEngine {
         if (event.kind == FamilyEventKind.overdue && had?.alerted == true) {
           continue;
         }
-        if (event.kind == FamilyEventKind.ask && event.to != me) continue;
+        if (event.kind.addressed && event.to != me) continue;
         // Whoever got the SOS also hears that it ended.
         if (!urgent &&
-            event.kind != FamilyEventKind.ask &&
+            !event.kind.addressed &&
             event.kind != FamilyEventKind.sosEnd &&
             circle.muted.contains(row.userId)) {
           continue;

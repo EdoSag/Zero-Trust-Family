@@ -4,6 +4,7 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -11,12 +12,16 @@ import '../data/family_data.dart';
 import '../data/locations.dart';
 import '../l10n/l10n.dart';
 import 'common.dart';
+import 'driving_page.dart';
+import 'reminders_page.dart';
 import 'family_map.dart';
 import 'history_page.dart';
 import 'history_section.dart';
+import 'hub_page.dart';
 import 'places_section.dart';
 import 'safety_card.dart';
 import 'share_card.dart';
+import 'trip_page.dart';
 
 /// One family circle: the map, this phone's sharing, where everyone is, and
 /// the way to invite and manage members.
@@ -124,8 +129,17 @@ class _CirclePageState extends ConsumerState<CirclePage> {
                 ),
               ),
             ),
+          const CrashBanner(),
           ShareCard(spaceId: widget.spaceId),
           SafetyCard(spaceId: spaceId, members: circle.members, me: me),
+          ListTile(
+            key: const Key('hub'),
+            leading: const Icon(Icons.dashboard_outlined),
+            title: Text(l.hubTitle),
+            subtitle: Text(l.hubSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => HubPage.open(context, spaceId),
+          ),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
             child: Text(
@@ -168,6 +182,48 @@ class _CirclePageState extends ConsumerState<CirclePage> {
           RecentSection(spaceId: spaceId, names: names),
           HistorySection(spaceId: spaceId, isOwner: circle.isAdmin),
           AlertsCard(spaceId: spaceId, members: circle.members, me: me),
+          ListTile(
+            key: const Key('reminders'),
+            leading: const Icon(Icons.notification_add_outlined),
+            title: Text(l.remindersTitle),
+            subtitle: Text(l.remindersSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => RemindersPage.open(
+              context,
+              spaceId: spaceId,
+              members: circle.members,
+              me: me,
+            ),
+          ),
+          ListTile(
+            key: const Key('driving'),
+            leading: const Icon(Icons.directions_car_outlined),
+            title: Text(l.drivingTitle),
+            subtitle: Text(l.drivingSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => DrivingPage.open(context, spaceId),
+          ),
+          ListTile(
+            key: const Key('trip'),
+            leading: const Icon(Icons.route_outlined),
+            title: Text(l.tripTitle),
+            subtitle: Text(() {
+              final trip = ref.watch(shareStateProvider).value?.trip;
+              return trip != null && trip.activeAt(now)
+                  ? l.tripOn(
+                      DateFormat.Hm(l.localeName).format(trip.until.toLocal()),
+                    )
+                  : l.tripSubtitle;
+            }()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => TripPage.open(
+              context,
+              name: circle.members
+                  .where((m) => m.userId == me && m.name.isNotEmpty)
+                  .firstOrNull
+                  ?.name,
+            ),
+          ),
           const Divider(height: 24),
           ListTile(
             leading: const Icon(Icons.group_outlined),

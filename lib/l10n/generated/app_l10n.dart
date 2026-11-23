@@ -1200,6 +1200,558 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Couldn\'t load the history. Check your internet connection.'**
   String get historyCouldNotLoad;
+
+  /// No description provided for @eventCrash.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} may have been in a car crash'**
+  String eventCrash(String name);
+
+  /// No description provided for @eventDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} drove {km} km (top speed {kmh} km/h)'**
+  String eventDrive(String name, String km, String kmh);
+
+  /// No description provided for @crashCountdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Were you in a crash?'**
+  String get crashCountdownTitle;
+
+  /// No description provided for @crashCountdownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circles get an SOS with your location at {time}, unless you tap I\'m OK.'**
+  String crashCountdownBody(String time);
+
+  /// No description provided for @crashSendNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Send SOS now'**
+  String get crashSendNow;
+
+  /// No description provided for @crashSosSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS sent to your circles'**
+  String get crashSosSentTitle;
+
+  /// No description provided for @crashSosSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They see your live location for an hour. Tap I\'m safe when you are.'**
+  String get crashSosSentBody;
+
+  /// No description provided for @drivingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving'**
+  String get drivingTitle;
+
+  /// No description provided for @drivingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive summaries and crash detection'**
+  String get drivingSubtitle;
+
+  /// No description provided for @drivingNeedsSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location sharing with this circle to use these.'**
+  String get drivingNeedsSharing;
+
+  /// No description provided for @drivesSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive summaries'**
+  String get drivesSwitch;
+
+  /// No description provided for @drivesSwitchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps a summary of each drive on this phone: distance, speed, hard braking and phone use. Uses satellites every second while you drive.'**
+  String get drivesSwitchBody;
+
+  /// No description provided for @shareDrivesSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my drives with this circle'**
+  String get shareDrivesSwitch;
+
+  /// No description provided for @shareDrivesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The circle sees each drive\'s summary in your history, end-to-end encrypted.'**
+  String get shareDrivesBody;
+
+  /// No description provided for @shareDrivesNeedsPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing drive summaries with a circle is part of Plus. Your own drive summaries and crash detection stay free.'**
+  String get shareDrivesNeedsPlus;
+
+  /// No description provided for @crashSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash detection'**
+  String get crashSwitch;
+
+  /// No description provided for @crashSwitchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If the phone feels a hard crash while driving and then stops, it rings for 60 seconds, then sends an SOS with your location to all your circles.'**
+  String get crashSwitchBody;
+
+  /// No description provided for @crashDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash detection can miss a crash or ring when there was none. It does not call emergency services: in an emergency, call your local emergency number.'**
+  String get crashDisclaimer;
+
+  /// No description provided for @turnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get turnOn;
+
+  /// No description provided for @myDrivesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'My drives (on this phone)'**
+  String get myDrivesHeading;
+
+  /// No description provided for @noDrivesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No drives yet. They show here after you drive with drive summaries on.'**
+  String get noDrivesYet;
+
+  /// No description provided for @driveSpeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Top {top} km/h · average {average} km/h'**
+  String driveSpeeds(String top, String average);
+
+  /// No description provided for @hardBrakes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hard brake} other{{count} hard brakes}}'**
+  String hardBrakes(int count);
+
+  /// No description provided for @rapidStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 rapid start} other{{count} rapid starts}}'**
+  String rapidStarts(int count);
+
+  /// No description provided for @phoneUseMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone used {minutes} min'**
+  String phoneUseMinutes(int minutes);
+
+  /// No description provided for @eraseMyDrives.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase my drives'**
+  String get eraseMyDrives;
+
+  /// No description provided for @eraseMyDrivesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes the drives kept on this phone. Drives already shared stay in the circle\'s history until it deletes them.'**
+  String get eraseMyDrivesBody;
+
+  /// No description provided for @drivesErased.
+  ///
+  /// In en, this message translates to:
+  /// **'Drives erased'**
+  String get drivesErased;
+
+  /// No description provided for @approximateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate'**
+  String get approximateStatus;
+
+  /// No description provided for @approximateSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate location'**
+  String get approximateSwitch;
+
+  /// No description provided for @approximateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.'**
+  String get approximateBody;
+
+  /// No description provided for @eventRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} set a place reminder'**
+  String eventRemind(String name);
+
+  /// No description provided for @eventRemindDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got a reminder at {place}'**
+  String eventRemindDone(String name, String place);
+
+  /// No description provided for @eventRemindDoneSomewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got a place reminder'**
+  String eventRemindDoneSomewhere(String name);
+
+  /// No description provided for @eventRemindCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} took back a place reminder'**
+  String eventRemindCancel(String name);
+
+  /// No description provided for @reminderFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder from {name}'**
+  String reminderFrom(String name);
+
+  /// No description provided for @reminderArriving.
+  ///
+  /// In en, this message translates to:
+  /// **'when arriving at {place}'**
+  String reminderArriving(String place);
+
+  /// No description provided for @reminderLeaving.
+  ///
+  /// In en, this message translates to:
+  /// **'when leaving {place}'**
+  String reminderLeaving(String place);
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Place reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind someone when they get somewhere'**
+  String get remindersSubtitle;
+
+  /// No description provided for @remindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder goes off on that person\'s own phone when they arrive at or leave one of the circle\'s places, and you\'re told when it does. Like everything here, it\'s end-to-end encrypted.'**
+  String get remindersBody;
+
+  /// No description provided for @remindersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders waiting'**
+  String get remindersEmpty;
+
+  /// No description provided for @reminderNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get reminderNew;
+
+  /// No description provided for @reminderWho.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get reminderWho;
+
+  /// No description provided for @reminderWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get reminderWhere;
+
+  /// No description provided for @reminderOnArrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Arriving'**
+  String get reminderOnArrive;
+
+  /// No description provided for @reminderOnLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving'**
+  String get reminderOnLeave;
+
+  /// No description provided for @reminderWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderWhat;
+
+  /// No description provided for @reminderWhatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Call me when you get there'**
+  String get reminderWhatHint;
+
+  /// No description provided for @reminderNoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderNoNote;
+
+  /// No description provided for @reminderFor.
+  ///
+  /// In en, this message translates to:
+  /// **'For {who}, {when} · from {from}'**
+  String reminderFor(String who, String when, String from);
+
+  /// No description provided for @reminderCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Take back'**
+  String get reminderCancel;
+
+  /// No description provided for @reminderSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set'**
+  String get reminderSent;
+
+  /// No description provided for @reminderNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t set the reminder. Location sharing must be on in this circle, and you need a connection.'**
+  String get reminderNotSent;
+
+  /// No description provided for @reminderNeedsPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place to the circle first.'**
+  String get reminderNeedsPlace;
+
+  /// No description provided for @unknownPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'a place'**
+  String get unknownPlace;
+
+  /// No description provided for @tripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my trip'**
+  String get tripTitle;
+
+  /// No description provided for @tripSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A link anyone can open, for an hour or so'**
+  String get tripSubtitle;
+
+  /// No description provided for @tripBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone you send the link to sees where you are on a web page until it ends. They don\'t need the app or an account. The key is part of the link, so our server can\'t see your location.'**
+  String get tripBody;
+
+  /// No description provided for @tripLength.
+  ///
+  /// In en, this message translates to:
+  /// **'For how long'**
+  String get tripLength;
+
+  /// No description provided for @tripOneHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get tripOneHour;
+
+  /// No description provided for @tripTwoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'2 hours'**
+  String get tripTwoHours;
+
+  /// No description provided for @tripFourHours.
+  ///
+  /// In en, this message translates to:
+  /// **'4 hours'**
+  String get tripFourHours;
+
+  /// No description provided for @tripStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start sharing'**
+  String get tripStart;
+
+  /// No description provided for @tripActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trip is shared until {time}'**
+  String tripActive(String time);
+
+  /// No description provided for @tripActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this link sees where you are. Stop sharing at any time; the link then stops working.'**
+  String get tripActiveBody;
+
+  /// No description provided for @tripSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get tripSend;
+
+  /// No description provided for @tripCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get tripCopy;
+
+  /// No description provided for @tripCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get tripCopied;
+
+  /// No description provided for @tripStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop sharing'**
+  String get tripStop;
+
+  /// No description provided for @tripStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trip isn\'t shared any more'**
+  String get tripStopped;
+
+  /// No description provided for @tripNeedsSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location sharing with a circle first: the trip link uses the same updates.'**
+  String get tripNeedsSharing;
+
+  /// No description provided for @tripShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow my trip until {time}: {link}'**
+  String tripShareText(String time, String link);
+
+  /// No description provided for @tripPausedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is paused, so the link shows \"Paused\" until you resume.'**
+  String get tripPausedNote;
+
+  /// No description provided for @tripOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip link on until {time}'**
+  String tripOn(String time);
+
+  /// No description provided for @hubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family hub'**
+  String get hubTitle;
+
+  /// No description provided for @hubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar, lists and medicines shared with this circle'**
+  String get hubSubtitle;
+
+  /// No description provided for @hubComingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get hubComingUp;
+
+  /// No description provided for @hubLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get hubLists;
+
+  /// No description provided for @hubMedsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines today'**
+  String get hubMedsToday;
+
+  /// No description provided for @hubOther.
+  ///
+  /// In en, this message translates to:
+  /// **'From other apps'**
+  String get hubOther;
+
+  /// No description provided for @hubOtherTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Other tasks'**
+  String get hubOtherTasks;
+
+  /// No description provided for @hubUnnamedList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get hubUnnamedList;
+
+  /// No description provided for @hubAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done'**
+  String get hubAllDone;
+
+  /// No description provided for @hubDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} done'**
+  String hubDoneCount(int count);
+
+  /// No description provided for @hubTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get hubTaken;
+
+  /// No description provided for @hubDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {when}'**
+  String hubDue(String when);
+
+  /// No description provided for @hubEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing shared with this circle yet'**
+  String get hubEmptyTitle;
+
+  /// No description provided for @hubEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.'**
+  String get hubEmptyBody;
+
+  /// No description provided for @hubReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'To change something, open the app it comes from.'**
+  String get hubReadOnly;
+
+  /// No description provided for @hubToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get hubToday;
+
+  /// No description provided for @hubTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get hubTomorrow;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
