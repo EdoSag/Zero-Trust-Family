@@ -160,6 +160,14 @@ releases are one `Dev` → `main` pull request.
   `family_trip_get(id)` and opens it in the browser. Stopping, a new trip,
   or turning sharing off deletes the row; the server ignores and purges
   ended ones.
+- `lib/model/family_hub.dart`, `lib/ui/hub_page.dart`: the family hub
+  (L-2). Since S-10 the circle is every app's family space: ZT Calendar,
+  ZT Tasks and ZT Meds keep their family items in it as
+  `<app>/<kind>/<id>` with a common summary under `zt`
+  (`ZtFamilySummary` in Core). The hub reads those summaries, read-only:
+  events of the next 14 days, task lists with their open items, today's
+  doses, and anything else. The circle is checked with Core's
+  `ZtFamilySpace.policy`, the same in every app.
 - The location tables (`family_latest`, `family_events`) are in
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`;
   trip links in `20261123090000_family_trip_shares.sql`.

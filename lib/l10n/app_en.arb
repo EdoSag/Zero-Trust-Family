@@ -736,5 +736,36 @@
         "type": "String"
       }
     }
-  }
+  },
+  "hubTitle": "Family hub",
+  "hubSubtitle": "Calendar, lists and medicines shared with this circle",
+  "hubComingUp": "Coming up",
+  "hubLists": "Lists",
+  "hubMedsToday": "Medicines today",
+  "hubOther": "From other apps",
+  "hubOtherTasks": "Other tasks",
+  "hubUnnamedList": "List",
+  "hubAllDone": "All done",
+  "hubDoneCount": "{count} done",
+  "@hubDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hubTaken": "Taken",
+  "hubDue": "Due {when}",
+  "@hubDue": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "hubEmptyTitle": "Nothing shared with this circle yet",
+  "hubEmptyBody": "When your family shares calendar events in ZT Calendar, lists in ZT Tasks or medicines in ZT Meds with this circle, they show up here together.",
+  "hubReadOnly": "To change something, open the app it comes from.",
+  "hubToday": "Today",
+  "hubTomorrow": "Tomorrow"
 }
