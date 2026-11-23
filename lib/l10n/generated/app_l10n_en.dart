@@ -836,4 +836,97 @@ class AppL10nEn extends AppL10n {
   @override
   String get approximateBody =>
       'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.';
+
+  @override
+  String eventRemind(String name) {
+    return '$name set a place reminder';
+  }
+
+  @override
+  String eventRemindDone(String name, String place) {
+    return '$name got a reminder at $place';
+  }
+
+  @override
+  String eventRemindDoneSomewhere(String name) {
+    return '$name got a place reminder';
+  }
+
+  @override
+  String eventRemindCancel(String name) {
+    return '$name took back a place reminder';
+  }
+
+  @override
+  String reminderFrom(String name) {
+    return 'Reminder from $name';
+  }
+
+  @override
+  String reminderArriving(String place) {
+    return 'when arriving at $place';
+  }
+
+  @override
+  String reminderLeaving(String place) {
+    return 'when leaving $place';
+  }
+
+  @override
+  String get remindersTitle => 'Place reminders';
+
+  @override
+  String get remindersSubtitle => 'Remind someone when they get somewhere';
+
+  @override
+  String get remindersBody =>
+      'A reminder goes off on that person\'s own phone when they arrive at or leave one of the circle\'s places, and you\'re told when it does. Like everything here, it\'s end-to-end encrypted.';
+
+  @override
+  String get remindersEmpty => 'No reminders waiting';
+
+  @override
+  String get reminderNew => 'New reminder';
+
+  @override
+  String get reminderWho => 'For';
+
+  @override
+  String get reminderWhere => 'Place';
+
+  @override
+  String get reminderOnArrive => 'Arriving';
+
+  @override
+  String get reminderOnLeave => 'Leaving';
+
+  @override
+  String get reminderWhat => 'Reminder';
+
+  @override
+  String get reminderWhatHint => 'Call me when you get there';
+
+  @override
+  String get reminderNoNote => 'Reminder';
+
+  @override
+  String reminderFor(String who, String when, String from) {
+    return 'For $who, $when · from $from';
+  }
+
+  @override
+  String get reminderCancel => 'Take back';
+
+  @override
+  String get reminderSent => 'Reminder set';
+
+  @override
+  String get reminderNotSent =>
+      'Couldn\'t set the reminder. Location sharing must be on in this circle, and you need a connection.';
+
+  @override
+  String get reminderNeedsPlace => 'Add a place to the circle first.';
+
+  @override
+  String get unknownPlace => 'a place';
 }

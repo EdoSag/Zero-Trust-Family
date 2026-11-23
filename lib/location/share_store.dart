@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'geofence.dart';
+import 'reminders.dart';
 
 /// What a sharing phone's background service needs for one circle: the
 /// circle's location box public key for the current key epoch, and where
@@ -21,6 +22,8 @@ class CirclePackage {
     this.inside = const {},
     this.shareDrives = false,
     this.approximate = false,
+    this.reminders = const [],
+    this.fired = const [],
   });
 
   final String spaceId;
@@ -41,6 +44,14 @@ class CirclePackage {
   /// This phone shows the circle only roughly where it is (L-5).
   final bool approximate;
 
+  /// Place reminders for this phone's member, shown when they arrive at or
+  /// leave one of the circle's places (L-4).
+  final List<PlaceReminder> reminders;
+
+  /// Reminders that went off here whose senders haven't been told yet
+  /// (offline): told on a later send, and never armed again meanwhile.
+  final List<PlaceReminder> fired;
+
   CirclePackage copyWith({
     int? epoch,
     Uint8List? boxPublic,
@@ -49,6 +60,8 @@ class CirclePackage {
     Map<String, bool>? inside,
     bool? shareDrives,
     bool? approximate,
+    List<PlaceReminder>? reminders,
+    List<PlaceReminder>? fired,
   }) => CirclePackage(
     spaceId: spaceId,
     epoch: epoch ?? this.epoch,
@@ -58,6 +71,8 @@ class CirclePackage {
     inside: inside ?? this.inside,
     shareDrives: shareDrives ?? this.shareDrives,
     approximate: approximate ?? this.approximate,
+    reminders: reminders ?? this.reminders,
+    fired: fired ?? this.fired,
   );
 
   Map<String, Object?> toJson() => {
@@ -69,6 +84,9 @@ class CirclePackage {
     if (inside.isNotEmpty) 'inside': inside,
     if (shareDrives) 'drives': true,
     if (approximate) 'approximate': true,
+    if (reminders.isNotEmpty)
+      'reminders': [for (final r in reminders) r.toJson()],
+    if (fired.isNotEmpty) 'fired': [for (final r in fired) r.toJson()],
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -87,6 +105,14 @@ class CirclePackage {
     },
     shareDrives: json['drives'] == true,
     approximate: json['approximate'] == true,
+    reminders: [
+      for (final r in (json['reminders'] as List? ?? const []))
+        ?PlaceReminder.fromJson(r),
+    ],
+    fired: [
+      for (final r in (json['fired'] as List? ?? const []))
+        ?PlaceReminder.fromJson(r),
+    ],
   );
 }
 

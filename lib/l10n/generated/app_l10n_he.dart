@@ -830,4 +830,97 @@ class AppL10nHe extends AppL10n {
   @override
   String get approximateBody =>
       'המעגל הזה רואה רק את האזור שלך (בערך 3 ק״מ), לא את המקום המדויק. SOS תמיד שולח את המיקום המדויק.';
+
+  @override
+  String eventRemind(String name) {
+    return '$name הגדיר/ה תזכורת למקום';
+  }
+
+  @override
+  String eventRemindDone(String name, String place) {
+    return '$name קיבל/ה תזכורת ב$place';
+  }
+
+  @override
+  String eventRemindDoneSomewhere(String name) {
+    return '$name קיבל/ה תזכורת למקום';
+  }
+
+  @override
+  String eventRemindCancel(String name) {
+    return '$name ביטל/ה תזכורת למקום';
+  }
+
+  @override
+  String reminderFrom(String name) {
+    return 'תזכורת מ$name';
+  }
+
+  @override
+  String reminderArriving(String place) {
+    return 'בהגעה ל$place';
+  }
+
+  @override
+  String reminderLeaving(String place) {
+    return 'ביציאה מ$place';
+  }
+
+  @override
+  String get remindersTitle => 'תזכורות למקומות';
+
+  @override
+  String get remindersSubtitle => 'להזכיר למישהו משהו כשהוא מגיע למקום';
+
+  @override
+  String get remindersBody =>
+      'התזכורת קופצת בטלפון של אותו אדם כשהוא מגיע לאחד המקומות של המעגל או יוצא ממנו, ואת/ה מקבל/ת הודעה כשזה קורה. כמו כל השאר כאן, הכול מוצפן מקצה לקצה.';
+
+  @override
+  String get remindersEmpty => 'אין תזכורות ממתינות';
+
+  @override
+  String get reminderNew => 'תזכורת חדשה';
+
+  @override
+  String get reminderWho => 'למי';
+
+  @override
+  String get reminderWhere => 'מקום';
+
+  @override
+  String get reminderOnArrive => 'בהגעה';
+
+  @override
+  String get reminderOnLeave => 'ביציאה';
+
+  @override
+  String get reminderWhat => 'תזכורת';
+
+  @override
+  String get reminderWhatHint => 'תתקשר/י אליי כשתגיע/י';
+
+  @override
+  String get reminderNoNote => 'תזכורת';
+
+  @override
+  String reminderFor(String who, String when, String from) {
+    return 'ל$who, $when · מאת $from';
+  }
+
+  @override
+  String get reminderCancel => 'לבטל';
+
+  @override
+  String get reminderSent => 'התזכורת נקבעה';
+
+  @override
+  String get reminderNotSent =>
+      'לא הצלחנו לקבוע את התזכורת. צריך שיתוף מיקום פעיל במעגל הזה וחיבור לאינטרנט.';
+
+  @override
+  String get reminderNeedsPlace => 'קודם צריך להוסיף מקום למעגל.';
+
+  @override
+  String get unknownPlace => 'מקום';
 }

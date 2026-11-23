@@ -1386,6 +1386,156 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.'**
   String get approximateBody;
+
+  /// No description provided for @eventRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} set a place reminder'**
+  String eventRemind(String name);
+
+  /// No description provided for @eventRemindDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got a reminder at {place}'**
+  String eventRemindDone(String name, String place);
+
+  /// No description provided for @eventRemindDoneSomewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got a place reminder'**
+  String eventRemindDoneSomewhere(String name);
+
+  /// No description provided for @eventRemindCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} took back a place reminder'**
+  String eventRemindCancel(String name);
+
+  /// No description provided for @reminderFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder from {name}'**
+  String reminderFrom(String name);
+
+  /// No description provided for @reminderArriving.
+  ///
+  /// In en, this message translates to:
+  /// **'when arriving at {place}'**
+  String reminderArriving(String place);
+
+  /// No description provided for @reminderLeaving.
+  ///
+  /// In en, this message translates to:
+  /// **'when leaving {place}'**
+  String reminderLeaving(String place);
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Place reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind someone when they get somewhere'**
+  String get remindersSubtitle;
+
+  /// No description provided for @remindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder goes off on that person\'s own phone when they arrive at or leave one of the circle\'s places, and you\'re told when it does. Like everything here, it\'s end-to-end encrypted.'**
+  String get remindersBody;
+
+  /// No description provided for @remindersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders waiting'**
+  String get remindersEmpty;
+
+  /// No description provided for @reminderNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get reminderNew;
+
+  /// No description provided for @reminderWho.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get reminderWho;
+
+  /// No description provided for @reminderWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get reminderWhere;
+
+  /// No description provided for @reminderOnArrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Arriving'**
+  String get reminderOnArrive;
+
+  /// No description provided for @reminderOnLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving'**
+  String get reminderOnLeave;
+
+  /// No description provided for @reminderWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderWhat;
+
+  /// No description provided for @reminderWhatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Call me when you get there'**
+  String get reminderWhatHint;
+
+  /// No description provided for @reminderNoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderNoNote;
+
+  /// No description provided for @reminderFor.
+  ///
+  /// In en, this message translates to:
+  /// **'For {who}, {when} · from {from}'**
+  String reminderFor(String who, String when, String from);
+
+  /// No description provided for @reminderCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Take back'**
+  String get reminderCancel;
+
+  /// No description provided for @reminderSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set'**
+  String get reminderSent;
+
+  /// No description provided for @reminderNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t set the reminder. Location sharing must be on in this circle, and you need a connection.'**
+  String get reminderNotSent;
+
+  /// No description provided for @reminderNeedsPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place to the circle first.'**
+  String get reminderNeedsPlace;
+
+  /// No description provided for @unknownPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'a place'**
+  String get unknownPlace;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

@@ -106,6 +106,8 @@ abstract final class Approximate {
       drive: drive,
       crash: event.crash,
       approximate: true,
+      ref: event.ref,
+      onLeave: event.onLeave,
     );
   }
 }

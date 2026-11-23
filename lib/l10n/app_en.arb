@@ -603,5 +603,95 @@
   "drivesErased": "Drives erased",
   "approximateStatus": "Approximate",
   "approximateSwitch": "Approximate location",
-  "approximateBody": "This circle sees only the area you're in (about 3 km across), not the exact spot. An SOS always sends your exact location."
+  "approximateBody": "This circle sees only the area you're in (about 3 km across), not the exact spot. An SOS always sends your exact location.",
+  "eventRemind": "{name} set a place reminder",
+  "@eventRemind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindDone": "{name} got a reminder at {place}",
+  "@eventRemindDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindDoneSomewhere": "{name} got a place reminder",
+  "@eventRemindDoneSomewhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemindCancel": "{name} took back a place reminder",
+  "@eventRemindCancel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderFrom": "Reminder from {name}",
+  "@reminderFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderArriving": "when arriving at {place}",
+  "@reminderArriving": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLeaving": "when leaving {place}",
+  "@reminderLeaving": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersTitle": "Place reminders",
+  "remindersSubtitle": "Remind someone when they get somewhere",
+  "remindersBody": "A reminder goes off on that person's own phone when they arrive at or leave one of the circle's places, and you're told when it does. Like everything here, it's end-to-end encrypted.",
+  "remindersEmpty": "No reminders waiting",
+  "reminderNew": "New reminder",
+  "reminderWho": "For",
+  "reminderWhere": "Place",
+  "reminderOnArrive": "Arriving",
+  "reminderOnLeave": "Leaving",
+  "reminderWhat": "Reminder",
+  "reminderWhatHint": "Call me when you get there",
+  "reminderNoNote": "Reminder",
+  "reminderFor": "For {who}, {when} · from {from}",
+  "@reminderFor": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCancel": "Take back",
+  "reminderSent": "Reminder set",
+  "reminderNotSent": "Couldn't set the reminder. Location sharing must be on in this circle, and you need a connection.",
+  "reminderNeedsPlace": "Add a place to the circle first.",
+  "unknownPlace": "a place"
 }
