@@ -826,4 +826,14 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get drivesErased => 'Drives erased';
+
+  @override
+  String get approximateStatus => 'Approximate';
+
+  @override
+  String get approximateSwitch => 'Approximate location';
+
+  @override
+  String get approximateBody =>
+      'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.';
 }

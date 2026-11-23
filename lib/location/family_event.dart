@@ -74,6 +74,7 @@ class FamilyEvent {
     this.accuracyM,
     this.drive,
     this.crash = false,
+    this.approximate = false,
   });
 
   /// Longest note kept.
@@ -106,6 +107,9 @@ class FamilyEvent {
   /// nobody answered its countdown. Older apps still see a plain SOS.
   final bool crash;
 
+  /// Sent by a member who shares only roughly where they are (L-5).
+  final bool approximate;
+
   bool get hasLocation => lat != null && lng != null;
 
   Map<String, Object?> toJson() => {
@@ -123,6 +127,7 @@ class FamilyEvent {
     if (accuracyM != null) 'ac': accuracyM!.round(),
     if (drive != null) 'dr': drive!.toJson(),
     if (crash) 'cr': 1,
+    if (approximate) 'ax': 1,
   };
 
   /// Throws [FormatException] for anything this version can't show (a newer
@@ -157,6 +162,7 @@ class FamilyEvent {
       accuracyM: (json['ac'] as num?)?.toDouble(),
       drive: DriveSummary.fromJson(json['dr']),
       crash: json['cr'] == 1,
+      approximate: json['ax'] == 1,
     );
   }
 

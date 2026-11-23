@@ -6,6 +6,7 @@ import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 import '../data/locations.dart';
+import '../location/approximate.dart';
 import 'common.dart';
 
 /// Where the map comes from: a Protomaps PMTiles file on the project's own
@@ -92,6 +93,23 @@ class _FamilyMapState extends State<FamilyMap> {
                     : ProtomapsThemes.lightV3(),
                 tileProviders: TileProviders({'protomaps': tiles}),
               ),
+            // Members who share only roughly where they are: their area.
+            CircleLayer(
+              circles: [
+                for (final m in widget.locations.values)
+                  if (m.update.hasLocation && m.update.approximate)
+                    CircleMarker(
+                      point: LatLng(m.update.lat!, m.update.lng!),
+                      radius: m.update.accuracyM ?? Approximate.radiusM,
+                      useRadiusInMeter: true,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.15),
+                      borderColor: Theme.of(context).colorScheme.primary,
+                      borderStrokeWidth: 1,
+                    ),
+              ],
+            ),
             MarkerLayer(
               markers: [
                 for (final e in widget.locations.entries)

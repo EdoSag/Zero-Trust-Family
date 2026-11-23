@@ -820,4 +820,14 @@ class AppL10nHe extends AppL10n {
 
   @override
   String get drivesErased => 'הנסיעות נמחקו';
+
+  @override
+  String get approximateStatus => 'מיקום משוער';
+
+  @override
+  String get approximateSwitch => 'מיקום משוער';
+
+  @override
+  String get approximateBody =>
+      'המעגל הזה רואה רק את האזור שלך (בערך 3 ק״מ), לא את המקום המדויק. SOS תמיד שולח את המיקום המדויק.';
 }

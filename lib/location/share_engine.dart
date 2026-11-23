@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import 'approximate.dart';
 import 'drive.dart';
 import 'drive_store.dart';
 import 'family_event.dart';
@@ -149,7 +150,12 @@ class ShareEngine {
             ...const <CirclePackage>[]
           else if (changed.containsKey(c.spaceId) &&
               was[c.spaceId]?.epoch == c.epoch)
-            changed[c.spaceId]!
+            // Only what the engine owns; the person's settings (places,
+            // approximate, drives) stay as the app last saved them.
+            c.copyWith(
+              stale: changed[c.spaceId]!.stale,
+              inside: changed[c.spaceId]!.inside,
+            )
           else
             c,
       ],
@@ -514,6 +520,7 @@ class ShareEngine {
       if (c.spaceId == spaceId && !c.stale) circle = c;
     }
     if (circle == null) return false;
+    final sealed = _rough(circle, state) ? Approximate.event(event) : event;
     final context = LocationBox.context(
       table: 'family_events',
       spaceId: spaceId,
@@ -523,7 +530,7 @@ class ShareEngine {
     );
     try {
       final payload = await LocationBox.seal(
-        event.encode(),
+        sealed.encode(),
         boxPublic: circle.boxPublic,
         context: context,
       );
@@ -756,7 +763,8 @@ class ShareEngine {
       pausedUntil: paused ? current.pausedUntil : null,
       pausedOpenEnded: paused && current.pausedOpenEnded,
     );
-    final plain = update.encode();
+    final exact = update.encode();
+    Uint8List? rough;
     final keys = await Signing.fromSeed(current.deviceSeed);
 
     var offline = false;
@@ -775,6 +783,11 @@ class ShareEngine {
         deviceId: current.deviceId,
         epoch: circle.epoch,
       );
+      // Approximate circles get the cell, not the spot; during an SOS
+      // everyone gets the exact position.
+      final plain = _rough(circle, current)
+          ? rough ??= Approximate.update(update).encode()
+          : exact;
       try {
         final payload = await LocationBox.seal(
           plain,
@@ -871,7 +884,7 @@ class ShareEngine {
     );
     final inside = {...next};
     for (final c in crossings) {
-      final event = FamilyEvent(
+      final exact = FamilyEvent(
         id: _eventId(),
         kind: c.kind,
         at: fix.at,
@@ -880,6 +893,7 @@ class ShareEngine {
         lng: fix.lng,
         battery: _status.battery,
       );
+      final event = _rough(circle, state) ? Approximate.event(exact) : exact;
       try {
         final payload = await LocationBox.seal(
           event.encode(),
@@ -906,6 +920,11 @@ class ShareEngine {
     }
     return circle.copyWith(inside: inside);
   }
+
+  /// Whether [circle] gets only approximate positions now: it asked for
+  /// them, and this phone isn't in an SOS.
+  static bool _rough(CirclePackage circle, ShareState state) =>
+      circle.approximate && state.sos == null;
 
   static String _eventId() {
     final b = Kdf.randomBytes(12);

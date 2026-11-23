@@ -1368,6 +1368,24 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Drives erased'**
   String get drivesErased;
+
+  /// No description provided for @approximateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate'**
+  String get approximateStatus;
+
+  /// No description provided for @approximateSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate location'**
+  String get approximateSwitch;
+
+  /// No description provided for @approximateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This circle sees only the area you\'re in (about 3 km across), not the exact spot. An SOS always sends your exact location.'**
+  String get approximateBody;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

@@ -600,5 +600,8 @@
   },
   "eraseMyDrives": "Erase my drives",
   "eraseMyDrivesBody": "Deletes the drives kept on this phone. Drives already shared stay in the circle's history until it deletes them.",
-  "drivesErased": "Drives erased"
+  "drivesErased": "Drives erased",
+  "approximateStatus": "Approximate",
+  "approximateSwitch": "Approximate location",
+  "approximateBody": "This circle sees only the area you're in (about 3 km across), not the exact spot. An SOS always sends your exact location."
 }

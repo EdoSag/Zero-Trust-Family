@@ -140,6 +140,11 @@ releases are one `Dev` → `main` pull request.
   driver chose); `CrashDetector` looks for a hard jolt at speed followed by
   a stop, then the phone rings for 60 seconds and sends an SOS to every
   circle unless the driver taps "I'm OK".
+- `lib/location/approximate.dart`: approximate sharing (L-5), per circle on
+  each phone. Positions to that circle are snapped to the centre of a grid
+  cell about 3 km across (no speed or heading), so repeated updates can't be
+  averaged into the real spot. An SOS or missed safety timer always sends
+  the exact position, and while an SOS runs every circle gets it.
 - The location tables (`family_latest`, `family_events`) are in
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
 
