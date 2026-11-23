@@ -1,7 +1,7 @@
 name: zerotrust_family
 description: "Zero-Trust Family: end-to-end encrypted family location sharing and safety check-ins."
 publish_to: none
-version: 0.10.0+10
+version: 0.10.1+11
 
 environment:
   sdk: ^3.9.0
@@ -26,21 +26,25 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
+      # The core commit this app used before, plus the import-freeze fix of
+      # Core PR #89 and #90. It lives on the Core branch
+      # backport/import-freeze-fix-on-core-ce4bbb4: keep that branch until
+      # this pin moves to a core that has the fix.
+      ref: f99be23eeab3b127f24639051fd4b3b1848f0e16
   # The suite's sharing screens (invite by link or QR, join, members). Must
   # be the same commit as zero_trust_core.
   zt_sharing_ui:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_sharing_ui
-      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
+      ref: f99be23eeab3b127f24639051fd4b3b1848f0e16
   # Place model, "use my current location" and pasted map links (no Google
   # Play services). Same commit as zero_trust_core.
   zt_places:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_places
-      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
+      ref: f99be23eeab3b127f24639051fd4b3b1848f0e16
   flutter_riverpod: ^3.5.0
   supabase_flutter: ^2.9.0
   # Reset links from account emails (EmailLinks).
@@ -64,7 +68,7 @@ dev_dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_release_checks
-      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
+      ref: f99be23eeab3b127f24639051fd4b3b1848f0e16
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
