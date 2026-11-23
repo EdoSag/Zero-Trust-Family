@@ -15,6 +15,7 @@ import 'location_update.dart';
 import 'reminders.dart';
 import 'schedule.dart';
 import 'share_store.dart';
+import 'trip_share.dart';
 
 /// The phone's own state with each update: battery and power saving.
 class DeviceStatus {
@@ -200,6 +201,8 @@ class ShareEngine {
     );
     await store.save(next);
     next = await _flushDeletes(next);
+    // Nothing left to share from: a trip link ends too.
+    if (next.circles.isEmpty && next.trip != null) next = await _endTrip(next);
     return next.circles.length;
   });
 
@@ -208,6 +211,9 @@ class ShareEngine {
     final state = await store.load();
     if (state != null && state.pendingDeletes.isNotEmpty) {
       await _flushDeletes(state);
+    }
+    if (state != null && state.tripDeletes.isNotEmpty) {
+      await _flushTripDeletes(await store.load() ?? state);
     }
   });
 
@@ -809,6 +815,94 @@ class ShareEngine {
     return sent;
   });
 
+  /// "Share my trip": starts a link that shows this phone's location to
+  /// anyone who has it, for [length] (an hour unless chosen). A trip that
+  /// was running ends; its old link stops working. Needs sharing on with a
+  /// circle (the service that sends is the same). Null when it isn't.
+  Future<TripShare?> startTrip({Duration? length, String? name}) =>
+      _serial(() async {
+        final now = _clock();
+        var state = await _load(now);
+        if (state == null || !state.sharing) return null;
+        final old = state.trip;
+        final trip = TripShare.create(now, length: length, name: name);
+        state = state.copyWith(
+          trip: () => trip,
+          tripDeletes: old == null
+              ? null
+              : {...state.tripDeletes, old.id}.toList(),
+        );
+        await store.save(state);
+        schedule.liveUntil = state.liveUntil;
+        await _send(state, now, schedule.current(now));
+        return trip;
+      });
+
+  /// Ends the trip link now and takes it off the server (later, offline).
+  Future<void> stopTrip() => _serial(() async {
+    final state = await store.load();
+    if (state?.trip != null) await _endTrip(state!);
+  });
+
+  /// Sends [update] to the trip link, or ends a trip whose time is up.
+  Future<ShareState> _sendTrip(
+    ShareState state,
+    LocationUpdate update,
+    DateTime now,
+  ) async {
+    final trip = state.trip;
+    if (trip == null) return state;
+    if (!trip.activeAt(now)) return _endTrip(state);
+    try {
+      await backend.putTrip(
+        id: trip.id,
+        payload: await trip.seal(trip.point(update)),
+        expiresAt: trip.until,
+      );
+    } on TripEndedException {
+      return _endTrip(state);
+    } on Object {
+      // Offline: the next update tries again.
+    }
+    return state;
+  }
+
+  Future<ShareState> _endTrip(ShareState state) async {
+    final trip = state.trip;
+    if (trip == null) return state;
+    final latest = await store.load() ?? state;
+    final next = latest.copyWith(
+      trip: latest.trip?.id == trip.id ? () => null : null,
+      tripDeletes: {...latest.tripDeletes, trip.id}.toList(),
+    );
+    await store.save(next);
+    return _flushTripDeletes(next);
+  }
+
+  Future<ShareState> _flushTripDeletes(ShareState state) async {
+    if (state.tripDeletes.isEmpty) return state;
+    if (backend.userId != state.userId) return state;
+    final done = <String>{};
+    for (final id in state.tripDeletes) {
+      try {
+        await backend.deleteTrip(id);
+        done.add(id);
+      } on Object {
+        // Offline: kept and retried. The server ends it on time anyway.
+      }
+    }
+    if (done.isEmpty) return state;
+    final latest = await store.load() ?? state;
+    final next = latest.copyWith(
+      tripDeletes: [
+        for (final d in latest.tripDeletes)
+          if (!done.contains(d)) d,
+      ],
+    );
+    await store.save(next);
+    return next;
+  }
+
   /// "I'm safe" for circles that missed it (offline).
   Future<ShareState> _flushSosEnds(ShareState state, DateTime now) async {
     if (state.sosEndPending.isEmpty) return state;
@@ -858,6 +952,7 @@ class ShareEngine {
       await store.save(current);
     }
     current = await _flushDeletes(current);
+    current = await _flushTripDeletes(current);
     current = await _flushSosEnds(current, now);
     final paused = current.pausedAt(now);
     final fix = _lastFix;
@@ -875,6 +970,7 @@ class ShareEngine {
       pausedUntil: paused ? current.pausedUntil : null,
       pausedOpenEnded: paused && current.pausedOpenEnded,
     );
+    current = await _sendTrip(current, update, now);
     final exact = update.encode();
     Uint8List? rough;
     final keys = await Signing.fromSeed(current.deviceSeed);

@@ -11,6 +11,7 @@ import '../location/location_box.dart';
 import '../location/location_update.dart';
 import '../location/share_engine.dart';
 import '../location/share_store.dart';
+import '../location/trip_share.dart';
 import '../model/family_place.dart';
 import 'family_data.dart';
 import 'reminders.dart';
@@ -414,6 +415,20 @@ class ShareActions {
     await _store.save(change(state));
     _changed();
     await _service.poke();
+  }
+
+  /// "Share my trip" (L-1): a link anyone can open for [length]. Null when
+  /// this phone doesn't share its location with a circle.
+  Future<TripShare?> startTrip({Duration? length, String? name}) async {
+    final trip = await _engine.startTrip(length: length, name: name);
+    _changed();
+    return trip;
+  }
+
+  /// Ends the trip link now.
+  Future<void> stopTrip() async {
+    await _engine.stopTrip();
+    _changed();
   }
 
   /// "I'm OK" on a crash countdown, in the app.

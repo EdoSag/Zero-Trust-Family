@@ -63,6 +63,8 @@ ZT Family is not monitoring software. Every person installs it on their own phon
 
 Crash detection (opt-in) sends an SOS to the person's own circles, end-to-end encrypted, after a 60-second countdown. Nothing goes to Zero-Trust or to emergency services; the app says so.
 
+"Share my trip" (opt-in, one tap each time) shows the person's location for 1 to 4 hours to whoever they send the link to. It is a user-initiated transfer, which Play doesn't count as sharing. The key is only in the link, so the server stores encrypted text it can't read, deletes it when the trip ends, and purges ended ones within 10 minutes.
+
 - **Is all data encrypted in transit?** Yes (TLS, plus end-to-end encryption).
 - **Can users request data deletion?** Yes: in the app (Settings > Account > Delete account, and "Erase my history in this circle") and at support@zerotrust.bz.
 - **Is data processed ephemerally?** No. Positions are kept on the server, encrypted, for the circle's history window (7 days by default, up to 30 with Plus), then deleted. The latest position is deleted when sharing stops or after 30 days of silence.

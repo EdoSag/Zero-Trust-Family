@@ -4,6 +4,7 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,6 +20,7 @@ import 'history_section.dart';
 import 'places_section.dart';
 import 'safety_card.dart';
 import 'share_card.dart';
+import 'trip_page.dart';
 
 /// One family circle: the map, this phone's sharing, where everyone is, and
 /// the way to invite and manage members.
@@ -191,6 +193,27 @@ class _CirclePageState extends ConsumerState<CirclePage> {
             subtitle: Text(l.drivingSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => DrivingPage.open(context, spaceId),
+          ),
+          ListTile(
+            key: const Key('trip'),
+            leading: const Icon(Icons.route_outlined),
+            title: Text(l.tripTitle),
+            subtitle: Text(() {
+              final trip = ref.watch(shareStateProvider).value?.trip;
+              return trip != null && trip.activeAt(now)
+                  ? l.tripOn(
+                      DateFormat.Hm(l.localeName).format(trip.until.toLocal()),
+                    )
+                  : l.tripSubtitle;
+            }()),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => TripPage.open(
+              context,
+              name: circle.members
+                  .where((m) => m.userId == me && m.name.isNotEmpty)
+                  .firstOrNull
+                  ?.name,
+            ),
           ),
           const Divider(height: 24),
           ListTile(

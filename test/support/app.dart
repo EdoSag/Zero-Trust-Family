@@ -17,6 +17,7 @@ import 'package:zerotrust_family/location/reminders.dart';
 import 'package:zerotrust_family/location/timeline.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
+import 'package:zerotrust_family/location/trip_share.dart';
 import 'package:zerotrust_family/model/circle.dart';
 import 'package:zt_places/zt_places.dart';
 import 'package:zt_sharing_ui/zt_sharing_ui.dart';
@@ -252,6 +253,21 @@ class FakeShareActions extends ShareActions {
         ],
       ),
     );
+  }
+
+  @override
+  Future<TripShare?> startTrip({Duration? length, String? name}) async {
+    calls.add('trip ${length?.inHours}');
+    if (!_now.sharing) return null;
+    final trip = TripShare.create(DateTime.now(), length: length, name: name);
+    await _set(_now.copyWith(trip: () => trip));
+    return trip;
+  }
+
+  @override
+  Future<void> stopTrip() async {
+    calls.add('stop trip');
+    await _set(_now.copyWith(trip: () => null));
   }
 
   @override

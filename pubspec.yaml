@@ -1,7 +1,7 @@
 name: zerotrust_family
 description: "Zero-Trust Family: end-to-end encrypted family location sharing and safety check-ins."
 publish_to: none
-version: 0.8.0+8
+version: 0.9.0+9
 
 environment:
   sdk: ^3.9.0
@@ -26,21 +26,21 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
+      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
   # The suite's sharing screens (invite by link or QR, join, members). Must
   # be the same commit as zero_trust_core.
   zt_sharing_ui:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_sharing_ui
-      ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
+      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
   # Place model, "use my current location" and pasted map links (no Google
   # Play services). Same commit as zero_trust_core.
   zt_places:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_places
-      ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
+      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
   flutter_riverpod: ^3.5.0
   supabase_flutter: ^2.9.0
   # Reset links from account emails (EmailLinks).
@@ -48,6 +48,7 @@ dependencies:
   flutter_dotenv: ^6.0.1
   intl: any
   url_launcher: ^6.3.1
+  share_plus: ^13.3.1
   permission_handler: ^13.0.2
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
@@ -63,7 +64,7 @@ dev_dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zt_release_checks
-      ref: 161e6d3f2d0fbe9dab713274e08a3243041a61de
+      ref: ce4bbb443bac64b1735ca438ae873ad98285e6c1
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
