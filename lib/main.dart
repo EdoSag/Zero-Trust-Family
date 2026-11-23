@@ -13,6 +13,7 @@ import 'data/alerts.dart';
 import 'data/locations.dart';
 import 'l10n/l10n.dart';
 import 'location/alerts.dart';
+import 'location/drive_store.dart';
 import 'location/location_backend.dart';
 import 'location/share_channel.dart';
 import 'location/share_engine.dart';
@@ -26,7 +27,11 @@ Future<void> main() async {
   final ready = Completer<void>();
   final store = SecureShareStore();
   final backend = SupabaseLocationBackend();
-  final engine = ShareEngine(store: store, backend: backend);
+  final engine = ShareEngine(
+    store: store,
+    backend: backend,
+    drives: SecureDriveStore(),
+  );
   final alertStore = SecureAlertStore();
   final alerts = AlertEngine(store: alertStore, backend: backend);
   final share = ShareChannel(engine, alerts: alerts, ready: ready.future)

@@ -127,6 +127,7 @@ IconData eventIcon(FamilyEventKind kind) => switch (kind) {
   FamilyEventKind.sos => Icons.sos,
   FamilyEventKind.sosEnd => Icons.verified_user_outlined,
   FamilyEventKind.point => Icons.place_outlined,
+  FamilyEventKind.drive => Icons.directions_car_outlined,
 };
 
 /// The last day's events: arrivals, check-ins, timers, SOS.

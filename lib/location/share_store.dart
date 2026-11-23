@@ -19,6 +19,7 @@ class CirclePackage {
     this.stale = false,
     this.places = const [],
     this.inside = const {},
+    this.shareDrives = false,
   });
 
   final String spaceId;
@@ -33,12 +34,16 @@ class CirclePackage {
   /// waits until the app is opened and the new key is known.
   final bool stale;
 
+  /// This phone's driver shares drive summaries with the circle.
+  final bool shareDrives;
+
   CirclePackage copyWith({
     int? epoch,
     Uint8List? boxPublic,
     bool? stale,
     List<WatchedPlace>? places,
     Map<String, bool>? inside,
+    bool? shareDrives,
   }) => CirclePackage(
     spaceId: spaceId,
     epoch: epoch ?? this.epoch,
@@ -46,6 +51,7 @@ class CirclePackage {
     stale: stale ?? this.stale,
     places: places ?? this.places,
     inside: inside ?? this.inside,
+    shareDrives: shareDrives ?? this.shareDrives,
   );
 
   Map<String, Object?> toJson() => {
@@ -55,6 +61,7 @@ class CirclePackage {
     if (stale) 'stale': true,
     if (places.isNotEmpty) 'places': [for (final p in places) p.toJson()],
     if (inside.isNotEmpty) 'inside': inside,
+    if (shareDrives) 'drives': true,
   };
 
   static CirclePackage fromJson(Map<String, Object?> json) => CirclePackage(
@@ -71,6 +78,7 @@ class CirclePackage {
         if (e.key is String && e.value is bool)
           e.key as String: e.value as bool,
     },
+    shareDrives: json['drives'] == true,
   );
 }
 
@@ -78,16 +86,26 @@ class CirclePackage {
 /// Keystore) so the background service can use it while the app is locked.
 /// A running safety timer or SOS of this phone, in one circle.
 class SafetyRun {
-  const SafetyRun({required this.spaceId, required this.until});
+  const SafetyRun({
+    required this.spaceId,
+    required this.until,
+    this.also = const [],
+  });
 
   final String spaceId;
 
   /// The timer's deadline; for an SOS, when its live sharing ends.
   final DateTime until;
 
+  /// More circles the same SOS went to (a crash alerts every circle).
+  final List<String> also;
+
+  List<String> get spaces => [spaceId, ...also];
+
   Map<String, Object?> toJson() => {
     'space': spaceId,
     'until': until.toUtc().toIso8601String(),
+    if (also.isNotEmpty) 'also': also,
   };
 
   static SafetyRun? fromJson(Object? json) {
@@ -95,7 +113,70 @@ class SafetyRun {
     final space = json['space'];
     final until = DateTime.tryParse(json['until'] as String? ?? '');
     if (space is! String || until == null) return null;
-    return SafetyRun(spaceId: space, until: until);
+    return SafetyRun(
+      spaceId: space,
+      until: until,
+      also: [
+        for (final a in (json['also'] as List? ?? const []))
+          if (a is String) a,
+      ],
+    );
+  }
+}
+
+/// A crash this phone detected: it alerts every circle at [deadline]
+/// unless the driver says they're OK first.
+class CrashRun {
+  const CrashRun({
+    required this.at,
+    required this.deadline,
+    this.lat,
+    this.lng,
+    this.sent = const [],
+  });
+
+  final DateTime at;
+  final DateTime deadline;
+  final double? lat;
+  final double? lng;
+
+  /// Circles its SOS already reached. Non-empty: the countdown is over and
+  /// the SOS is still being retried for the others (offline).
+  final List<String> sent;
+
+  bool get counting => sent.isEmpty;
+
+  CrashRun copyWith({List<String>? sent}) => CrashRun(
+    at: at,
+    deadline: deadline,
+    lat: lat,
+    lng: lng,
+    sent: sent ?? this.sent,
+  );
+
+  Map<String, Object?> toJson() => {
+    'at': at.toUtc().toIso8601String(),
+    'deadline': deadline.toUtc().toIso8601String(),
+    if (lat != null) 'lat': lat,
+    if (lng != null) 'lng': lng,
+    if (sent.isNotEmpty) 'sent': sent,
+  };
+
+  static CrashRun? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final at = DateTime.tryParse(json['at'] as String? ?? '');
+    final deadline = DateTime.tryParse(json['deadline'] as String? ?? '');
+    if (at == null || deadline == null) return null;
+    return CrashRun(
+      at: at,
+      deadline: deadline,
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
+      sent: [
+        for (final s in (json['sent'] as List? ?? const []))
+          if (s is String) s,
+      ],
+    );
   }
 }
 
@@ -111,6 +192,10 @@ class ShareState {
     this.timer,
     this.sos,
     this.pendingDeletes = const [],
+    this.drives = false,
+    this.crashDetection = false,
+    this.crash,
+    this.sosEndPending = const [],
   });
 
   /// The account that turned sharing on. Another account signing in on
@@ -139,6 +224,20 @@ class ShareState {
   /// server (sharing was stopped while offline). Retried until it works.
   final List<String> pendingDeletes;
 
+  /// Drive summaries: this phone keeps a summary of each drive (on the
+  /// phone; circles get it only where [CirclePackage.shareDrives] is on).
+  final bool drives;
+
+  /// Crash detection while driving.
+  final bool crashDetection;
+
+  /// A detected crash counting down to an SOS.
+  final CrashRun? crash;
+
+  /// Circles still to be told an SOS ended ("I'm safe" reached the others
+  /// while this phone went offline). Retried with every update.
+  final List<String> sosEndPending;
+
   bool get sharing => circles.isNotEmpty;
 
   bool pausedAt(DateTime now) =>
@@ -154,6 +253,10 @@ class ShareState {
     SafetyRun? Function()? timer,
     SafetyRun? Function()? sos,
     List<String>? pendingDeletes,
+    bool? drives,
+    bool? crashDetection,
+    CrashRun? Function()? crash,
+    List<String>? sosEndPending,
   }) => ShareState(
     userId: userId,
     deviceId: deviceId,
@@ -165,6 +268,10 @@ class ShareState {
     timer: timer == null ? this.timer : timer(),
     sos: sos == null ? this.sos : sos(),
     pendingDeletes: pendingDeletes ?? this.pendingDeletes,
+    drives: drives ?? this.drives,
+    crashDetection: crashDetection ?? this.crashDetection,
+    crash: crash == null ? this.crash : crash(),
+    sosEndPending: sosEndPending ?? this.sosEndPending,
   );
 
   Map<String, Object?> toJson() => {
@@ -179,6 +286,10 @@ class ShareState {
     if (timer != null) 'timer': timer!.toJson(),
     if (sos != null) 'sos': sos!.toJson(),
     if (pendingDeletes.isNotEmpty) 'pendingDeletes': pendingDeletes,
+    if (drives) 'drives': true,
+    if (crashDetection) 'crashDetection': true,
+    if (crash != null) 'crash': crash!.toJson(),
+    if (sosEndPending.isNotEmpty) 'sosEndPending': sosEndPending,
   };
 
   static ShareState fromJson(Map<String, Object?> json) => ShareState(
@@ -197,6 +308,13 @@ class ShareState {
     pendingDeletes: [
       for (final d in (json['pendingDeletes'] as List? ?? const []))
         if (d is String) d,
+    ],
+    drives: json['drives'] == true,
+    crashDetection: json['crashDetection'] == true,
+    crash: CrashRun.fromJson(json['crash']),
+    sosEndPending: [
+      for (final s in (json['sosEndPending'] as List? ?? const []))
+        if (s is String) s,
     ],
   );
 

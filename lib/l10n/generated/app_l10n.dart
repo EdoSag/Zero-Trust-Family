@@ -1200,6 +1200,174 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Couldn\'t load the history. Check your internet connection.'**
   String get historyCouldNotLoad;
+
+  /// No description provided for @eventCrash.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} may have been in a car crash'**
+  String eventCrash(String name);
+
+  /// No description provided for @eventDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} drove {km} km (top speed {kmh} km/h)'**
+  String eventDrive(String name, String km, String kmh);
+
+  /// No description provided for @crashCountdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Were you in a crash?'**
+  String get crashCountdownTitle;
+
+  /// No description provided for @crashCountdownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your circles get an SOS with your location at {time}, unless you tap I\'m OK.'**
+  String crashCountdownBody(String time);
+
+  /// No description provided for @crashSendNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Send SOS now'**
+  String get crashSendNow;
+
+  /// No description provided for @crashSosSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS sent to your circles'**
+  String get crashSosSentTitle;
+
+  /// No description provided for @crashSosSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They see your live location for an hour. Tap I\'m safe when you are.'**
+  String get crashSosSentBody;
+
+  /// No description provided for @drivingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving'**
+  String get drivingTitle;
+
+  /// No description provided for @drivingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive summaries and crash detection'**
+  String get drivingSubtitle;
+
+  /// No description provided for @drivingNeedsSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location sharing with this circle to use these.'**
+  String get drivingNeedsSharing;
+
+  /// No description provided for @drivesSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive summaries'**
+  String get drivesSwitch;
+
+  /// No description provided for @drivesSwitchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps a summary of each drive on this phone: distance, speed, hard braking and phone use. Uses satellites every second while you drive.'**
+  String get drivesSwitchBody;
+
+  /// No description provided for @shareDrivesSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my drives with this circle'**
+  String get shareDrivesSwitch;
+
+  /// No description provided for @shareDrivesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The circle sees each drive\'s summary in your history, end-to-end encrypted.'**
+  String get shareDrivesBody;
+
+  /// No description provided for @shareDrivesNeedsPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing drive summaries with a circle is part of Plus. Your own drive summaries and crash detection stay free.'**
+  String get shareDrivesNeedsPlus;
+
+  /// No description provided for @crashSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash detection'**
+  String get crashSwitch;
+
+  /// No description provided for @crashSwitchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If the phone feels a hard crash while driving and then stops, it rings for 60 seconds, then sends an SOS with your location to all your circles.'**
+  String get crashSwitchBody;
+
+  /// No description provided for @crashDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash detection can miss a crash or ring when there was none. It does not call emergency services: in an emergency, call your local emergency number.'**
+  String get crashDisclaimer;
+
+  /// No description provided for @turnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get turnOn;
+
+  /// No description provided for @myDrivesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'My drives (on this phone)'**
+  String get myDrivesHeading;
+
+  /// No description provided for @noDrivesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No drives yet. They show here after you drive with drive summaries on.'**
+  String get noDrivesYet;
+
+  /// No description provided for @driveSpeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Top {top} km/h · average {average} km/h'**
+  String driveSpeeds(String top, String average);
+
+  /// No description provided for @hardBrakes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hard brake} other{{count} hard brakes}}'**
+  String hardBrakes(int count);
+
+  /// No description provided for @rapidStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 rapid start} other{{count} rapid starts}}'**
+  String rapidStarts(int count);
+
+  /// No description provided for @phoneUseMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone used {minutes} min'**
+  String phoneUseMinutes(int minutes);
+
+  /// No description provided for @eraseMyDrives.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase my drives'**
+  String get eraseMyDrives;
+
+  /// No description provided for @eraseMyDrivesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes the drives kept on this phone. Drives already shared stay in the circle\'s history until it deletes them.'**
+  String get eraseMyDrivesBody;
+
+  /// No description provided for @drivesErased.
+  ///
+  /// In en, this message translates to:
+  /// **'Drives erased'**
+  String get drivesErased;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

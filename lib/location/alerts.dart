@@ -397,7 +397,7 @@ class AlertEngine {
         final event = await _open(circle, row, boxes);
         if (event == null) continue;
         // History points never alert, and are too many to remember.
-        if (event.kind == FamilyEventKind.point) continue;
+        if (event.kind.quiet) continue;
         if (seen.contains(event.id)) continue;
         seen.add(event.id);
         // Timers are followed even for muted people: a missed one alerts.

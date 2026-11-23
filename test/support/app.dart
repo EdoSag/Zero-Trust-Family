@@ -11,6 +11,7 @@ import 'package:zerotrust_family/data/locations.dart';
 import 'package:zerotrust_family/data/places.dart';
 import 'package:zerotrust_family/l10n/l10n.dart';
 import 'package:zerotrust_family/location/alerts.dart';
+import 'package:zerotrust_family/location/drive.dart';
 import 'package:zerotrust_family/location/timeline.dart';
 import 'package:zerotrust_family/location/location_backend.dart';
 import 'package:zerotrust_family/location/share_store.dart';
@@ -284,6 +285,14 @@ class FakeShareActions extends ShareActions {
 
   @override
   Future<bool> endSos() => _sent('sos end', (s) => s.copyWith(sos: () => null));
+
+  @override
+  Future<bool> cancelCrash() =>
+      _sent('crash ok', (s) => s.copyWith(crash: () => null));
+
+  @override
+  Future<bool> crashSosNow() =>
+      _sent('crash sos', (s) => s.copyWith(crash: () => null));
 }
 
 Widget app(
@@ -299,6 +308,7 @@ Widget app(
   AlertState? alerts,
   bool plus = false,
   Map<DateTime, List<TimelineEntry>> history = const {},
+  List<DriveSummary> drives = const [],
 }) {
   alertStore = InMemoryAlertStore(alerts);
   locationServer = InMemoryLocationServer();
@@ -324,6 +334,7 @@ Widget app(
       circlePlacesProvider.overrideWith((ref, spaceId) async => places),
       circleEventsProvider.overrideWith((ref, spaceId) async => events),
       alertStoreProvider.overrideWithValue(alertStore),
+      myDrivesProvider.overrideWith((ref) async => drives),
       familyPlusProvider.overrideWithValue(plus),
       memberHistoryProvider.overrideWith(
         (ref, key) async => history[key.day] ?? const [],

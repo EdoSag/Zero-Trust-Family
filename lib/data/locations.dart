@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
+import '../location/drive.dart';
 import '../location/location_backend.dart';
 import '../location/location_box.dart';
 import '../location/location_update.dart';
@@ -267,11 +268,12 @@ class ShareActions {
           .read(ztSpacesProvider.notifier)
           .save(spaceId, id, DeviceItem.toJson(keys.publicKeyBytes));
     }
+    final had = state.circles.where((c) => c.spaceId == spaceId).firstOrNull;
     state = state.copyWith(
       circles: [
         for (final c in state.circles)
           if (c.spaceId != spaceId) c,
-        package,
+        package.copyWith(shareDrives: had?.shareDrives),
       ],
     );
     await _store.save(state);
@@ -369,6 +371,38 @@ class ShareActions {
 
   Future<bool> endSos() => _safety((e) => e.endSos());
 
+  /// Drive summaries on this phone (kept here; see [setShareDrives]).
+  Future<void> setDrives(bool on) => _setting((s) => s.copyWith(drives: on));
+
+  /// Crash detection while driving.
+  Future<void> setCrashDetection(bool on) => _setting(
+    (s) => s.copyWith(crashDetection: on, crash: on ? null : () => null),
+  );
+
+  /// Sends this phone's drive summaries to [spaceId] from now on.
+  Future<void> setShareDrives(String spaceId, bool on) => _setting(
+    (s) => s.copyWith(
+      circles: [
+        for (final c in s.circles)
+          c.spaceId == spaceId ? c.copyWith(shareDrives: on) : c,
+      ],
+    ),
+  );
+
+  Future<void> _setting(ShareState Function(ShareState) change) async {
+    final state = await _store.load();
+    if (state == null) return;
+    await _store.save(change(state));
+    _changed();
+    await _service.poke();
+  }
+
+  /// "I'm OK" on a crash countdown, in the app.
+  Future<bool> cancelCrash() => _safety((e) => e.cancelCrash());
+
+  /// "Send SOS now" on a crash countdown, in the app.
+  Future<bool> crashSosNow() => _safety((e) => e.crashSosNow());
+
   /// After unlock and every sync: follows key changes (someone left or was
   /// removed), drops circles this account isn't in, and stops sharing when
   /// another account signed in on this phone.
@@ -403,6 +437,7 @@ class ShareActions {
                   for (final p in fresh.places)
                     if (c.inside[p.id] != null) p.id: c.inside[p.id]!,
                 },
+                shareDrives: c.shareDrives,
               ),
       );
     }
@@ -426,3 +461,17 @@ class ShareActions {
 }
 
 final shareActionsProvider = Provider<ShareActions>(ShareActions.new);
+
+/// This phone's own drives, newest first.
+final myDrivesProvider = FutureProvider.autoDispose<List<DriveSummary>>((
+  ref,
+) async {
+  ref.watch(shareRevisionProvider);
+  final me = ref.watch(myUserIdProvider);
+  if (me == null) return const [];
+  final stored = await ref
+      .read(shareEngineProvider)
+      .drives
+      .load(me, DateTime.now());
+  return [for (final d in stored) d.drive];
+});

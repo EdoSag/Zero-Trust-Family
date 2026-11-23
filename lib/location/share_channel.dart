@@ -11,8 +11,10 @@ import '../data/locations.dart';
 import '../l10n/event_text.dart';
 import '../l10n/l10n.dart';
 import 'alerts.dart';
+import 'drive.dart';
 import 'schedule.dart';
 import 'share_engine.dart';
+import 'share_store.dart';
 
 /// The link between the Android sharing service (`ShareService.kt`) and
 /// [ShareEngine], over channel `zt_family/share`.
@@ -60,6 +62,22 @@ class ShareChannel implements ShareServiceControl {
         case 'timerOk':
           await engine.endTimer();
           result = await engine.current();
+        // One second each of satellites and accelerometer while driving.
+        case 'drive':
+          result = await engine.onDrive([
+            for (final raw in (args['samples'] as List? ?? const []))
+              ?DriveSample.fromMap(raw),
+          ]);
+        // The crash countdown's buttons, and "I'm safe" after its SOS.
+        case 'crashOk':
+          await engine.cancelCrash();
+          result = await engine.current();
+        case 'crashSos':
+          await engine.crashSosNow();
+          result = await engine.current();
+        case 'sosEnd':
+          await engine.endSos();
+          result = await engine.current();
         default:
           throw MissingPluginException(call.method);
       }
@@ -95,11 +113,12 @@ class ShareChannel implements ShareServiceControl {
             ),
             ShareHealth.stopped => (l.notifySharingTitle, l.notifySharingBody),
           };
-    final timer = (await engine.store.load())?.timer;
+    final state = await engine.store.load();
+    final timer = state?.timer;
+    final now = DateTime.now();
     DateTime? wakeAt;
     if (timer != null) {
       final remind = timer.until.subtract(timerReminder);
-      final now = DateTime.now();
       if (now.isBefore(remind)) {
         wakeAt = remind;
       } else {
@@ -107,9 +126,27 @@ class ShareChannel implements ShareServiceControl {
         await _remindTimer(timer.until, l);
       }
     }
+    final crash = state?.crash;
+    if (crash != null) {
+      // The countdown's end comes first: an SOS can't wait for a timer.
+      // Past it (offline, or some circles not reached yet), try again in a
+      // minute.
+      final at = crash.deadline.isAfter(now)
+          ? crash.deadline
+          : now.add(const Duration(minutes: 1));
+      if (wakeAt == null || at.isBefore(wakeAt)) wakeAt = at;
+    }
+    if (crash != null && crash.counting) {
+      await _crashCountdown(crash, l);
+    } else {
+      await _crashOver(state, l);
+    }
     return {
-      // Wake up for the safety timer even if the phone is still.
+      // Wake up for the safety timer or a crash countdown even if the
+      // phone is still.
       if (wakeAt != null) 'wakeAt': wakeAt.millisecondsSinceEpoch,
+      // Satellites every second and the accelerometer, while driving.
+      'drive': engine.wantsDriveSensors(state, now),
       'stop': result.stop && !alertsOn,
       'locate': !result.stop,
       'intervalMs': alertsOnly
@@ -119,6 +156,65 @@ class ShareChannel implements ShareServiceControl {
       'text': text,
       'channelName': l.notifyChannelName,
     };
+  }
+
+  /// The crash countdown's notification (and, after it, the SOS's).
+  static const crashNotification = 0x3fff0001;
+
+  DateTime? _crashShown;
+
+  /// "Were you in a crash? Your circle gets an SOS at 14:32", ringing,
+  /// with "I'm OK" and "Send SOS now".
+  Future<void> _crashCountdown(CrashRun crash, AppL10n l) async {
+    if (_crashShown == crash.at) return;
+    _crashShown = crash.at;
+    final time = DateFormat.Hms(l.localeName).format(crash.deadline.toLocal());
+    try {
+      await _channel.invokeMethod<void>('notify', {
+        'id': crashNotification,
+        'title': l.crashCountdownTitle,
+        'text': l.crashCountdownBody(time),
+        'quiet': false,
+        'urgent': true,
+        'ongoing': true,
+        'actionLabel': l.imOk,
+        'actionKind': 'crashOk',
+        'action2Label': l.crashSendNow,
+        'action2Kind': 'crashSos',
+        'channelName': l.alertsChannelName,
+        'quietChannelName': l.alertsQuietChannelName,
+        'urgentChannelName': l.sosChannelName,
+      });
+    } on MissingPluginException {
+      // Tests.
+    }
+  }
+
+  /// After a countdown: says the SOS went out (with "I'm safe"), or takes
+  /// the countdown away when the driver was OK.
+  Future<void> _crashOver(ShareState? state, AppL10n l) async {
+    if (_crashShown == null) return;
+    _crashShown = null;
+    try {
+      if (state?.sos != null) {
+        await _channel.invokeMethod<void>('notify', {
+          'id': crashNotification,
+          'title': l.crashSosSentTitle,
+          'text': l.crashSosSentBody,
+          'quiet': false,
+          'urgent': false,
+          'actionLabel': l.imSafe,
+          'actionKind': 'sosEnd',
+          'channelName': l.alertsChannelName,
+          'quietChannelName': l.alertsQuietChannelName,
+          'urgentChannelName': l.sosChannelName,
+        });
+      } else {
+        await _channel.invokeMethod<void>('cancel', {'id': crashNotification});
+      }
+    } on MissingPluginException {
+      // Tests.
+    }
   }
 
   /// How long before a safety timer runs out its owner is reminded.

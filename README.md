@@ -70,7 +70,7 @@ Not planned: hidden tracking of any kind, and screen time or app blocking.
 | L2 | Places with arrive and leave alerts |
 | L3 | Check-ins, safety timer, SOS |
 | L4 | History, Play Store declarations and listing, release checks |
-| L5 | Drive summaries, crash detection, Wear OS SOS |
+| L5 | Drive summaries, crash detection (Wear OS SOS later) |
 | L6 | iOS |
 
 ## Build
@@ -131,6 +131,15 @@ releases are one `Dev` → `main` pull request.
   by a device its member published), and turning sharing on, off, paused or
   live. Each sharing phone publishes its device key as the item
   `family.me/<user id>/device/<device id>`.
+- `lib/location/drive.dart`: drive summaries and crash detection (opt-in,
+  L5). While the phone is driving, `ShareService.kt` takes one sample a
+  second (satellite speed and position, the hardest accelerometer jolt,
+  whether the phone was in use) and sends them in batches. `DriveTracker`
+  turns them into drive summaries (kept on the phone in the Keystore,
+  `drive_store.dart`, and sent as sealed `drive` events only to circles the
+  driver chose); `CrashDetector` looks for a hard jolt at speed followed by
+  a stop, then the phone rings for 60 seconds and sends an SOS to every
+  circle unless the driver taps "I'm OK".
 - The location tables (`family_latest`, `family_events`) are in
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`.
 
