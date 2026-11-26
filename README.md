@@ -1,50 +1,72 @@
 # Zero-Trust Family
 
-End-to-end encrypted family location sharing and safety check-ins (on the
-phone: **ZT Family**). Same account, settings and look as the other Zero-Trust
-apps, built on [Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core).
-The server stores only ciphertext and can never see where anyone is.
+End-to-end encrypted family location sharing and safety check-ins. The
+server stores only ciphertext and can never see where anyone is. On the
+phone it is called **ZT Family**; in stores and on release pages,
+**Zero-Trust Family**. Same account, settings and look as the other
+Zero-Trust apps, built on
+[Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core). Part of the
+[Zero-Trust suite](https://zerotrust.bz).
 
-> **Status: phase L4.** Family circles work (create, invite by link or QR
-> code, join, leave), and each member can share their location with a
-> circle, also while the phone is locked: an end-to-end encrypted position
-> and battery level, on a battery-saving schedule, with pause and "Share
-> live". Circles have places (Home, School), each phone works out its own
-> arrivals and departures, and members can opt in to alerts that show while
-> the app is locked, with quiet hours and a choice of whom to hear about.
->
-> Members can check in ("I'm here", with a short note), ask someone to
-> check in, and set a safety timer: if they don't tap "I'm OK" in time, the
-> circle is alerted and sees them live for an hour, even if their phone is
-> off (every reader's phone watches the deadline itself). SOS is sent by
-> holding a button for 2 seconds; it rings past quiet hours and muting and
-> shares live for an hour.
->
-> Each member's history (stops, trips, check-ins and alerts) shows a day at
-> a time for as long as the circle keeps it: 7 days by default, chosen by
-> the owner, up to 30 with Plus. Anyone can erase their own history. Plus
-> also lifts the limit of 5 places; safety is always free. Play listing
-> text is in `fastlane/` and the Play Console answers in
-> `docs/play-declarations.md`.
+## What it does
 
-## What it will do
-
+- **Family circles:** create a circle, invite people by link or QR code,
+  join, leave.
 - **Family map:** everyone's last location, with accuracy, time since the
   last update, battery level and whether they are still, moving or paused.
-- **Places:** Home, School, Work or any place, with arrive and leave alerts.
-  Each phone watches the places itself, so the server never learns a place or
-  a crossing.
-- **Check-ins:** "I'm here", "Ask for a check-in", and a safety timer ("if I
-  don't check in by 23:30, alert my family and share my live location").
-- **SOS:** hold a button to alert the family circle with live location.
-- **History:** a timeline per person, kept for a limited number of days and
-  then deleted.
-- **Pause:** anyone can pause sharing; the circle sees "Paused", never a fake
-  location.
+  Sharing works while the phone is locked, on a battery-saving schedule,
+  with "Share live".
+- **Places:** Home, School, Work or any place, with arrive and leave
+  alerts. Each phone works out its own arrivals and departures, so the
+  server never learns a place or a crossing. Alerts are opt-in, show while
+  the app is locked, and have quiet hours and a choice of whom to hear
+  about.
+- **Check-ins:** "I'm here" with a short note, "Ask for a check-in", and a
+  safety timer: if you don't tap "I'm OK" in time, the circle is alerted
+  and sees you live for an hour, even if your phone is off (every reader's
+  phone watches the deadline itself).
+- **SOS:** hold a button for 2 seconds. It rings past quiet hours and
+  muting and shares live for an hour.
+- **History:** each member's stops, trips, check-ins and alerts, a day at a
+  time, for as long as the circle keeps it (7 days by default, chosen by
+  the owner). Anyone can erase their own history.
+- **Pause:** anyone can pause sharing; the circle sees "Paused", never a
+  fake location.
+- **Approximate location** (per circle, on each phone): positions to that
+  circle are snapped to a grid cell about 3 km across. An SOS or a missed
+  safety timer always sends the exact position.
+- **Place reminders for someone else:** a reminder shown on a member's
+  phone when they arrive at or leave a place.
+- **Share my trip:** a link that shows your position for 1, 2 or 4 hours
+  to someone without the app (`https://zerotrust.bz/trip/#…`). The key is
+  in the part of the link that never reaches a server.
+- **Drive summaries and crash detection** (opt-in): distance, speed, hard
+  braking and phone use for each drive, kept on the phone. After a hard
+  jolt at speed followed by a stop, the phone rings for 60 seconds and
+  then sends an SOS to every circle unless you tap "I'm OK". It can miss a
+  crash or ring when there was none, and it does not call emergency
+  services.
+- **Family hub:** the circle is also the family space of the other apps.
+  It shows, read-only, events from ZT Calendar, task lists from ZT Tasks
+  and today's doses from ZT Meds that members chose to show there.
+
+Safety is always free: the map, places, alerts, check-ins, the safety
+timer, SOS and 7 days of history. Plus adds more than 5 places, up to 30
+days of history and sharing drive summaries with a circle.
 
 Not planned: hidden tracking of any kind, and screen time or app blocking.
+Not built yet: iOS, and SOS from a Wear OS watch.
 
-## How it will be built
+## Privacy
+
+Like every Zero-Trust app, it is zero-knowledge: your data is encrypted on
+your device, with keys made from your password, before anything is sent.
+The server stores only ciphertext and your password itself is never
+sent, so neither we nor anyone who breaks into the server can read your
+data. The recovery key shown at sign-up is the only way back in if you
+forget the password. How the keys work:
+[Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core#key-hierarchy) and
+[zerotrust.bz/security](https://zerotrust.bz/security/).
 
 - A **family circle is a shared space** from Zero-Trust-Core (invite by link
   or QR code, signed member list, key rotation when someone is removed).
@@ -61,41 +83,31 @@ Not planned: hidden tracking of any kind, and screen time or app blocking.
 - Every member is 13 or older, has their own account and turns sharing on
   from their own phone. A notification is always shown while sharing is on.
 
-## Phases
+## One account, one core
 
-| Phase | Scope |
-|---|---|
-| L0 | App shell on Core, family circle (create, invite, join, leave), database tables |
-| L1 | Background sharing, battery schedule, family map, pause |
-| L2 | Places with arrive and leave alerts |
-| L3 | Check-ins, safety timer, SOS |
-| L4 | History, Play Store declarations and listing, release checks |
-| L5 | Drive summaries, crash detection (Wear OS SOS later) |
-| L6 | iOS |
+One Zero-Trust account opens every app in the suite. Sign-in, unlock
+(fingerprint or face, auto-lock), the recovery key, settings, the look,
+sync and languages come from
+[Zero-Trust-Core](https://github.com/EdoSag/Zero-Trust-Core), so they work
+the same in every app. Accounts made before the core still sign in and
+see their data.
 
-## Build
+## Install
 
-```bash
-# .env (not committed; CI writes its own)
-SUPABASE_URL=https://<project>.supabase.co
-SUPABASE_ANON_KEY=<publishable key>
-# Optional: a Protomaps v3 PMTiles file (self-hosted). Without it the circle
-# shows no map, and "Show on map" opens the phone's maps app instead.
-FAMILY_MAP_URL=https://<your tiles host>/<file>.pmtiles
+Android: get the latest signed APK from this repository's
+[Releases](https://github.com/EdoSag/Zero-Trust-Family/releases/latest),
+or from [zerotrust.bz/install](https://zerotrust.bz/install/#family),
+which also shows each file's SHA-256, the signing fingerprint and an
+Obtainium link. GitHub Releases are the main way the apps are published.
 
-flutter pub get
-dart run zt_release_checks --app family   # shared release checks
-flutter analyze && flutter test test/
-flutter run
-```
+Builds from GitHub check for a newer release themselves (Settings > About,
+one anonymous request a day, can be turned off). Every Zero-Trust app is signed
+with the same key, and Android only installs an update signed with it.
 
-Flutter 3.47.9 (3.50 deprecates `material.dart` and fails analyze).
+## Languages
 
-Pushing to `main` builds a signed APK and a Play bundle and publishes them as
-a GitHub Release (`.github/workflows/android-apk.yml`). It needs the
-repository secrets `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`,
-the same keystore as the other Zero-Trust apps. Pull requests target `Dev`;
-releases are one `Dev` → `main` pull request.
+English and Hebrew, with right-to-left layout. Choose under
+Settings > Appearance > Language.
 
 ## How the code is laid out
 
@@ -172,6 +184,80 @@ releases are one `Dev` → `main` pull request.
   Zero-Trust-Core, `supabase/migrations/20261118120000_family_location_tables.sql`;
   trip links in `20261123090000_family_trip_shares.sql`.
 
+## Build from source
+
+Flutter 3.47.9, the version CI pins (3.50 deprecates `material.dart` and
+fails analyze).
+
+```bash
+# .env (not committed; CI writes its own). Public client values only:
+# never a service-role key, because .env is bundled into the APK.
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_ANON_KEY=<publishable key>
+# Optional: a Protomaps v3 PMTiles file (self-hosted). Without it the circle
+# shows no map, and "Show on map" opens the phone's maps app instead.
+FAMILY_MAP_URL=https://<your tiles host>/<file>.pmtiles
+
+flutter pub get
+dart run zt_release_checks --app family   # shared release checks
+flutter analyze && flutter test test/
+flutter run
+```
+
+Never add `cryptography_flutter`: it breaks the core's key derivation and
+sign-in fails.
+
+## Branches and releases
+
+Work happens on `Dev`: pull requests target `Dev`, never `main`, and get a
+test build. A release is one `Dev` → `main` pull request. Every push to
+`main` runs the suite's release checks, builds a signed APK and a Google Play bundle
+and publishes them as a GitHub Release named "Zero-Trust Family"
+(`.github/workflows/android-apk.yml`). The workflow needs the repository
+secrets `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`, the
+keystore shared by all Zero-Trust apps.
+
+Play listing text is in `fastlane/` and the Play Console answers in
+`docs/play-declarations.md`.
+
+## Support and security
+
+- Help centre: [zerotrust.bz/help](https://zerotrust.bz/help/). Questions and
+  account deletion: support@zerotrust.bz.
+- Security problems: please report them privately to cyber@zerotrust.bz. What
+  the encryption does and doesn't protect against is on
+  [zerotrust.bz/security](https://zerotrust.bz/security/).
+- [Privacy policy](https://zerotrust.bz/privacy/) and
+  [terms](https://zerotrust.bz/terms/).
+
 ## License
 
-AGPL-3.0. See [LICENSE](LICENSE).
+Copyright (C) 2026 Edo Sagron (https://zerotrust.bz)
+
+Zero-Trust is open source under the [GNU Affero General Public License v3.0](LICENSE)
+(AGPL-3.0-only), the same licence Signal uses.
+
+- You may use, study, change and share the code, including in your own projects.
+- If you share a changed version, or run it for other people over a network, you must
+  publish your full source code under the same licence.
+- This program comes with no warranty; see the licence for details.
+
+Third-party libraries keep their own licences; the app lists them under
+Settings > Open-source licences.
+
+### Name and logo
+
+The AGPL covers the code, not the brand. "Zero-Trust", "ZT", the app names and icons are
+reserved. If you publish a fork, give it a different name and icon so nobody mistakes it
+for an official Zero-Trust app.
+
+### Servers
+
+The official apps use the Zero-Trust servers. A fork must use its own backend (for
+example its own Supabase project) and must not connect to the official servers.
+
+### Contributing
+
+Pull requests are welcome. By sending one you agree that your contribution is licensed
+under the AGPL-3.0 and that the copyright holder may also license it under other terms,
+including commercially. This keeps the project able to offer paid plans and other licences.
