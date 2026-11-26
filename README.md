@@ -189,15 +189,21 @@ Settings > Appearance > Language.
 Flutter 3.47.9, the version CI pins (3.50 deprecates `material.dart` and
 fails analyze).
 
-```bash
-# .env (not committed; CI writes its own). Public client values only:
-# never a service-role key, because .env is bundled into the APK.
+First create a file named `.env` in the project folder. It is not committed
+(CI writes its own) and it is bundled into the APK, so it holds public client
+values only, never a service-role key:
+
+```
 SUPABASE_URL=https://<project>.supabase.co
 SUPABASE_ANON_KEY=<publishable key>
 # Optional: a Protomaps v3 PMTiles file (self-hosted). Without it the circle
 # shows no map, and "Show on map" opens the phone's maps app instead.
 FAMILY_MAP_URL=https://<your tiles host>/<file>.pmtiles
+```
 
+Then:
+
+```bash
 flutter pub get
 dart run zt_release_checks --app family   # shared release checks
 flutter analyze && flutter test test/
